@@ -11,11 +11,11 @@ pub struct Events {
 }
 
 impl Events {
-    pub fn new(pump: EventPump, mappings: &str) -> Events {
+    pub fn new(pump: EventPump, mappings_path: &str) -> Events {
         Events {
             pump: pump,
             events: HashSet::new(),
-            mappings: KeyboardMappings::new(mappings),
+            mappings: KeyboardMappings::from_file(mappings_path),
         }
     }
 
@@ -36,6 +36,9 @@ impl Events {
                         None => return,
                     };
                     self.events.remove(&action);
+                }
+                Event::Quit { .. } => {
+                    self.events.insert("QUIT".to_owned());
                 }
                 _ => {}
             }

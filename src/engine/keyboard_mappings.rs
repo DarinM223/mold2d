@@ -16,7 +16,7 @@ enum MappingState {
 }
 
 // TODO(DarinM223): fix this
-pub const KEYBOARD_DEFAULTS: &'static str = "10 hello 11 world";
+pub const KEYBOARD_DEFAULTS: &'static str = "27 ESC 11 world";
 
 impl KeyboardMappings {
     /// Creates a new keyboard mapper given a keyboard mapping string

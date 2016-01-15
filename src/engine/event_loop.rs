@@ -1,10 +1,17 @@
+use engine::context::Context;
+use engine::events::Events;
+use sdl2;
 use sdl2::TimerSubsystem;
+use sdl2::pixels::Color;
+use sdl2_ttf;
 
 const FRAME_INTERVAL: u32 = 1000 / 60;
 
 enum FrameAction {
+    /// Block the event loop 
     Delay,
-    Continue,
+    /// Continue with the elapsed time
+    Continue(f64),
 }
 
 struct FrameTimer<'a> {
@@ -50,6 +57,47 @@ impl<'a> FrameTimer<'a> {
             self.fps = 0;
         }
 
-        FrameAction::Continue
+        FrameAction::Continue(elapsed)
+    }
+}
+
+pub struct Window {
+    pub title: String,
+    pub width: u32,
+    pub height: u32,
+}
+
+pub fn create_event_loop(window: Window) {
+    let sdl_context = sdl2::init().unwrap();
+    let video = sdl_context.video().unwrap();
+    let mut timer = sdl_context.timer().unwrap();
+    let ttf_context = sdl2_ttf::init();
+
+    let window = video.window(window.title.as_str(), window.width, window.height)
+                      .position_centered()
+                      .opengl()
+                      .build()
+                      .unwrap();
+
+    let mut game_context = Context::new(Events::new(sdl_context.event_pump().unwrap(), ""),
+                                        window.renderer().accelerated().build().unwrap());
+
+    let mut frame_timer = FrameTimer::new(&mut timer, true);
+
+    loop {
+        let mut elapsed = 0.0;
+        match frame_timer.on_frame() {
+            FrameAction::Delay => continue,
+            FrameAction::Continue(elpsed) => elapsed = elpsed,
+        }
+
+        game_context.events.poll();
+
+        if game_context.events.event_called("QUIT") || game_context.events.event_called("ESC") {
+            break;
+        }
+
+        game_context.renderer.set_draw_color(Color::RGB(0, 0, 0));
+        game_context.renderer.clear();
     }
 }

@@ -13,5 +13,10 @@ mod engine;
 mod game;
 
 fn main() {
-    println!("Hello world!");
+    let window = engine::event_loop::Window {
+        title: "Window".to_owned(),
+        width: 800,
+        height: 600,
+    };
+    engine::event_loop::create_event_loop(window);
 }
