@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::io::prelude::*;
+use std::fs::File;
 
 /// Loads keyboard mappings
 /// Mappings are defined as keycode (integer) -> action (string)
@@ -13,9 +15,11 @@ enum MappingState {
     Action(i32),
 }
 
+// TODO(DarinM223): fix this
+pub const KEYBOARD_DEFAULTS: &'static str = "10 hello 11 world";
+
 impl KeyboardMappings {
-    /// Creates a new keyboard given a path to a 
-    /// keyboard mapping string
+    /// Creates a new keyboard mapper given a keyboard mapping string
     pub fn new(mappings: &str) -> KeyboardMappings {
         let mapping_str = mappings.to_owned();
         let token_stream: Vec<_> = mapping_str.split(|x| (x == ' ') || (x == '\n'))
@@ -41,6 +45,19 @@ impl KeyboardMappings {
         }
 
         return keyboard_mappings;
+    }
+
+    /// Creates a new keyboard mapper given a path to a keyboard mapping file
+    pub fn from_file(path: &str) -> KeyboardMappings {
+        // try to open file, but if file doesn't exist just use defaults
+        match File::open(path) {
+            Ok(ref mut f) => {
+                let mut mappings = String::new();
+                f.read_to_string(&mut mappings);
+                KeyboardMappings::new(mappings.as_str())
+            }
+            _ => KeyboardMappings::new(KEYBOARD_DEFAULTS),
+        }
     }
 
     /// Returns the action command given a keycode

@@ -10,8 +10,8 @@
 //! Loads maps from text files
 //! A point system
 //! A main menu rendering system
-//!
 
 pub mod context;
 pub mod event_loop;
+pub mod events;
 pub mod keyboard_mappings;
