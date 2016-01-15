@@ -1,6 +1,5 @@
-//!
 //! The core 2D game engine built from scratch using SDL for graphics and windowing
-//! 
+//!
 //! What the engine does (or should do):
 //! Abstracts the event loop
 //! Reads keyboard mappings from files
@@ -13,4 +12,6 @@
 //! A main menu rendering system
 //!
 
-
+pub mod context;
+pub mod event_loop;
+pub mod keyboard_mappings;
