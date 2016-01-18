@@ -4,7 +4,7 @@
 //! Abstracts the event loop
 //! Reads keyboard mappings from files
 //! Handles keyboard inputs based on the mapping
-//! Handles sprite rendering
+//! Handles sprite and view rendering
 //! Includes a renderer interface to render sprites and backgrounds
 //! Uses a grid based map system with scrolling support
 //! Loads maps from text files
@@ -14,4 +14,7 @@
 pub mod context;
 pub mod event_loop;
 pub mod events;
+pub mod geo_utils;
 pub mod keyboard_mappings;
+pub mod sprite;
+pub mod view;

@@ -61,12 +61,14 @@ impl<'a> FrameTimer<'a> {
     }
 }
 
+/// Represents a SDL window to render
 pub struct Window {
     pub title: String,
     pub width: u32,
     pub height: u32,
 }
 
+/// Initializes SDL and creates the window and event loop
 pub fn create_event_loop(window: Window) {
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();

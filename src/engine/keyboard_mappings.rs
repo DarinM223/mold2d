@@ -2,12 +2,8 @@ use std::collections::HashMap;
 use std::io::prelude::*;
 use std::fs::File;
 
-/// Loads keyboard mappings
-/// Mappings are defined as keycode (integer) -> action (string)
-#[derive(Debug)]
-pub struct KeyboardMappings {
-    key_map: HashMap<i32, String>,
-}
+// TODO(DarinM223): fix this
+pub const KEYBOARD_DEFAULTS: &'static str = "27 ESC 11 world";
 
 #[derive(PartialEq, Eq)]
 enum MappingState {
@@ -15,8 +11,12 @@ enum MappingState {
     Action(i32),
 }
 
-// TODO(DarinM223): fix this
-pub const KEYBOARD_DEFAULTS: &'static str = "27 ESC 11 world";
+/// Loads keyboard mappings
+/// Mappings are defined as keycode (integer) -> action (string)
+#[derive(Debug)]
+pub struct KeyboardMappings {
+    key_map: HashMap<i32, String>,
+}
 
 impl KeyboardMappings {
     /// Creates a new keyboard mapper given a keyboard mapping string
@@ -44,7 +44,7 @@ impl KeyboardMappings {
             }
         }
 
-        return keyboard_mappings;
+        keyboard_mappings
     }
 
     /// Creates a new keyboard mapper given a path to a keyboard mapping file
@@ -62,7 +62,7 @@ impl KeyboardMappings {
 
     /// Returns the action command given a keycode
     pub fn get_action(&self, keycode: i32) -> Option<&String> {
-        return self.key_map.get(&keycode);
+        self.key_map.get(&keycode)
     }
 }
 
