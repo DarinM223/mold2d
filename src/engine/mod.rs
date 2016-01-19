@@ -11,10 +11,13 @@
 //! A point system
 //! A main menu rendering system
 
+#[macro_use]
+pub mod sprite;
+
 pub mod context;
 pub mod event_loop;
 pub mod events;
 pub mod geo_utils;
 pub mod keyboard_mappings;
-pub mod sprite;
+
 pub mod view;
