@@ -14,6 +14,14 @@ pub trait View {
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ViewAction;
 }
 
+pub trait Actor {
+    /// Called every frame to render an actor
+    fn render(&mut self, context: &mut Context, elapsed: f64);
+
+    /// Called every frame to update an actor
+    fn update(&mut self, context: &mut Context, elapsed: f64);
+}
+
 pub enum GameState {
     Normal,
     Paused,

@@ -1,5 +1,7 @@
 use engine::context::Context;
 use engine::events::Events;
+use engine::view::Actor;
+use game::asteroid::Asteroid;
 use sdl2;
 use sdl2::TimerSubsystem;
 use sdl2::pixels::Color;
@@ -86,6 +88,8 @@ pub fn create_event_loop(window: Window) {
 
     let mut frame_timer = FrameTimer::new(&mut timer, true);
 
+    let mut asteroid = Asteroid::new(&mut game_context.renderer, FRAME_INTERVAL as f64);
+
     loop {
         let mut elapsed = 0.0;
         match frame_timer.on_frame() {
@@ -101,5 +105,8 @@ pub fn create_event_loop(window: Window) {
 
         game_context.renderer.set_draw_color(Color::RGB(0, 0, 0));
         game_context.renderer.clear();
+
+        asteroid.update(&mut game_context, elapsed);
+        asteroid.render(&mut game_context, elapsed);
     }
 }

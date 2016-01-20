@@ -10,6 +10,33 @@ pub trait Renderable {
     fn render(&self, renderer: &mut Renderer, dest: Rect);
 }
 
+/// A sprite based mutable rectangle
+pub struct Rectangle {
+    pub x: i32,
+    pub y: i32,
+    pub w: u32,
+    pub h: u32,
+}
+
+impl Rectangle {
+    pub fn new(x: i32, y: i32, w: u32, h: u32) -> Rectangle {
+        Rectangle {
+            x: x,
+            y: y,
+            w: w,
+            h: h
+        }
+    }
+
+    pub fn to_sdl(&self) -> Option<Rect> {
+        if self.w < 0 || self.h < 0 {
+            return None;
+        }
+
+        Rect::new(self.x, self.y, self.w, self.h).unwrap()
+    }
+}
+
 #[derive(Clone)]
 pub struct Sprite {
     tex: Rc<RefCell<Texture>>,
@@ -123,9 +150,9 @@ impl Renderable for AnimatedSprite {
 ///     sprite_side: 100,
 ///     sprites_in_row: 5,
 ///     animations: {
-///        Idle: 1..5
+///        Idle: 0..5,
 ///        Walking: 5..10,
-///        Running: 10..15,
+///        Running: 10..15
 ///     }
 /// }
 /// ```
@@ -136,15 +163,9 @@ macro_rules! spritesheet {
         path: $path:expr,
         sprite_side: $sprite_side:expr,
         sprites_in_row: $sprites_in_row:expr,
-        animations: { $( $a_alias:ident : $a_range:expr ),* }
+        animations: { $( $a_alias:ident : $a_range:expr ),* },
+        properties: { $( $p_alias:ident : $p_type:ident => $p_value:expr ),* }
     ) => {
-        use engine::sprite::{AnimatedSprite, Sprite};
-        use sdl2::rect::Rect;
-        use sdl2::render::Renderer;
-        use self::$state::*;
-        use std::collections::HashMap;
-        use std::hash::Hash;
-
         #[derive(Clone, PartialEq, Eq, Debug, Hash)]
         pub enum $state {
             $( $a_alias ),*
@@ -152,31 +173,41 @@ macro_rules! spritesheet {
 
         pub struct $name {
             pub path: &'static str,
-            pub animations: HashMap<$state, AnimatedSprite>,
+            pub animations: ::std::collections::HashMap<$state, ::engine::sprite::AnimatedSprite>,
+            $( pub $p_alias: $p_type ),*
         }
 
         impl $name {
-            pub fn new(renderer: &mut Renderer, fps: f64) -> $name {
-                let spritesheet = Sprite::load(renderer, $path).unwrap();
-                let mut animations = HashMap::new();
+            pub fn new(renderer: &mut ::sdl2::render::Renderer, fps: f64) -> $name {
+                let spritesheet = match ::engine::sprite::Sprite::load(renderer, $path) {
+                    Some(spritesheet) => spritesheet,
+                    None => panic!("{} is not a valid path", $path),
+                };
+
+                let mut animations = ::std::collections::HashMap::new();
 
                 $(
-                    let sprites: Vec<Sprite> = $a_range.map(|elem| {
+                    let sprites: Vec<::engine::sprite::Sprite> = $a_range.map(|elem| {
                         let x = elem % $sprites_in_row;
                         let y = elem / $sprites_in_row;
 
-                        let region = Rect::new($sprite_side * x, $sprite_side * y, $sprite_side, $sprite_side)
+                        let region = ::sdl2::rect::Rect::new($sprite_side * x, 
+                                                             $sprite_side * y, 
+                                                             $sprite_side, 
+                                                             $sprite_side)
                                          .unwrap()
                                          .unwrap();
+
                         spritesheet.region(region).unwrap()
                     }).collect();
 
-                    animations.insert($a_alias, AnimatedSprite::with_fps(sprites, fps));
+                    animations.insert($state::$a_alias, ::engine::sprite::AnimatedSprite::with_fps(sprites, fps));
                  )*
 
                  $name {
                      path: $path,
                      animations: animations,
+                     $( $p_alias: $p_value ),*
                  }
             }
         }

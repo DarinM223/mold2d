@@ -2,6 +2,8 @@
 //! An attempt to build a 2d platformer game from scratch
 //! using only SDL for graphics
 
+pub mod asteroid;
+
 use engine::event_loop;
 use engine::event_loop::Window;
 
