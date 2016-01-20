@@ -11,13 +11,13 @@ pub trait Renderable {
 }
 
 #[derive(Clone)]
-struct Sprite {
+pub struct Sprite {
     tex: Rc<RefCell<Texture>>,
     src: Rect,
 }
 
 impl Sprite {
-    fn new(texture: Texture) -> Sprite {
+    pub fn new(texture: Texture) -> Sprite {
         let tex_query = texture.query();
 
         Sprite {
@@ -26,11 +26,11 @@ impl Sprite {
         }
     }
 
-    fn load(renderer: &Renderer, path: &str) -> Option<Sprite> {
+    pub fn load(renderer: &Renderer, path: &str) -> Option<Sprite> {
         renderer.load_texture(Path::new(path)).ok().map(Sprite::new)
     }
 
-    fn region(&self, rect: Rect) -> Option<Sprite> {
+    pub fn region(&self, rect: Rect) -> Option<Sprite> {
         let new_src = Rect::new(rect.x() + self.src.x(),
                                 rect.y() + self.src.y(),
                                 rect.width(),
@@ -75,7 +75,7 @@ impl AnimatedSprite {
         }
     }
 
-    fn with_fps(frames: Vec<Sprite>, fps: f64) -> AnimatedSprite {
+    pub fn with_fps(frames: Vec<Sprite>, fps: f64) -> AnimatedSprite {
         if fps == 0.0 {
             panic!("Passed 0 to AnimatedSprite::with_fps");
         }
@@ -120,6 +120,8 @@ impl Renderable for AnimatedSprite {
 ///     name: Koopa,
 ///     state: KoopaState,
 ///     path: "/assets/foo",
+///     sprite_side: 100,
+///     sprites_in_row: 5,
 ///     animations: {
 ///        Idle: 1..5
 ///        Walking: 5..10,
@@ -127,44 +129,56 @@ impl Renderable for AnimatedSprite {
 ///     }
 /// }
 /// ```
-///
-/// should generate:
-///
-/// ```
-/// use engine::sprite::AnimatedSprite;
-///
-/// #[derive(Clone, PartialEq, Debug)]
-/// pub enum KoopaState {
-///     Idle,
-///     Walking,
-///     Running,
-/// }
-///
-/// #[derive(Clone, Debug)]
-/// pub struct Koopa {
-///     path: "/assets/foo",
-///     Idle: AnimatedSprite,
-///     Walking: AnimatedSprite,
-///     Running: AnimatedSprite,
-/// }
-/// ```
 macro_rules! spritesheet {
     (
         name: $name:ident,
         state: $state:ident,
         path: $path:expr,
+        sprite_side: $sprite_side:expr,
+        sprites_in_row: $sprites_in_row:expr,
         animations: { $( $a_alias:ident : $a_range:expr ),* }
     ) => {
-        use engine::sprite::AnimatedSprite;
+        use engine::sprite::{AnimatedSprite, Sprite};
+        use sdl2::rect::Rect;
+        use sdl2::render::Renderer;
+        use self::$state::*;
+        use std::collections::HashMap;
+        use std::hash::Hash;
 
-        #[derive(Clone, PartialEq, Debug)]
+        #[derive(Clone, PartialEq, Eq, Debug, Hash)]
         pub enum $state {
             $( $a_alias ),*
         }
 
         pub struct $name {
-            pub path: String,
-            $( pub $a_alias: AnimatedSprite ),*
+            pub path: &'static str,
+            pub animations: HashMap<$state, AnimatedSprite>,
+        }
+
+        impl $name {
+            pub fn new(renderer: &mut Renderer, fps: f64) -> $name {
+                let spritesheet = Sprite::load(renderer, $path).unwrap();
+                let mut animations = HashMap::new();
+
+                $(
+                    let sprites: Vec<Sprite> = $a_range.map(|elem| {
+                        let x = elem % $sprites_in_row;
+                        let y = elem / $sprites_in_row;
+
+                        let region = Rect::new($sprite_side * x, $sprite_side * y, $sprite_side, $sprite_side)
+                                         .unwrap()
+                                         .unwrap();
+                        spritesheet.region(region).unwrap()
+                    }).collect();
+
+                    animations.insert($a_alias, AnimatedSprite::with_fps(sprites, fps));
+                 )*
+
+                 $name {
+                     path: $path,
+                     animations: animations,
+                 }
+            }
         }
     }
 }

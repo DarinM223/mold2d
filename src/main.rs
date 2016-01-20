@@ -19,6 +19,8 @@ spritesheet! {
     name: Koopa,
     state: KoopaState,
     path: "/assets/foo",
+    sprite_side: 50,
+    sprites_in_row: 5,
     animations: { 
         Idle: 1..5,
         Walking: 5..10,
