@@ -99,6 +99,7 @@ pub fn create_event_loop(window: Window) {
 
         game_context.events.poll();
 
+        // TODO(DarinM223): move into view keyboard handler
         if game_context.events.event_called("QUIT") || game_context.events.event_called("ESC") {
             break;
         }
@@ -106,6 +107,7 @@ pub fn create_event_loop(window: Window) {
         game_context.renderer.set_draw_color(Color::RGB(255, 0, 0));
         game_context.renderer.clear();
 
+        // TODO(DarinM223): abstract object rendering for multiple objects
         asteroid.update(&mut game_context, elapsed);
         asteroid.render(&mut game_context, elapsed);
 

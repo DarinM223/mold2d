@@ -1,7 +1,9 @@
 [package]
-name = "platformer"
+name = "trage"
 version = "0.1.0"
 authors = ["Darin Minamoto <darinm223@gmail.com>"]
+description = "A work in progress rage 2d platformer game that only uses SDL"
+readme = "README.md"
 
 [dependencies]
 sdl2 = "0.9"

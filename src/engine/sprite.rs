@@ -10,24 +10,26 @@ pub trait Renderable {
     fn render(&self, renderer: &mut Renderer, dest: Rect);
 }
 
-/// A sprite based mutable rectangle
-pub struct Rectangle {
+/// A mutable rectangle for a sprite so it can be moved around
+pub struct SpriteRectangle {
     pub x: i32,
     pub y: i32,
     pub w: u32,
     pub h: u32,
 }
 
-impl Rectangle {
-    pub fn new(x: i32, y: i32, w: u32, h: u32) -> Rectangle {
-        Rectangle {
+impl SpriteRectangle {
+    pub fn new(x: i32, y: i32, w: u32, h: u32) -> SpriteRectangle {
+        SpriteRectangle {
             x: x,
             y: y,
             w: w,
-            h: h
+            h: h,
         }
     }
 
+    /// Returns a SDL Rect created from the SpriteRectangle
+    /// Used for rendering SpriteRectangles in SDL
     pub fn to_sdl(&self) -> Option<Rect> {
         if self.w < 0 || self.h < 0 {
             return None;
@@ -37,6 +39,8 @@ impl Rectangle {
     }
 }
 
+/// A sprite data type that uses reference counting
+/// to reuse the texture on multiple sub-sprites
 #[derive(Clone)]
 pub struct Sprite {
     tex: Rc<RefCell<Texture>>,
@@ -53,10 +57,12 @@ impl Sprite {
         }
     }
 
+    /// Loads a new sprite from a path string to a sprite image file
     pub fn load(renderer: &Renderer, path: &str) -> Option<Sprite> {
         renderer.load_texture(Path::new(path)).ok().map(Sprite::new)
     }
 
+    /// Returns a sub-sprite from a rectangle region of the original sprite 
     pub fn region(&self, rect: Rect) -> Option<Sprite> {
         let new_src = Rect::new(rect.x() + self.src.x(),
                                 rect.y() + self.src.y(),
@@ -82,6 +88,7 @@ impl Renderable for Sprite {
     }
 }
 
+/// Represents an animated sprite with multiple frames
 pub struct AnimatedSprite {
     /// frames that will be rendered
     frames: Vec<Sprite>,
@@ -122,8 +129,9 @@ impl AnimatedSprite {
         self.set_frame_delay(1.0 / fps);
     }
 
-    pub fn add_time(&mut self, dt: f64) {
-        self.current_time += dt;
+    /// Updates the animated sprite with the elapsed time
+    pub fn add_time(&mut self, elapsed: f64) {
+        self.current_time += elapsed;
 
         if self.current_time < 0.0 {
             self.current_time = (self.frames.len() - 1) as f64 * self.frame_delay;
