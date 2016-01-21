@@ -3,7 +3,7 @@ use std::io::prelude::*;
 use std::fs::File;
 
 // TODO(DarinM223): fix this
-pub const KEYBOARD_DEFAULTS: &'static str = "27 ESC 11 world";
+pub const KEYBOARD_DEFAULTS: &'static str = "27 ESC 13 ENTER";
 
 #[derive(PartialEq, Eq)]
 enum MappingState {

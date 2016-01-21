@@ -11,7 +11,6 @@ extern crate sdl2_ttf;
 
 #[macro_use]
 mod engine;
-
 mod game;
 
 fn main() {

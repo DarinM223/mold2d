@@ -31,10 +31,6 @@ impl SpriteRectangle {
     /// Returns a SDL Rect created from the SpriteRectangle
     /// Used for rendering SpriteRectangles in SDL
     pub fn to_sdl(&self) -> Option<Rect> {
-        if self.w < 0 || self.h < 0 {
-            return None;
-        }
-
         Rect::new(self.x, self.y, self.w, self.h).unwrap()
     }
 }
@@ -161,6 +157,10 @@ impl Renderable for AnimatedSprite {
 ///        Idle: 0..5,
 ///        Walking: 5..10,
 ///        Running: 10..15
+///     },
+///     properties: {
+///        curr_state: KoopaState => KoopaState::Idle,
+///        vel: f64 => 0.0
 ///     }
 /// }
 /// ```

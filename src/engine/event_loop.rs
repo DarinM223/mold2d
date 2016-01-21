@@ -1,10 +1,9 @@
 use engine::context::Context;
 use engine::events::Events;
-use engine::view::Actor;
-use game::asteroid::Asteroid;
+use engine::view::{Actor, View, ViewAction};
+use game::actors::asteroid::Asteroid;
 use sdl2;
 use sdl2::TimerSubsystem;
-use sdl2::pixels::Color;
 use sdl2_ttf;
 
 const FRAME_INTERVAL: u32 = 1000 / 60;
@@ -71,7 +70,9 @@ pub struct Window {
 }
 
 /// Initializes SDL and creates the window and event loop
-pub fn create_event_loop(window: Window) {
+pub fn create_event_loop<F>(window: Window, init_view: F)
+    where F: Fn(&mut Context) -> Box<View>
+{
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
     let mut timer = sdl_context.timer().unwrap();
@@ -88,7 +89,7 @@ pub fn create_event_loop(window: Window) {
 
     let mut frame_timer = FrameTimer::new(&mut timer, true);
 
-    let mut asteroid = Asteroid::new(&mut game_context.renderer, FRAME_INTERVAL as f64);
+    let mut curr_view = init_view(&mut game_context);
 
     loop {
         let elapsed;
@@ -99,17 +100,12 @@ pub fn create_event_loop(window: Window) {
 
         game_context.events.poll();
 
-        // TODO(DarinM223): move into view keyboard handler
-        if game_context.events.event_called("QUIT") || game_context.events.event_called("ESC") {
-            break;
+        match curr_view.update(&mut game_context, elapsed) {
+            ViewAction::Quit => break,
+            _ => {}
         }
 
-        game_context.renderer.set_draw_color(Color::RGB(255, 0, 0));
-        game_context.renderer.clear();
-
-        // TODO(DarinM223): abstract object rendering for multiple objects
-        asteroid.update(&mut game_context, elapsed);
-        asteroid.render(&mut game_context, elapsed);
+        curr_view.render(&mut game_context, elapsed);
 
         // Render the scene
         game_context.renderer.present();

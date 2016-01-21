@@ -2,7 +2,8 @@
 //! An attempt to build a 2d platformer game from scratch
 //! using only SDL for graphics
 
-pub mod asteroid;
+pub mod actors;
+pub mod views;
 
 use engine::event_loop;
 use engine::event_loop::Window;
@@ -14,5 +15,5 @@ pub fn start() {
         width: 800,
         height: 600,
     };
-    event_loop::create_event_loop(window);
+    event_loop::create_event_loop(window, |_| Box::new(views::game_view::GameView::new()));
 }

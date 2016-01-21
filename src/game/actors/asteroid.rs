@@ -1,8 +1,7 @@
 use engine::context::Context;
-use engine::view::Actor;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
-use sdl2::rect::Rect;
+use engine::view::Actor;
 
 const ASTEROID_SIDE: u32 = 96;
 
