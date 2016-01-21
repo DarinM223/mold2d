@@ -75,7 +75,7 @@ pub fn create_event_loop(window: Window) {
     let sdl_context = sdl2::init().unwrap();
     let video = sdl_context.video().unwrap();
     let mut timer = sdl_context.timer().unwrap();
-    let ttf_context = sdl2_ttf::init();
+    let _ttf_context = sdl2_ttf::init();
 
     let window = video.window(window.title.as_str(), window.width, window.height)
                       .position_centered()
@@ -91,7 +91,7 @@ pub fn create_event_loop(window: Window) {
     let mut asteroid = Asteroid::new(&mut game_context.renderer, FRAME_INTERVAL as f64);
 
     loop {
-        let mut elapsed = 0.0;
+        let elapsed;
         match frame_timer.on_frame() {
             FrameAction::Delay => continue,
             FrameAction::Continue(elpsed) => elapsed = elpsed,
@@ -103,10 +103,13 @@ pub fn create_event_loop(window: Window) {
             break;
         }
 
-        game_context.renderer.set_draw_color(Color::RGB(0, 0, 0));
+        game_context.renderer.set_draw_color(Color::RGB(255, 0, 0));
         game_context.renderer.clear();
 
         asteroid.update(&mut game_context, elapsed);
         asteroid.render(&mut game_context, elapsed);
+
+        // Render the scene
+        game_context.renderer.present();
     }
 }
