@@ -17,6 +17,7 @@ pub mod sprite;
 pub mod context;
 pub mod event_loop;
 pub mod events;
+pub mod frame_timer;
 pub mod geo_utils;
 pub mod keyboard_mappings;
 

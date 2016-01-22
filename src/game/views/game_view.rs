@@ -54,9 +54,19 @@ impl View for GameView {
             self.actors.push(Box::new(new_asteroid));
         }
 
+        let mut actions = Vec::new();
+
         // update contained actors
         for actor in &mut self.actors {
-            actor.update(context, elapsed);
+            actions.push(actor.update(context, elapsed));
+        }
+
+        for action in actions {
+            match action {
+                ViewAction::AddActor(actor) => self.actors.push(actor),
+                ViewAction::Quit => return ViewAction::Quit,
+                _ => {}
+            }
         }
 
         ViewAction::None

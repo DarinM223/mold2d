@@ -3,6 +3,7 @@ use engine::context::Context;
 pub enum ViewAction {
     None,
     Quit,
+    AddActor(Box<Actor>),
     ChangeView(Box<View>),
 }
 
@@ -19,5 +20,5 @@ pub trait Actor {
     fn render(&mut self, context: &mut Context, elapsed: f64);
 
     /// Called every frame to update an actor
-    fn update(&mut self, context: &mut Context, elapsed: f64);
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> ViewAction;
 }
