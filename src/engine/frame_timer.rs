@@ -9,6 +9,7 @@ pub enum FrameAction {
     Continue(f64),
 }
 
+/// Used by the event loop to limit frames to a maximum of a certain FPS
 pub struct FrameTimer<'a> {
     timer: &'a mut TimerSubsystem,
     before: u32,

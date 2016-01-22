@@ -1,10 +1,16 @@
 use engine::context::Context;
 
+/// Actions that the view would want the event loop to do
 pub enum ViewAction {
     None,
     Quit,
-    AddActor(Box<Actor>),
     ChangeView(Box<View>),
+}
+
+/// Actions that the actor would want the parent view to do
+pub enum ActorAction {
+    None,
+    AddActor(Box<Actor>),
 }
 
 pub trait View {
@@ -20,5 +26,5 @@ pub trait Actor {
     fn render(&mut self, context: &mut Context, elapsed: f64);
 
     /// Called every frame to update an actor
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ViewAction;
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction;
 }

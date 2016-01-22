@@ -1,5 +1,5 @@
 use engine::context::Context;
-use engine::view::{Actor, View, ViewAction};
+use engine::view::{Actor, ActorAction, View, ViewAction};
 use game::actors::asteroid::Asteroid;
 use rand::random;
 use sdl2::pixels::Color;
@@ -10,8 +10,8 @@ pub enum GameState {
     Slowed(f64),
 }
 
-/// A standard game view with sprites
-/// meant to be plugged into a custom view
+/// The main game view used for 
+/// the actual gameplay
 pub struct GameView {
     state: GameState,
     actors: Vec<Box<Actor>>,
@@ -61,10 +61,10 @@ impl View for GameView {
             actions.push(actor.update(context, elapsed));
         }
 
+        // apply actor actions to view
         for action in actions {
             match action {
-                ViewAction::AddActor(actor) => self.actors.push(actor),
-                ViewAction::Quit => return ViewAction::Quit,
+                ActorAction::AddActor(actor) => self.actors.push(actor),
                 _ => {}
             }
         }

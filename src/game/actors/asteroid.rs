@@ -1,7 +1,7 @@
 use engine::context::Context;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
-use engine::view::{Actor, ViewAction};
+use engine::view::{Actor, ActorAction};
 use rand::random;
 
 const ASTEROID_SIDE: u32 = 96;
@@ -23,7 +23,7 @@ spritesheet! {
 }
 
 impl Actor for Asteroid {
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ViewAction {
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
         if context.events.event_called("RIGHT") {
             self.vel += 9.0;
         } else if context.events.event_called("LEFT") {
@@ -49,9 +49,9 @@ impl Actor for Asteroid {
             new_asteroid.rect.x = (random::<u32>() % max_width) as i32 + 1;
             new_asteroid.rect.y = (random::<u32>() % max_height) as i32 + 1;
 
-            ViewAction::AddActor(Box::new(new_asteroid))
+            ActorAction::AddActor(Box::new(new_asteroid))
         } else {
-            ViewAction::None
+            ActorAction::None
         }
     }
 
