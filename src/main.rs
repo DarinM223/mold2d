@@ -5,6 +5,7 @@
 #[cfg_attr(feature="clippy", feature(plugin))]
 #[cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate rand;
 extern crate sdl2;
 extern crate sdl2_image;
 extern crate sdl2_ttf;

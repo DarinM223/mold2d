@@ -5,8 +5,8 @@
 pub mod actors;
 pub mod views;
 
+use engine::context::Window;
 use engine::event_loop;
-use engine::event_loop::Window;
 
 /// Creates the window and starts the game
 pub fn start() {

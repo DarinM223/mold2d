@@ -1,5 +1,7 @@
 use engine::context::Context;
 use engine::view::{Actor, View, ViewAction};
+use game::actors::asteroid::Asteroid;
+use rand::random;
 use sdl2::pixels::Color;
 
 pub enum GameState {
@@ -41,13 +43,15 @@ impl View for GameView {
             return ViewAction::Quit;
         }
 
-        if context.events.event_called("ENTER") {
-            println!("The enter key is pressed!");
-        }
-
         if context.events.event_called_once("ENTER") {
-            println!("Enter was pressed once!");
-            // TODO: add a random asteroid
+            let mut new_asteroid = Asteroid::new(&mut context.renderer, 60 as f64);
+            let max_width = context.window.width - 100;
+            let max_height = context.window.height - 100;
+
+            new_asteroid.rect.x = (random::<u32>() % max_width) as i32 + 1;
+            new_asteroid.rect.y = (random::<u32>() % max_height) as i32 + 1;
+
+            self.actors.push(Box::new(new_asteroid));
         }
 
         // update contained actors
