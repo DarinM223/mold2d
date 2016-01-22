@@ -7,6 +7,7 @@ use std::collections::HashSet;
 pub struct Events {
     pump: EventPump,
     events: HashSet<String>,
+    once_events: HashSet<String>,
     mappings: KeyboardMappings,
 }
 
@@ -15,6 +16,7 @@ impl Events {
         Events {
             pump: pump,
             events: HashSet::new(),
+            once_events: HashSet::new(),
             mappings: KeyboardMappings::from_file(mappings_path),
         }
     }
@@ -25,10 +27,16 @@ impl Events {
             match event {
                 Event::KeyDown { keycode, .. } => {
                     let action = match self.mappings.get_action(keycode.unwrap() as i32) {
-                        Some(action) => action.clone(),
+                        Some(action) => action,
                         None => return,
                     };
-                    self.events.insert(action);
+
+                    if self.events.contains(action) {
+                        self.once_events.remove(action);
+                    } else {
+                        self.events.insert(action.clone());
+                        self.once_events.insert(action.clone());
+                    }
                 }
                 Event::KeyUp { keycode, .. } => {
                     let action = match self.mappings.get_action(keycode.unwrap() as i32) {
@@ -36,6 +44,7 @@ impl Events {
                         None => return,
                     };
                     self.events.remove(&action);
+                    self.once_events.remove(&action);
                 }
                 Event::Quit { .. } => {
                     self.events.insert("QUIT".to_owned());
@@ -48,5 +57,16 @@ impl Events {
     /// True if the event is currently happening, False otherwise
     pub fn event_called(&self, event: &str) -> bool {
         self.events.contains(event)
+    }
+
+    /// True if the event is currently happening, False otherwise
+    /// difference from event_called is that is only called once for an event
+    pub fn event_called_once(&mut self, event: &str) -> bool {
+        if self.once_events.contains(event) {
+            self.once_events.remove(event);
+            return true;
+        }
+
+        false
     }
 }

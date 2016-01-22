@@ -42,7 +42,12 @@ impl View for GameView {
         }
 
         if context.events.event_called("ENTER") {
-            println!("Enter was pressed!");
+            println!("The enter key is pressed!");
+        }
+
+        if context.events.event_called_once("ENTER") {
+            println!("Enter was pressed once!");
+            // TODO: add a random asteroid
         }
 
         // update contained actors
