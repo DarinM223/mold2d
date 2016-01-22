@@ -23,6 +23,21 @@ spritesheet! {
 
 impl Actor for Asteroid {
     fn update(&mut self, context: &mut Context, elapsed: f64) {
+        if context.events.event_called("RIGHT") {
+            self.vel += 9.0;
+        } else if context.events.event_called("LEFT") {
+            self.vel -= 9.0;
+        } else {
+            if self.vel > 0.0 {
+                self.vel -= 9.0;
+            } else if self.vel < 0.0 {
+                self.vel += 9.0;
+            }
+        }
+
+        self.rect.x += (self.vel * elapsed) as i32;
+
+        // update sprite animation
         self.animations.get_mut(&self.curr_state).unwrap().add_time(elapsed);
     }
 
