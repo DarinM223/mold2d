@@ -61,7 +61,7 @@ impl KeyboardMappings {
             Ok(ref mut f) => {
                 let mut mappings = String::new();
                 f.read_to_string(&mut mappings);
-                KeyboardMappings::new(mappings.as_str())
+                KeyboardMappings::new(&mappings[..])
             }
             _ => KeyboardMappings::new(KEYBOARD_DEFAULTS),
         }

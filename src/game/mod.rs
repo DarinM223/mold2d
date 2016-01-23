@@ -11,7 +11,7 @@ use engine::event_loop;
 /// Creates the window and starts the game
 pub fn start() {
     let window = Window {
-        title: "Trage - The troll rage game".to_owned(),
+        title: "Trage - The troll rage game",
         width: 800,
         height: 600,
     };

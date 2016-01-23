@@ -1,4 +1,4 @@
-#![feature(convert, custom_attribute, plugin)]
+#![feature(custom_attribute, plugin)]
 #![plugin(sorty)]
 #![warn(unsorted_declarations)]
 

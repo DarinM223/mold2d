@@ -14,7 +14,7 @@ pub fn create_event_loop<F>(window: Window, init_view: F)
     let mut timer = sdl_context.timer().unwrap();
     let _ttf_context = sdl2_ttf::init();
 
-    let sdl_window = video.window(window.title.as_str(), window.width, window.height)
+    let sdl_window = video.window(window.title, window.width, window.height)
                           .position_centered()
                           .opengl()
                           .build()

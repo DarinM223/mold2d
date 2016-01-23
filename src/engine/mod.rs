@@ -7,7 +7,7 @@
 //! Handles sprite and view rendering
 //! Includes a renderer interface to render sprites and backgrounds
 //! Uses a grid based map system with scrolling support
-//! Loads maps from text files
+//! Loads level maps from text files
 //! A point system
 //! A main menu rendering system
 

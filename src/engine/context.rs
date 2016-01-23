@@ -4,7 +4,7 @@ use sdl2_image;
 
 /// Represents a SDL window to render
 pub struct Window {
-    pub title: String,
+    pub title: &'static str,
     pub width: u32,
     pub height: u32,
 }
