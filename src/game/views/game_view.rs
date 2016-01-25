@@ -1,6 +1,7 @@
 use engine::context::Context;
 use engine::view::{Actor, ActorAction, View, ViewAction};
 use game::actors::asteroid::Asteroid;
+use game::actors::block::Block;
 use rand::random;
 use sdl2::pixels::Color;
 
@@ -43,15 +44,17 @@ impl View for GameView {
             return ViewAction::Quit;
         }
 
+        // Pressing enter adds random blocks
+        // TODO: remove this after blocks are finished
         if context.events.event_called_once("ENTER") {
-            let mut new_asteroid = Asteroid::new(&mut context.renderer, 60 as f64);
             let max_width = context.window.width - 100;
             let max_height = context.window.height - 100;
 
-            new_asteroid.rect.x = (random::<u32>() % max_width) as i32 + 1;
-            new_asteroid.rect.y = (random::<u32>() % max_height) as i32 + 1;
+            let rand_x = (random::<u32>() % max_width) as i32 + 1;
+            let rand_y = (random::<u32>() % max_height) as i32 + 1;
+            let mut block = Block::new((rand_x, rand_y));
 
-            self.actors.push(Box::new(new_asteroid));
+            self.actors.push(Box::new(block));
         }
 
         let mut actions = Vec::new();
