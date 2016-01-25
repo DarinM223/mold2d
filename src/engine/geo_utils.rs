@@ -1,41 +1,9 @@
-use sdl2::rect::Rect;
-
-pub trait Shape<A, B> {
-    fn contains(child: A, parent: B) -> bool;
-
-    fn overlaps(first: A, second: B) -> bool;
-}
-
-pub trait Rectangle {
-    fn x(&self) -> i32;
-    fn y(&self) -> i32;
-    fn width(&self) -> u32;
-    fn height(&self) -> u32;
-}
-
-impl Rectangle for Rect {
-    fn x(&self) -> i32 {
-        self.x()
-    }
-
-    fn y(&self) -> i32 {
-        self.y()
-    }
-
-    fn width(&self) -> u32 {
-        self.width()
-    }
-
-    fn height(&self) -> u32 {
-        self.height()
-    }
-}
+use sdl2::rect::{Point, Rect};
 
 pub struct GeoUtils;
 
-impl<A: Rectangle, B: Rectangle> Shape<A, B> for GeoUtils {
-    /// Checks if a rectangle can be contained inside a parent rectangle
-    fn contains(parent: A, child: B) -> bool {
+impl GeoUtils {
+    pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {
         let x_min = child.x();
         let x_max = x_min + child.width() as i32;
         let y_min = child.y();
@@ -49,13 +17,17 @@ impl<A: Rectangle, B: Rectangle> Shape<A, B> for GeoUtils {
         check_xmin && check_xmax && check_ymin && check_ymax
     }
 
-    /// Checks if a rectangle overlaps with another rectangle
-    fn overlaps(first: A, second: B) -> bool {
+    pub fn rect_overlaps_rect(first: Rect, second: Rect) -> bool {
         let check_x_first = first.x() < second.x() + second.width() as i32;
         let check_x_second = second.x() < first.x() + first.width() as i32;
         let check_y_first = first.y() < second.y() + second.height() as i32;
         let check_y_second = second.y() < first.y() + first.height() as i32;
 
         check_x_first && check_x_second && check_y_first && check_y_second
+    }
+
+    /// Checks if a rectangle contains a point
+    pub fn rect_contains_point(parent: Rect, child: Point) -> bool {
+        false
     }
 }

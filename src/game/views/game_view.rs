@@ -1,6 +1,5 @@
 use engine::context::Context;
 use engine::view::{Actor, ActorAction, View, ViewAction};
-use game::actors::asteroid::Asteroid;
 use game::actors::block::Block;
 use rand::random;
 use sdl2::pixels::Color;

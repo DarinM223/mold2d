@@ -1,4 +1,4 @@
-use engine::geo_utils::{GeoUtils, Shape};
+use engine::geo_utils::GeoUtils;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::LoadTexture;
@@ -25,6 +25,15 @@ impl SpriteRectangle {
             y: y,
             w: w,
             h: h,
+        }
+    }
+
+    pub fn from_rect(rect: Rect) -> SpriteRectangle {
+        SpriteRectangle {
+            x: rect.x(),
+            y: rect.y(),
+            w: rect.width(),
+            h: rect.height(),
         }
     }
 
@@ -67,7 +76,7 @@ impl Sprite {
                           .unwrap()
                           .unwrap();
 
-        if GeoUtils::contains(self.src, new_src) {
+        if GeoUtils::rect_contains_rect(self.src, new_src) {
             Some(Sprite {
                 tex: self.tex.clone(),
                 src: new_src,
