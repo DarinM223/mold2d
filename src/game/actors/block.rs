@@ -4,18 +4,19 @@ use engine::view::{Actor, ActorAction};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
+use sdl2::render::Renderer;
 
 const BLOCK_SIZE: u32 = 20;
 
 /// Prototype struct to test rendering blocks
 /// TODO: Remove after grid layout system is completed
 pub struct Block {
-    rect: SpriteRectangle,
+    pub rect: SpriteRectangle,
 }
 
 impl Block {
-    pub fn new(location: (i32, i32)) -> Block {
-        Block { rect: SpriteRectangle::new(location.0, location.1, BLOCK_SIZE, BLOCK_SIZE) }
+    pub fn new(_renderer: &mut Renderer, _fps: f64) -> Block {
+        Block { rect: SpriteRectangle::new(0, 0, BLOCK_SIZE, BLOCK_SIZE) }
     }
 }
 
@@ -30,5 +31,14 @@ impl Actor for Block {
 
         context.renderer.set_draw_color(Color::RGB(70, 15, 70));
         context.renderer.fill_rect(rect);
+    }
+
+    fn set_position(&mut self, position: (i32, i32)) {
+        self.rect.x = position.0;
+        self.rect.y = position.1;
+    }
+
+    fn position(&self) -> (i32, i32) {
+        (self.rect.x, self.rect.y)
     }
 }

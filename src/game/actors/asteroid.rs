@@ -66,4 +66,13 @@ impl Actor for Asteroid {
             .unwrap()
             .render(&mut context.renderer, rect);
     }
+
+    fn set_position(&mut self, position: (i32, i32)) {
+        self.rect.x = position.0;
+        self.rect.y = position.1;
+    }
+
+    fn position(&self) -> (i32, i32) {
+        (self.rect.x, self.rect.y)
+    }
 }

@@ -28,4 +28,10 @@ pub trait Actor {
 
     /// Called every frame to update an actor
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction;
+
+    /// Sets the position of the actor
+    fn set_position(&mut self, position: (i32, i32));
+
+    /// Gets the position of the actor
+    fn position(&self) -> (i32, i32);
 }

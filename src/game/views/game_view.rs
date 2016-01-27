@@ -1,4 +1,5 @@
 use engine::context::Context;
+use engine::level;
 use engine::view::{Actor, ActorAction, View, ViewAction};
 use engine::viewport::Viewport;
 use game::actors::block::Block;
@@ -20,10 +21,11 @@ pub struct GameView {
 }
 
 impl GameView {
-    pub fn new(context: &Context) -> GameView {
+    pub fn new(path: &str, context: &mut Context) -> GameView {
+        let actors = level::load_level(path, &mut context.renderer, 60.0);
         GameView {
             state: GameState::Normal,
-            actors: Vec::new(),
+            actors: actors,
             viewport: Viewport::new(&context.window, (20, 20)),
         }
     }
@@ -70,7 +72,9 @@ impl View for GameView {
             let rand_x = (random::<u32>() % max_width) as i32 + 1;
             let rand_y = (random::<u32>() % max_height) as i32 + 1;
             println!("Random x: {} y: {}", rand_x, rand_y);
-            let block = Block::new((rand_x, rand_y));
+            let mut block = Block::new(&mut context.renderer, 0.0);
+            block.rect.x = rand_x;
+            block.rect.y = rand_y;
 
             self.actors.push(Box::new(block));
         }

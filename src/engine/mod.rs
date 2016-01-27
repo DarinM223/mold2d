@@ -13,6 +13,8 @@
 
 #[macro_use]
 pub mod sprite;
+#[macro_use]
+pub mod level;
 
 pub mod context;
 pub mod event_loop;
