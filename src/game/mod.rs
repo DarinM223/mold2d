@@ -15,6 +15,7 @@ pub fn start() {
         width: 800,
         height: 600,
     };
-    event_loop::create_event_loop(window,
-                                  |context| Box::new(views::game_view::GameView::new("levels/level1.txt", context)));
+    event_loop::create_event_loop(window, |context| {
+        Box::new(views::game_view::GameView::new("levels/level1.txt", context))
+    });
 }

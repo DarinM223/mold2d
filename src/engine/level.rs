@@ -1,6 +1,5 @@
 use engine::view::Actor;
-use game::actors::asteroid::Asteroid;
-use game::actors::block::Block;
+use engine::viewport::Viewport;
 use sdl2::render::Renderer;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -9,8 +8,8 @@ use std::io::{BufRead, BufReader};
 macro_rules! level_token_config {
     ( $( $token:expr => $actor:ident ),* ) => {
         pub fn actor_for_token(token: char, 
-                               renderer: &mut Renderer, 
-                               fps: f64) -> Box<Actor> {
+                               renderer: &mut ::sdl2::render::Renderer, 
+                               fps: f64) -> Box<::engine::view::Actor> {
             match token {
                 $( $token => Box::new($actor::new(renderer, fps)), )*
                 _ => unreachable!(),
@@ -19,14 +18,16 @@ macro_rules! level_token_config {
     }
 }
 
-level_token_config! {
-    '+' => Asteroid,
-    '=' => Block
-}
+pub const GRID_SIZE: i32 = 40;
 
-const GRID_SIZE: i32 = 20;
-
-pub fn load_level(path: &str, renderer: &mut Renderer, fps: f64) -> Vec<Box<Actor>> {
+pub fn load_level<F>(path: &str,
+                     actor_for_token: F,
+                     viewport: &mut Viewport,
+                     renderer: &mut Renderer,
+                     fps: f64)
+                     -> Vec<Box<Actor>>
+    where F: Fn(char, &mut Renderer, f64) -> Box<Actor>
+{
     let mut actors = Vec::new();
 
     let open_result = File::open(path);
@@ -37,18 +38,30 @@ pub fn load_level(path: &str, renderer: &mut Renderer, fps: f64) -> Vec<Box<Acto
         let mut x = 0;
         let mut y = 0;
 
+        let mut has_player = false;
+
         for line in reader.lines() {
             for token in line.unwrap().chars() {
                 if token != ' ' {
                     let mut actor = actor_for_token(token, renderer, fps);
                     actor.set_position((x, y));
                     actors.push(actor);
+
+                    if token == 'P' {
+                        has_player = true;
+                        viewport.update((x, y));
+                    }
+
                 }
 
-                x += GRID_SIZE; 
+                x += GRID_SIZE;
             }
 
+            x = 0;
             y += GRID_SIZE;
+        }
+        if !has_player {
+            panic!(format!("Level at {} needs to have a player", path));
         }
     }
 

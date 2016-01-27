@@ -6,7 +6,7 @@ use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
-const BLOCK_SIZE: u32 = 20;
+const BLOCK_SIZE: u32 = 40;
 
 /// Prototype struct to test rendering blocks
 /// TODO: Remove after grid layout system is completed

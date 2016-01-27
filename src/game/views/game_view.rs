@@ -2,9 +2,16 @@ use engine::context::Context;
 use engine::level;
 use engine::view::{Actor, ActorAction, View, ViewAction};
 use engine::viewport::Viewport;
+use game::actors::asteroid::Asteroid;
 use game::actors::block::Block;
 use rand::random;
 use sdl2::pixels::Color;
+
+level_token_config! {
+    '+' => Asteroid,
+    'P' => Asteroid,
+    '=' => Block
+}
 
 pub enum GameState {
     Normal,
@@ -22,11 +29,16 @@ pub struct GameView {
 
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
-        let actors = level::load_level(path, &mut context.renderer, 60.0);
+        let mut viewport = Viewport::new(&context.window, (0, 0));
+        let actors = level::load_level(path,
+                                       actor_for_token,
+                                       &mut viewport,
+                                       &mut context.renderer,
+                                       60.0);
         GameView {
             state: GameState::Normal,
             actors: actors,
-            viewport: Viewport::new(&context.window, (20, 20)),
+            viewport: viewport,
         }
     }
 }

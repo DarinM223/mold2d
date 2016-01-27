@@ -1,4 +1,5 @@
 use engine::context::Window;
+use engine::level::GRID_SIZE;
 use engine::geo_utils::GeoUtils;
 use sdl2::rect::{Point, Rect};
 
@@ -35,6 +36,10 @@ impl Viewport {
 
     /// Returns the point in the game relative to the viewpoint
     pub fn relative_point(&self, map_point: (i32, i32)) -> (i32, i32) {
-        (map_point.0 - self.x, map_point.1 - self.y)
+        let left_margin = 100;
+        let top_margin = self.height as i32 - 100 - GRID_SIZE * 4;
+
+        (map_point.0 - self.x + left_margin,
+         map_point.1 - self.y + top_margin)
     }
 }
