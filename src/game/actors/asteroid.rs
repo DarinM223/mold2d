@@ -1,4 +1,5 @@
 use engine::context::Context;
+use engine::physics::PositionUpdater;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
@@ -19,26 +20,19 @@ spritesheet! {
     },
     properties: {
         curr_state: AsteroidState => AsteroidState::Spinning,
-        rect: SpriteRectangle => SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE),
-        vel: f64 => 0.0
+        updater: PositionUpdater => {
+            let mut updater = PositionUpdater::new();
+            updater.add_force((0, 9));
+            
+            updater
+        },
+        rect: SpriteRectangle => SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE)
     }
 }
 
 impl Actor for Asteroid {
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
-        if context.events.event_called("RIGHT") {
-            self.vel += 9.0;
-        } else if context.events.event_called("LEFT") {
-            self.vel -= 9.0;
-        } else {
-            if self.vel > 0.0 {
-                self.vel -= 9.0;
-            } else if self.vel < 0.0 {
-                self.vel += 9.0;
-            }
-        }
-
-        self.rect.x += (self.vel * elapsed) as i32;
+        self.updater.update(&mut self.rect, elapsed);
 
         // update sprite animation
         self.animations.get_mut(&self.curr_state).unwrap().add_time(elapsed);
