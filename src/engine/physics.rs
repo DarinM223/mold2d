@@ -1,25 +1,30 @@
 use engine::sprite::SpriteRectangle;
+use std::collections::HashMap;
 
 pub struct PositionUpdater {
     vel: (f64, f64),
-    forces: Vec<(i32, i32)>,
+    forces: HashMap<String, (i32, i32)>,
 }
 
 impl PositionUpdater {
     pub fn new() -> PositionUpdater {
         PositionUpdater {
             vel: (0.0, 0.0),
-            forces: Vec::new(),
+            forces: HashMap::new(),
         }
     }
 
-    pub fn add_force(&mut self, vec: (i32, i32)) {
-        self.forces.push(vec);
+    pub fn add_force(&mut self, force: &str, vec: (i32, i32)) {
+        self.forces.insert(force.to_owned(), vec);
+    }
+
+    pub fn remove_force(&mut self, force: &str) {
+        self.forces.remove(force);
     }
 
     pub fn update(&mut self, rect: &mut SpriteRectangle, elapsed: f64) {
         let (mut fx, mut fy) = (0, 0);
-        for force in &self.forces {
+        for (_, force) in &self.forces {
             fx += force.0;
             fy += force.1;
         }

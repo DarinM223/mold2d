@@ -25,7 +25,7 @@ impl Actor for Block {
         ActorAction::None
     }
 
-    fn render(&mut self, context: &mut Context, viewport: &Viewport, _elapsed: f64) {
+    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new(rx, ry, self.rect.w, self.rect.h).unwrap().unwrap();
 

@@ -51,7 +51,7 @@ impl View for GameView {
 
         // render contained actors
         for actor in &mut self.actors {
-            actor.render(context, &self.viewport, elapsed);
+            actor.render(context, &mut self.viewport, elapsed);
         }
     }
 
@@ -83,7 +83,6 @@ impl View for GameView {
 
             let rand_x = (random::<u32>() % max_width) as i32 + 1;
             let rand_y = (random::<u32>() % max_height) as i32 + 1;
-            println!("Random x: {} y: {}", rand_x, rand_y);
             let mut block = Block::new(&mut context.renderer, 0.0);
             block.rect.x = rand_x;
             block.rect.y = rand_y;

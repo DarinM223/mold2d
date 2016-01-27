@@ -22,7 +22,7 @@ spritesheet! {
         curr_state: AsteroidState => AsteroidState::Spinning,
         updater: PositionUpdater => {
             let mut updater = PositionUpdater::new();
-            updater.add_force((0, 9));
+            updater.add_force("GRAVITY", (0, 9));
             
             updater
         },
@@ -32,10 +32,17 @@ spritesheet! {
 
 impl Actor for Asteroid {
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
-        self.updater.update(&mut self.rect, elapsed);
-
         // update sprite animation
         self.animations.get_mut(&self.curr_state).unwrap().add_time(elapsed);
+
+        if context.events.event_called("SPACE") {
+            println!("Space pressed!");
+            self.updater.add_force("JUMP", (0, -50));
+        }
+
+        self.updater.update(&mut self.rect, elapsed);
+
+        self.updater.remove_force("JUMP");
 
         if context.events.event_called_once("UP") {
             let mut new_asteroid = Asteroid::new(&mut context.renderer, 60 as f64);
@@ -51,9 +58,12 @@ impl Actor for Asteroid {
         }
     }
 
-    fn render(&mut self, context: &mut Context, viewport: &Viewport, elapsed: f64) {
+    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64) {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new(rx, ry, self.rect.w, self.rect.h).unwrap().unwrap();
+
+        // Follow the asteroid
+        viewport.set_position((self.rect.x, self.rect.y));
 
         self.animations
             .get_mut(&self.curr_state)

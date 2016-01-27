@@ -12,9 +12,9 @@
 //! A main menu rendering system
 
 #[macro_use]
-pub mod sprite;
-#[macro_use]
 pub mod level;
+#[macro_use]
+pub mod sprite;
 
 pub mod context;
 pub mod event_loop;

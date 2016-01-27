@@ -1,6 +1,6 @@
 use engine::context::Window;
-use engine::level::GRID_SIZE;
 use engine::geo_utils::GeoUtils;
+use engine::level::GRID_SIZE;
 use sdl2::rect::{Point, Rect};
 
 pub struct Viewport {
@@ -23,6 +23,11 @@ impl Viewport {
     pub fn update(&mut self, change: (i32, i32)) {
         self.x += change.0;
         self.y += change.1;
+    }
+
+    pub fn set_position(&mut self, point: (i32, i32)) {
+        self.x = point.0;
+        self.y = point.1;
     }
 
     pub fn in_viewport(&self, point: Point) -> bool {
