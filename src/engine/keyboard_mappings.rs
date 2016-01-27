@@ -6,6 +6,7 @@ use std::fs::File;
 pub const KEYBOARD_DEFAULTS: &'static str = r#"
 27 ESC 
 13 ENTER 
+32 SPACE
 1073741906 UP 
 1073741905 DOWN 
 1073741904 LEFT 

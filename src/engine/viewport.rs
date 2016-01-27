@@ -19,9 +19,9 @@ impl Viewport {
         }
     }
 
-    pub fn update(&mut self, change: Point) {
-        self.x += change.x();
-        self.y += change.y();
+    pub fn update(&mut self, change: (i32, i32)) {
+        self.x += change.0;
+        self.y += change.1;
     }
 
     pub fn in_viewport(&self, point: Point) -> bool {

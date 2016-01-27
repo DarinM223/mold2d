@@ -2,7 +2,9 @@ use engine::context::Context;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
+use engine::viewport::Viewport;
 use rand::random;
+use sdl2::rect::Rect;
 
 const ASTEROID_SIDE: u32 = 96;
 
@@ -55,10 +57,13 @@ impl Actor for Asteroid {
         }
     }
 
-    fn render(&mut self, context: &mut Context, elapsed: f64) {
+    fn render(&mut self, context: &mut Context, viewport: &Viewport, elapsed: f64) {
+        let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
+        let rect = Rect::new(rx, ry, self.rect.w, self.rect.h).unwrap().unwrap();
+
         self.animations
             .get_mut(&self.curr_state)
             .unwrap()
-            .render(&mut context.renderer, self.rect.to_sdl().unwrap());
+            .render(&mut context.renderer, rect);
     }
 }

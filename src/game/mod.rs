@@ -15,5 +15,6 @@ pub fn start() {
         width: 800,
         height: 600,
     };
-    event_loop::create_event_loop(window, |_| Box::new(views::game_view::GameView::new()));
+    event_loop::create_event_loop(window,
+                                  |context| Box::new(views::game_view::GameView::new(context)));
 }

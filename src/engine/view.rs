@@ -1,4 +1,5 @@
 use engine::context::Context;
+use engine::viewport::Viewport;
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {
@@ -23,7 +24,7 @@ pub trait View {
 
 pub trait Actor {
     /// Called every frame to render an actor
-    fn render(&mut self, context: &mut Context, elapsed: f64);
+    fn render(&mut self, context: &mut Context, viewport: &Viewport, elapsed: f64);
 
     /// Called every frame to update an actor
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction;

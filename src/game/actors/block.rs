@@ -1,7 +1,9 @@
 use engine::context::Context;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
+use engine::viewport::Viewport;
 use sdl2::pixels::Color;
+use sdl2::rect::Rect;
 
 const BLOCK_SIZE: u32 = 20;
 
@@ -22,8 +24,11 @@ impl Actor for Block {
         ActorAction::None
     }
 
-    fn render(&mut self, context: &mut Context, _elapsed: f64) {
+    fn render(&mut self, context: &mut Context, viewport: &Viewport, _elapsed: f64) {
+        let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
+        let rect = Rect::new(rx, ry, self.rect.w, self.rect.h).unwrap().unwrap();
+
         context.renderer.set_draw_color(Color::RGB(70, 15, 70));
-        context.renderer.fill_rect(self.rect.to_sdl().unwrap());
+        context.renderer.fill_rect(rect);
     }
 }
