@@ -30,7 +30,7 @@ pub trait Actor {
     /// Called every frame to update an actor
     fn update(&mut self,
               context: &mut Context,
-              other_actors: Vec<Rect>,
+              other_actors: Vec<&mut Box<Actor>>,
               elapsed: f64)
               -> ActorAction;
 

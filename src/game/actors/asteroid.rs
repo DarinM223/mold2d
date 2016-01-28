@@ -1,5 +1,5 @@
 use engine::context::Context;
-use engine::physics::PositionUpdater;
+use engine::geo_utils::GeoUtils;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
@@ -9,6 +9,8 @@ use sdl2::rect::Rect;
 
 const ASTEROID_SIDE: u32 = 96;
 
+pub type GameVector = (f64, f64);
+
 spritesheet! {
     name: Asteroid,
     state: AsteroidState,
@@ -16,49 +18,65 @@ spritesheet! {
     sprite_side: 96,
     sprites_in_row: 21,
     animations: {
-        Jumping: 1..1,
+        Jumping: 1..2,
         Idle: 1..143
     },
     properties: {
-        curr_state: AsteroidState => AsteroidState::Idle,
-        updater: PositionUpdater => {
-            let mut updater = PositionUpdater::new();
-            updater.add_force("GRAVITY", (0, 9));
-            
-            updater
-        },
+        curr_state: AsteroidState => AsteroidState::Jumping,
+        vel: GameVector => (0.0, 0.0),
+        acc: GameVector => (0.0, 0.0),
         rect: SpriteRectangle => SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE)
     }
 }
 
 impl Actor for Asteroid {
-    fn update(&mut self,
-              context: &mut Context,
-              other_actors: Vec<Rect>,
-              elapsed: f64)
-              -> ActorAction {
+    fn update(&mut self, context: &mut Context, other_actors: Vec<&mut Box<Actor>>, elapsed: f64) -> ActorAction {
         // update sprite animation
         self.animations.get_mut(&self.curr_state).unwrap().add_time(elapsed);
 
         if context.events.event_called_once("SPACE") {
             match self.curr_state {
                 AsteroidState::Jumping => {}
-                AsteroidState::Idle => self.updater.add_force("JUMP", (0, -1000)),
+                AsteroidState::Idle => {
+                    self.vel.1 = -10.0;
+                    self.curr_state = AsteroidState::Jumping;
+                }
             }
         }
 
+        match self.curr_state {
+            AsteroidState::Jumping => self.acc.1 += 3.0,
+            AsteroidState::Idle => if self.acc.1 > 0.0 { self.acc.1 = 0.0; },
+        }
+
         if context.events.event_called("RIGHT") {
-            self.updater.add_force("X-Force", (3, 0));
+            self.acc.0 += 3.0;
         }
 
         if context.events.event_called("LEFT") {
-            self.updater.add_force("X-Force", (-3, 0));
+            self.acc.0 -= 3.0;
         }
 
-        self.updater.update(&mut self.rect, other_actors, elapsed);
+        self.vel.0 += self.acc.0 * elapsed;
+        self.vel.1 += self.acc.1 * elapsed;
 
-        self.updater.remove_force("JUMP");
-        self.updater.remove_force("X-Force");
+        let new_x = self.rect.x + self.vel.0 as i32;
+        let new_y = self.rect.y + self.vel.1 as i32;
+        let new_rect = Rect::new_unwrap(new_x, new_y, self.rect.w, self.rect.h);
+
+        let mut collision = false;
+        for actor in other_actors {
+            if GeoUtils::rect_contains_rect(new_rect, actor.bounding_box()) {
+                self.curr_state = AsteroidState::Idle;
+                collision = true;
+                break;
+            }
+        }
+
+        if !collision {
+            self.rect.x += self.vel.0 as i32;
+            self.rect.y += self.vel.1 as i32;
+        }
 
         if context.events.event_called_once("UP") {
             let mut new_asteroid = Asteroid::new(&mut context.renderer, 60 as f64);

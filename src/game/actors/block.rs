@@ -23,7 +23,7 @@ impl Block {
 impl Actor for Block {
     fn update(&mut self,
               _context: &mut Context,
-              other_actors: Vec<Rect>,
+              other_actors: Vec<&mut Box<Actor>>,
               _elapsed: f64)
               -> ActorAction {
         ActorAction::None

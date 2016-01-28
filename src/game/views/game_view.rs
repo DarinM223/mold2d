@@ -84,9 +84,7 @@ impl View for GameView {
         for _ in 0..self.actors.len() {
             let mut actor = self.actors.pop_front().unwrap();
 
-            actor.update(context,
-                         self.actors.iter().map(|actor| actor.bounding_box()).collect::<Vec<_>>(),
-                         elapsed);
+            actor.update(context, self.actors.iter_mut().collect::<Vec<_>>(), elapsed);
 
             self.actors.push_back(actor);
         }
