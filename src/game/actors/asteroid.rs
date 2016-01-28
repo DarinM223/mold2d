@@ -16,10 +16,11 @@ spritesheet! {
     sprite_side: 96,
     sprites_in_row: 21,
     animations: {
-        Spinning: 1..143
+        Jumping: 1..1,
+        Idle: 1..143
     },
     properties: {
-        curr_state: AsteroidState => AsteroidState::Spinning,
+        curr_state: AsteroidState => AsteroidState::Idle,
         updater: PositionUpdater => {
             let mut updater = PositionUpdater::new();
             updater.add_force("GRAVITY", (0, 9));
@@ -31,18 +32,33 @@ spritesheet! {
 }
 
 impl Actor for Asteroid {
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
+    fn update(&mut self,
+              context: &mut Context,
+              other_actors: Vec<Rect>,
+              elapsed: f64)
+              -> ActorAction {
         // update sprite animation
         self.animations.get_mut(&self.curr_state).unwrap().add_time(elapsed);
 
-        if context.events.event_called("SPACE") {
-            println!("Space pressed!");
-            self.updater.add_force("JUMP", (0, -50));
+        if context.events.event_called_once("SPACE") {
+            match self.curr_state {
+                AsteroidState::Jumping => {}
+                AsteroidState::Idle => self.updater.add_force("JUMP", (0, -1000)),
+            }
         }
 
-        self.updater.update(&mut self.rect, elapsed);
+        if context.events.event_called("RIGHT") {
+            self.updater.add_force("X-Force", (3, 0));
+        }
+
+        if context.events.event_called("LEFT") {
+            self.updater.add_force("X-Force", (-3, 0));
+        }
+
+        self.updater.update(&mut self.rect, other_actors, elapsed);
 
         self.updater.remove_force("JUMP");
+        self.updater.remove_force("X-Force");
 
         if context.events.event_called_once("UP") {
             let mut new_asteroid = Asteroid::new(&mut context.renderer, 60 as f64);
@@ -74,6 +90,10 @@ impl Actor for Asteroid {
     fn set_position(&mut self, position: (i32, i32)) {
         self.rect.x = position.0;
         self.rect.y = position.1;
+    }
+
+    fn bounding_box(&self) -> Rect {
+        self.rect.to_sdl().unwrap()
     }
 
     fn position(&self) -> (i32, i32) {

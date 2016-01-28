@@ -6,6 +6,7 @@ use game::actors::asteroid::Asteroid;
 use game::actors::block::Block;
 use rand::random;
 use sdl2::pixels::Color;
+use std::collections::VecDeque;
 
 level_token_config! {
     '+' => Asteroid,
@@ -23,18 +24,20 @@ pub enum GameState {
 /// the actual gameplay
 pub struct GameView {
     state: GameState,
-    actors: Vec<Box<Actor>>,
+    actors: VecDeque<Box<Actor>>,
     viewport: Viewport,
 }
 
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
         let mut viewport = Viewport::new(&context.window, (0, 0));
-        let actors = level::load_level(path,
-                                       actor_for_token,
-                                       &mut viewport,
-                                       &mut context.renderer,
-                                       60.0);
+        let actors: VecDeque<Box<Actor>> = level::load_level(path,
+                                                             actor_for_token,
+                                                             &mut viewport,
+                                                             &mut context.renderer,
+                                                             60.0)
+                                               .into_iter()
+                                               .collect();
         GameView {
             state: GameState::Normal,
             actors: actors,
@@ -60,21 +63,6 @@ impl View for GameView {
             return ViewAction::Quit;
         }
 
-        const SCROLL_SPEED: i32 = 2;
-
-        if context.events.event_called("UP") {
-            self.viewport.update((0, SCROLL_SPEED));
-        }
-        if context.events.event_called("DOWN") {
-            self.viewport.update((0, -SCROLL_SPEED));
-        }
-        if context.events.event_called("LEFT") {
-            self.viewport.update((SCROLL_SPEED, 0));
-        }
-        if context.events.event_called("RIGHT") {
-            self.viewport.update((-SCROLL_SPEED, 0));
-        }
-
         // Pressing enter adds random blocks
         // TODO: remove this after blocks are finished
         if context.events.event_called_once("ENTER") {
@@ -87,20 +75,26 @@ impl View for GameView {
             block.rect.x = rand_x;
             block.rect.y = rand_y;
 
-            self.actors.push(Box::new(block));
+            self.actors.push_back(Box::new(block));
         }
 
         let mut actions = Vec::new();
 
         // update contained actors
-        for actor in &mut self.actors {
-            actions.push(actor.update(context, elapsed));
+        for _ in 0..self.actors.len() {
+            let mut actor = self.actors.pop_front().unwrap();
+
+            actor.update(context,
+                         self.actors.iter().map(|actor| actor.bounding_box()).collect::<Vec<_>>(),
+                         elapsed);
+
+            self.actors.push_back(actor);
         }
 
         // apply actor actions to view
         for action in actions {
             match action {
-                ActorAction::AddActor(actor) => self.actors.push(actor),
+                ActorAction::AddActor(actor) => self.actors.push_front(actor),
                 _ => {}
             }
         }

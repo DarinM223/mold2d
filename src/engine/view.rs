@@ -1,5 +1,6 @@
 use engine::context::Context;
 use engine::viewport::Viewport;
+use sdl2::rect::Rect;
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {
@@ -27,11 +28,18 @@ pub trait Actor {
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64);
 
     /// Called every frame to update an actor
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction;
+    fn update(&mut self,
+              context: &mut Context,
+              other_actors: Vec<Rect>,
+              elapsed: f64)
+              -> ActorAction;
 
     /// Sets the position of the actor
     fn set_position(&mut self, position: (i32, i32));
 
     /// Gets the position of the actor
     fn position(&self) -> (i32, i32);
+
+    /// Returns the bounding box for the actor for collision detection
+    fn bounding_box(&self) -> Rect;
 }

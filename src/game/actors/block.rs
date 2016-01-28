@@ -21,7 +21,11 @@ impl Block {
 }
 
 impl Actor for Block {
-    fn update(&mut self, _context: &mut Context, _elapsed: f64) -> ActorAction {
+    fn update(&mut self,
+              _context: &mut Context,
+              other_actors: Vec<Rect>,
+              _elapsed: f64)
+              -> ActorAction {
         ActorAction::None
     }
 
@@ -36,6 +40,10 @@ impl Actor for Block {
     fn set_position(&mut self, position: (i32, i32)) {
         self.rect.x = position.0;
         self.rect.y = position.1;
+    }
+
+    fn bounding_box(&self) -> Rect {
+        self.rect.to_sdl().unwrap()
     }
 
     fn position(&self) -> (i32, i32) {
