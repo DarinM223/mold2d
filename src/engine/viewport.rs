@@ -1,5 +1,4 @@
 use engine::context::Window;
-use engine::geo_utils::GeoUtils;
 use engine::level::GRID_SIZE;
 use sdl2::rect::{Point, Rect};
 

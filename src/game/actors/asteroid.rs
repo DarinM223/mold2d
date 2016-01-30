@@ -1,5 +1,5 @@
 use engine::context::Context;
-use engine::geo_utils::GeoUtils;
+use engine::geo_utils;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
@@ -66,7 +66,7 @@ impl Actor for Asteroid {
 
         let mut collision = false;
         for actor in other_actors {
-            if GeoUtils::rect_contains_rect(new_rect, actor.bounding_box()) {
+            if geo_utils::rect_contains_rect(new_rect, actor.bounding_box()) {
                 self.curr_state = AsteroidState::Idle;
                 collision = true;
                 break;
@@ -78,23 +78,12 @@ impl Actor for Asteroid {
             self.rect.y += self.vel.1 as i32;
         }
 
-        if context.events.event_called_once("UP") {
-            let mut new_asteroid = Asteroid::new(&mut context.renderer, 60 as f64);
-            let max_width = context.window.width - 100;
-            let max_height = context.window.height - 100;
-
-            new_asteroid.rect.x = (random::<u32>() % max_width) as i32 + 1;
-            new_asteroid.rect.y = (random::<u32>() % max_height) as i32 + 1;
-
-            ActorAction::AddActor(Box::new(new_asteroid))
-        } else {
-            ActorAction::None
-        }
+        ActorAction::None
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64) {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-        let rect = Rect::new(rx, ry, self.rect.w, self.rect.h).unwrap().unwrap();
+        let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
         // Follow the asteroid
         viewport.set_position((self.rect.x, self.rect.y));

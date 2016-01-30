@@ -63,21 +63,6 @@ impl View for GameView {
             return ViewAction::Quit;
         }
 
-        // Pressing enter adds random blocks
-        // TODO: remove this after blocks are finished
-        if context.events.event_called_once("ENTER") {
-            let max_width = context.window.width - 100;
-            let max_height = context.window.height - 100;
-
-            let rand_x = (random::<u32>() % max_width) as i32 + 1;
-            let rand_y = (random::<u32>() % max_height) as i32 + 1;
-            let mut block = Block::new(&mut context.renderer, 0.0);
-            block.rect.x = rand_x;
-            block.rect.y = rand_y;
-
-            self.actors.push_back(Box::new(block));
-        }
-
         let mut actions = Vec::new();
 
         // update contained actors

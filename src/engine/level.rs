@@ -51,7 +51,6 @@ pub fn load_level<F>(path: &str,
                         has_player = true;
                         viewport.update((x, y));
                     }
-
                 }
 
                 x += GRID_SIZE;

@@ -31,7 +31,7 @@ impl Actor for Block {
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-        let rect = Rect::new(rx, ry, self.rect.w, self.rect.h).unwrap().unwrap();
+        let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
         context.renderer.set_draw_color(Color::RGB(70, 15, 70));
         context.renderer.fill_rect(rect);

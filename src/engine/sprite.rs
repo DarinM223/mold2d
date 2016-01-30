@@ -1,4 +1,4 @@
-use engine::geo_utils::GeoUtils;
+use engine::geo_utils;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::LoadTexture;
@@ -58,7 +58,7 @@ impl Sprite {
 
         Sprite {
             tex: Rc::new(RefCell::new(texture)),
-            src: Rect::new(0, 0, tex_query.width, tex_query.height).unwrap().unwrap(),
+            src: Rect::new_unwrap(0, 0, tex_query.width, tex_query.height),
         }
     }
 
@@ -69,14 +69,12 @@ impl Sprite {
 
     /// Returns a sub-sprite from a rectangle region of the original sprite 
     pub fn region(&self, rect: Rect) -> Option<Sprite> {
-        let new_src = Rect::new(rect.x() + self.src.x(),
-                                rect.y() + self.src.y(),
-                                rect.width(),
-                                rect.height())
-                          .unwrap()
-                          .unwrap();
+        let new_src = Rect::new_unwrap(rect.x() + self.src.x(),
+                                       rect.y() + self.src.y(),
+                                       rect.width(),
+                                       rect.height());
 
-        if GeoUtils::rect_contains_rect(self.src, new_src) {
+        if geo_utils::rect_contains_rect(self.src, new_src) {
             Some(Sprite {
                 tex: self.tex.clone(),
                 src: new_src,
@@ -208,12 +206,7 @@ macro_rules! spritesheet {
                         let x = elem % $sprites_in_row;
                         let y = elem / $sprites_in_row;
 
-                        let region = ::sdl2::rect::Rect::new($sprite_side * x, 
-                                                             $sprite_side * y, 
-                                                             $sprite_side, 
-                                                             $sprite_side)
-                                         .unwrap()
-                                         .unwrap();
+                        let region = ::sdl2::rect::Rect::new_unwrap($sprite_side * x, $sprite_side * y, $sprite_side, $sprite_side);
 
                         spritesheet.region(region).unwrap()
                     }).collect();
