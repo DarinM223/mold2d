@@ -40,8 +40,9 @@ impl KeyboardMappings {
         for token in &token_stream {
             match state {
                 MappingState::Keycode => {
-                    let keycode = token.parse::<i32>().unwrap();
-                    state = MappingState::Action(keycode);
+                    if let Ok(keycode) = token.parse::<i32>() {
+                        state = MappingState::Action(keycode);
+                    }
                 }
                 MappingState::Action(keycode) => {
                     let action = token.clone().to_owned();
@@ -83,8 +84,8 @@ mod tests {
         let s = "10 hello 11 world";
         let mappings = KeyboardMappings::new(s);
 
-        assert_eq!(*mappings.get_action(10).unwrap(), "hello".to_owned());
-        assert_eq!(*mappings.get_action(11).unwrap(), "world".to_owned());
+        assert_eq!(mappings.get_action(10), Some(&"hello".to_owned()));
+        assert_eq!(mappings.get_action(11), Some(&"world".to_owned()));
     }
 
     #[test]
@@ -92,8 +93,8 @@ mod tests {
         let s = "10 hello\n \n 11 world\n";
         let mappings = KeyboardMappings::new(s);
 
-        assert_eq!(*mappings.get_action(10).unwrap(), "hello".to_owned());
-        assert_eq!(*mappings.get_action(11).unwrap(), "world".to_owned());
+        assert_eq!(mappings.get_action(10), Some(&"hello".to_owned()));
+        assert_eq!(mappings.get_action(11), Some(&"world".to_owned()));
     }
 
     #[test]
@@ -102,8 +103,8 @@ mod tests {
         let s = "10 hello 11 world 12";
 
         let mappings = KeyboardMappings::new(s);
-        assert_eq!(*mappings.get_action(10).unwrap(), "hello".to_owned());
-        assert_eq!(*mappings.get_action(11).unwrap(), "world".to_owned());
+        assert_eq!(mappings.get_action(10), Some(&"hello".to_owned()));
+        assert_eq!(mappings.get_action(11), Some(&"world".to_owned()));
         assert_eq!(mappings.get_action(12), None);
     }
 }

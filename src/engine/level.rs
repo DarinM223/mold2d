@@ -2,6 +2,7 @@ use engine::view::Actor;
 use engine::viewport::Viewport;
 use sdl2::render::Renderer;
 use std::fs::File;
+use std::io;
 use std::io::{BufRead, BufReader};
 
 /// Generates the level character token to actor configurations
@@ -25,7 +26,7 @@ pub fn load_level<F>(path: &str,
                      viewport: &mut Viewport,
                      renderer: &mut Renderer,
                      fps: f64)
-                     -> Vec<Box<Actor>>
+                     -> io::Result<Vec<Box<Actor>>>
     where F: Fn(char, &mut Renderer, f64) -> Box<Actor>
 {
     let mut actors = Vec::new();
@@ -41,7 +42,7 @@ pub fn load_level<F>(path: &str,
         let mut has_player = false;
 
         for line in reader.lines() {
-            for token in line.unwrap().chars() {
+            for token in try!(line).chars() {
                 if token != ' ' {
                     let mut actor = actor_for_token(token, renderer, fps);
                     actor.set_position((x, y));
@@ -59,10 +60,12 @@ pub fn load_level<F>(path: &str,
             x = 0;
             y += GRID_SIZE;
         }
+
         if !has_player {
-            panic!(format!("Level at {} needs to have a player", path));
+            return Err(io::Error::new(io::ErrorKind::Other,
+                                      format!("Level at {} needs to have a player", path)));
         }
     }
 
-    actors
+    Ok(actors)
 }

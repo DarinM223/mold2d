@@ -26,25 +26,29 @@ impl Events {
         for event in self.pump.poll_iter() {
             match event {
                 Event::KeyDown { keycode, .. } => {
-                    let action = match self.mappings.get_action(keycode.unwrap() as i32) {
-                        Some(action) => action,
-                        None => return,
-                    };
+                    if let Some(keycode) = keycode {
+                        let action = match self.mappings.get_action(keycode as i32) {
+                            Some(action) => action,
+                            None => return,
+                        };
 
-                    if self.events.contains(action) {
-                        self.once_events.remove(action);
-                    } else {
-                        self.events.insert(action.clone());
-                        self.once_events.insert(action.clone());
+                        if self.events.contains(action) {
+                            self.once_events.remove(action);
+                        } else {
+                            self.events.insert(action.clone());
+                            self.once_events.insert(action.clone());
+                        }
                     }
                 }
                 Event::KeyUp { keycode, .. } => {
-                    let action = match self.mappings.get_action(keycode.unwrap() as i32) {
-                        Some(action) => action.clone(),
-                        None => return,
-                    };
-                    self.events.remove(&action);
-                    self.once_events.remove(&action);
+                    if let Some(keycode) = keycode {
+                        let action = match self.mappings.get_action(keycode as i32) {
+                            Some(action) => action.clone(),
+                            None => return,
+                        };
+                        self.events.remove(&action);
+                        self.once_events.remove(&action);
+                    }
                 }
                 Event::Quit { .. } => {
                     self.events.insert("QUIT".to_owned());

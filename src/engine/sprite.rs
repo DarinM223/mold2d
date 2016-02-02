@@ -208,8 +208,8 @@ macro_rules! spritesheet {
 
                         let region = ::sdl2::rect::Rect::new_unwrap($sprite_side * x, $sprite_side * y, $sprite_side, $sprite_side);
 
-                        spritesheet.region(region).unwrap()
-                    }).collect();
+                        spritesheet.region(region)
+                    }).flat_map(|sprite| sprite).collect();
 
                     animations.insert($state::$a_alias, ::engine::sprite::AnimatedSprite::with_fps(sprites, fps));
                  )*

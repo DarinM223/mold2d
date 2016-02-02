@@ -4,7 +4,6 @@ use engine::view::{Actor, ActorAction, View, ViewAction};
 use engine::viewport::Viewport;
 use game::actors::asteroid::Asteroid;
 use game::actors::block::Block;
-use rand::random;
 use sdl2::pixels::Color;
 use std::collections::VecDeque;
 
@@ -37,6 +36,7 @@ impl GameView {
                                                              &mut context.renderer,
                                                              60.0)
                                                .into_iter()
+                                               .flat_map(|actor| actor)
                                                .collect();
         GameView {
             state: GameState::Normal,
@@ -67,11 +67,11 @@ impl View for GameView {
 
         // update contained actors
         for _ in 0..self.actors.len() {
-            let mut actor = self.actors.pop_front().unwrap();
+            if let Some(mut actor) = self.actors.pop_front() {
+                actor.update(context, self.actors.iter_mut().collect::<Vec<_>>(), elapsed);
 
-            actor.update(context, self.actors.iter_mut().collect::<Vec<_>>(), elapsed);
-
-            self.actors.push_back(actor);
+                self.actors.push_back(actor);
+            }
         }
 
         // apply actor actions to view

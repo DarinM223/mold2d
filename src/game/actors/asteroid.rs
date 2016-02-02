@@ -4,7 +4,6 @@ use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
 use engine::viewport::Viewport;
-use rand::random;
 use sdl2::rect::Rect;
 
 const ASTEROID_SIDE: u32 = 96;
@@ -30,9 +29,15 @@ spritesheet! {
 }
 
 impl Actor for Asteroid {
-    fn update(&mut self, context: &mut Context, other_actors: Vec<&mut Box<Actor>>, elapsed: f64) -> ActorAction {
-        // update sprite animation
-        self.animations.get_mut(&self.curr_state).unwrap().add_time(elapsed);
+    fn update(&mut self,
+              context: &mut Context,
+              other_actors: Vec<&mut Box<Actor>>,
+              elapsed: f64)
+              -> ActorAction {
+        // Update sprite animation
+        if let Some(animation) = self.animations.get_mut(&self.curr_state) {
+            animation.add_time(elapsed);
+        }
 
         if context.events.event_called_once("SPACE") {
             match self.curr_state {
@@ -46,7 +51,11 @@ impl Actor for Asteroid {
 
         match self.curr_state {
             AsteroidState::Jumping => self.acc.1 += 3.0,
-            AsteroidState::Idle => if self.acc.1 > 0.0 { self.acc.1 = 0.0; },
+            AsteroidState::Idle => {
+                if self.acc.1 > 0.0 {
+                    self.acc.1 = 0.0;
+                }
+            }
         }
 
         if context.events.event_called("RIGHT") {
@@ -88,10 +97,10 @@ impl Actor for Asteroid {
         // Follow the asteroid
         viewport.set_position((self.rect.x, self.rect.y));
 
-        self.animations
-            .get_mut(&self.curr_state)
-            .unwrap()
-            .render(&mut context.renderer, rect);
+        // Render sprite animation
+        if let Some(animation) = self.animations.get_mut(&self.curr_state) {
+            animation.render(&mut context.renderer, rect);
+        }
     }
 
     fn set_position(&mut self, position: (i32, i32)) {

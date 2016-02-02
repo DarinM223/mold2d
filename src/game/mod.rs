@@ -15,7 +15,13 @@ pub fn start() {
         width: 800,
         height: 600,
     };
-    event_loop::create_event_loop(window, |context| {
+
+    let result = event_loop::create_event_loop(window, |context| {
         Box::new(views::game_view::GameView::new("levels/level1.txt", context))
     });
+
+    match result {
+        Ok(_) => println!("Game exited successfully!"),
+        Err(e) => println!("{}", e),
+    }
 }
