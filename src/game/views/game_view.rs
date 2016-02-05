@@ -68,16 +68,19 @@ impl View for GameView {
         // update contained actors
         for _ in 0..self.actors.len() {
             if let Some(mut actor) = self.actors.pop_front() {
-                actor.update(context, self.actors.iter_mut().collect::<Vec<_>>(), elapsed);
+                actions.push(actor.update(context,
+                                          self.actors.iter_mut().collect::<Vec<_>>(),
+                                          elapsed));
 
                 self.actors.push_back(actor);
             }
         }
 
         // apply actor actions to view
-        for action in actions {
+        while !actions.is_empty() {
+            let action = actions.pop();
             match action {
-                ActorAction::AddActor(actor) => self.actors.push_front(actor),
+                Some(ActorAction::AddActor(actor)) => self.actors.push_front(actor),
                 _ => {}
             }
         }

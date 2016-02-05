@@ -1,5 +1,6 @@
 use engine::context::Context;
 use engine::geo_utils;
+use engine::geo_utils::Vector2D;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
@@ -7,8 +8,9 @@ use engine::viewport::Viewport;
 use sdl2::rect::Rect;
 
 const ASTEROID_SIDE: u32 = 96;
-
-pub type GameVector = (f64, f64);
+const ASTEROID_X_MAXSPEED: f64 = 10.0;
+const ASTEROID_Y_MAXSPEED: f64 = 15.0;
+const ASTEROID_ACCELERATION: f64 = 0.2;
 
 spritesheet! {
     name: Asteroid,
@@ -22,8 +24,7 @@ spritesheet! {
     },
     properties: {
         curr_state: AsteroidState => AsteroidState::Jumping,
-        vel: GameVector => (0.0, 0.0),
-        acc: GameVector => (0.0, 0.0),
+        curr_speed: Vector2D => Vector2D { x: 0.0, y: 0.0 },
         rect: SpriteRectangle => SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE)
     }
 }
@@ -39,38 +40,41 @@ impl Actor for Asteroid {
             animation.add_time(elapsed);
         }
 
+
+        let max_y_speed = match self.curr_state {
+            AsteroidState::Jumping => ASTEROID_Y_MAXSPEED,
+            AsteroidState::Idle => 0.0,
+        };
+
+        let max_x_speed = if context.events.event_called("RIGHT") {
+            ASTEROID_X_MAXSPEED
+        } else if context.events.event_called("LEFT") {
+            -ASTEROID_X_MAXSPEED
+        } else {
+            0.0
+        };
+
         if context.events.event_called_once("SPACE") {
             match self.curr_state {
                 AsteroidState::Jumping => {}
                 AsteroidState::Idle => {
-                    self.vel.1 = -10.0;
+                    self.curr_speed.y = -100.0;
                     self.curr_state = AsteroidState::Jumping;
                 }
             }
         }
 
-        match self.curr_state {
-            AsteroidState::Jumping => self.acc.1 += 3.0,
-            AsteroidState::Idle => {
-                if self.acc.1 > 0.0 {
-                    self.acc.1 = 0.0;
-                }
-            }
-        }
+        let target_speed = Vector2D {
+            x: max_x_speed,
+            y: max_y_speed,
+        };
 
-        if context.events.event_called("RIGHT") {
-            self.acc.0 += 3.0;
-        }
+        self.curr_speed = (ASTEROID_ACCELERATION * target_speed) +
+                          ((1.0 - ASTEROID_ACCELERATION) * self.curr_speed);
 
-        if context.events.event_called("LEFT") {
-            self.acc.0 -= 3.0;
-        }
 
-        self.vel.0 += self.acc.0 * elapsed;
-        self.vel.1 += self.acc.1 * elapsed;
-
-        let new_x = self.rect.x + self.vel.0 as i32;
-        let new_y = self.rect.y + self.vel.1 as i32;
+        let new_x = self.rect.x + self.curr_speed.x as i32;
+        let new_y = self.rect.y + self.curr_speed.y as i32;
         let new_rect = Rect::new_unwrap(new_x, new_y, self.rect.w, self.rect.h);
 
         let mut collision = false;
@@ -83,9 +87,11 @@ impl Actor for Asteroid {
         }
 
         if !collision {
-            self.rect.x += self.vel.0 as i32;
-            self.rect.y += self.vel.1 as i32;
+            self.curr_state = AsteroidState::Jumping;
         }
+
+        self.rect.x += self.curr_speed.x as i32;
+        self.rect.y += self.curr_speed.y as i32;
 
         ActorAction::None
     }
