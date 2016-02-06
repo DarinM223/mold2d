@@ -1,6 +1,5 @@
 use engine::context::Context;
-use engine::geo_utils;
-use engine::geo_utils::Vector2D;
+use engine::geo_utils::{Collision, CollisionSide, Vector2D};
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
@@ -35,11 +34,6 @@ impl Actor for Asteroid {
               other_actors: Vec<&mut Box<Actor>>,
               elapsed: f64)
               -> Option<ActorAction> {
-        // Update sprite animation
-        if let Some(animation) = self.animations.get_mut(&self.curr_state) {
-            animation.add_time(elapsed);
-        }
-
         let max_y_speed = match self.curr_state {
             AsteroidState::Jumping => ASTEROID_Y_MAXSPEED,
             AsteroidState::Idle => 0.0,
@@ -71,26 +65,35 @@ impl Actor for Asteroid {
         self.curr_speed = (ASTEROID_ACCELERATION * target_speed) +
                           ((1.0 - ASTEROID_ACCELERATION) * self.curr_speed);
 
+        self.rect.x += self.curr_speed.x as i32;
+        self.rect.y += self.curr_speed.y as i32;
 
-        let new_x = self.rect.x + self.curr_speed.x as i32;
-        let new_y = self.rect.y + self.curr_speed.y as i32;
-        let new_rect = Rect::new_unwrap(new_x, new_y, self.rect.w, self.rect.h);
-
-        let mut collision = false;
+        let mut grounded = false;
         for actor in other_actors {
-            if geo_utils::rect_contains_rect(new_rect, actor.bounding_box()) {
-                self.curr_state = AsteroidState::Idle;
-                collision = true;
+            if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Bottom) {
+                if self.curr_state == AsteroidState::Jumping {
+                    self.curr_state = AsteroidState::Idle;
+                }
+                grounded = true;
                 break;
             }
         }
 
-        if !collision {
+        if !grounded && self.curr_state == AsteroidState::Idle {
             self.curr_state = AsteroidState::Jumping;
         }
 
+        match self.curr_state {
+            AsteroidState::Jumping => self.rect.y += self.curr_speed.y as i32,
+            AsteroidState::Idle => {}
+        }
+
         self.rect.x += self.curr_speed.x as i32;
-        self.rect.y += self.curr_speed.y as i32;
+
+        // Update sprite animation
+        if let Some(animation) = self.animations.get_mut(&self.curr_state) {
+            animation.add_time(elapsed);
+        }
 
         None
     }
