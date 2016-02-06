@@ -4,14 +4,12 @@ use sdl2::rect::Rect;
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {
-    None,
     Quit,
     ChangeView(Box<View>),
 }
 
 /// Actions that the actor would want the parent view to do
 pub enum ActorAction {
-    None,
     AddActor(Box<Actor>),
 }
 
@@ -20,7 +18,7 @@ pub trait View {
     fn render(&mut self, context: &mut Context, elapsed: f64);
 
     /// Called every frame to update a view
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ViewAction;
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> Option<ViewAction>;
 }
 
 pub trait Actor {
@@ -32,7 +30,7 @@ pub trait Actor {
               context: &mut Context,
               other_actors: Vec<&mut Box<Actor>>,
               elapsed: f64)
-              -> ActorAction;
+              -> Option<ActorAction>;
 
     /// Sets the position of the actor
     fn set_position(&mut self, position: (i32, i32));

@@ -34,12 +34,11 @@ impl Actor for Asteroid {
               context: &mut Context,
               other_actors: Vec<&mut Box<Actor>>,
               elapsed: f64)
-              -> ActorAction {
+              -> Option<ActorAction> {
         // Update sprite animation
         if let Some(animation) = self.animations.get_mut(&self.curr_state) {
             animation.add_time(elapsed);
         }
-
 
         let max_y_speed = match self.curr_state {
             AsteroidState::Jumping => ASTEROID_Y_MAXSPEED,
@@ -93,7 +92,7 @@ impl Actor for Asteroid {
         self.rect.x += self.curr_speed.x as i32;
         self.rect.y += self.curr_speed.y as i32;
 
-        ActorAction::None
+        None
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64) {

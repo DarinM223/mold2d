@@ -4,6 +4,7 @@ use engine::view::{Actor, ActorAction, View, ViewAction};
 use engine::viewport::Viewport;
 use game::actors::asteroid::Asteroid;
 use game::actors::block::Block;
+use game::views::background_view::BackgroundView;
 use sdl2::pixels::Color;
 use std::collections::VecDeque;
 
@@ -58,9 +59,13 @@ impl View for GameView {
         }
     }
 
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ViewAction {
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> Option<ViewAction> {
         if context.events.event_called("QUIT") || context.events.event_called("ESC") {
-            return ViewAction::Quit;
+            return Some(ViewAction::Quit);
+        }
+
+        if context.events.event_called_once("ENTER") {
+            return Some(ViewAction::ChangeView(Box::new(BackgroundView)));
         }
 
         let mut actions = Vec::new();
@@ -68,9 +73,12 @@ impl View for GameView {
         // update contained actors
         for _ in 0..self.actors.len() {
             if let Some(mut actor) = self.actors.pop_front() {
-                actions.push(actor.update(context,
+                let action = actor.update(context,
                                           self.actors.iter_mut().collect::<Vec<_>>(),
-                                          elapsed));
+                                          elapsed);
+                if let Some(action) = action {
+                    actions.push(action);
+                }
 
                 self.actors.push_back(actor);
             }
@@ -85,6 +93,6 @@ impl View for GameView {
             }
         }
 
-        ViewAction::None
+        None
     }
 }

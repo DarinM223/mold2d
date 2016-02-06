@@ -38,7 +38,8 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
         game_context.events.poll();
 
         match curr_view.update(&mut game_context, elapsed) {
-            ViewAction::Quit => break,
+            Some(ViewAction::Quit) => break,
+            Some(ViewAction::ChangeView(view)) => curr_view = view,
             _ => {}
         }
 
