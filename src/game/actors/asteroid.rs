@@ -1,5 +1,6 @@
 use engine::context::Context;
-use engine::geo_utils::{Collision, CollisionSide, Vector2D};
+use engine::physics::collision::{Collision, CollisionSide};
+use engine::physics::vector::Vector2D;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
@@ -68,12 +69,24 @@ impl Actor for Asteroid {
         self.rect.x += self.curr_speed.x as i32;
         self.rect.y += self.curr_speed.y as i32;
 
+        match self.curr_state {
+            AsteroidState::Jumping => self.rect.y += self.curr_speed.y as i32,
+            AsteroidState::Idle => {}
+        }
+
+        self.rect.x += self.curr_speed.x as i32;
+
         let mut grounded = false;
         for actor in other_actors {
             if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Bottom) {
                 if self.curr_state == AsteroidState::Jumping {
                     self.curr_state = AsteroidState::Idle;
                 }
+
+                while self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Bottom) {
+                    self.rect.y -= 1;
+                }
+
                 grounded = true;
                 break;
             }
@@ -82,13 +95,6 @@ impl Actor for Asteroid {
         if !grounded && self.curr_state == AsteroidState::Idle {
             self.curr_state = AsteroidState::Jumping;
         }
-
-        match self.curr_state {
-            AsteroidState::Jumping => self.rect.y += self.curr_speed.y as i32,
-            AsteroidState::Idle => {}
-        }
-
-        self.rect.x += self.curr_speed.x as i32;
 
         // Update sprite animation
         if let Some(animation) = self.animations.get_mut(&self.curr_state) {

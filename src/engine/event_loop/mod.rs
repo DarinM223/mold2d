@@ -1,10 +1,12 @@
+mod frame_timer;
+
 use engine::context::{Context, Window};
 use engine::events::Events;
-use engine::frame_timer::{FrameAction, FrameTimer};
 use engine::view::{Actor, View, ViewAction};
 use sdl2;
 use sdl2::SdlResult;
 use sdl2_ttf;
+use self::frame_timer::{FrameAction, FrameTimer};
 
 /// Initializes SDL and creates the window and event loop
 pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>

@@ -1,4 +1,4 @@
-use engine::geo_utils;
+use engine::physics::collision;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::LoadTexture;
@@ -74,7 +74,7 @@ impl Sprite {
                                        rect.width(),
                                        rect.height());
 
-        if geo_utils::rect_contains_rect(self.src, new_src) {
+        if collision::rect_contains_rect(self.src, new_src) {
             Some(Sprite {
                 tex: self.tex.clone(),
                 src: new_src,
