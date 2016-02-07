@@ -1,0 +1,17 @@
+[package]
+name = "engine"
+version = "0.1.0"
+authors = ["Darin Minamoto <darinm223@gmail.com>"]
+
+[lib]
+name = "engine"
+path = "lib.rs"
+
+[dependencies]
+sdl2 = "0.9"
+sdl2_image = "0.3"
+sdl2_ttf = "0.9"
+clippy = { version = "*", optional = true }
+
+[dependencies.sorty]
+git = "https://github.com/Wafflespeanut/rust-sorty"

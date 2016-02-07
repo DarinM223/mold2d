@@ -1,4 +1,4 @@
-use engine::physics::collision;
+use physics::collision;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::LoadTexture;
@@ -171,6 +171,7 @@ impl Renderable for AnimatedSprite {
 ///     }
 /// }
 /// ```
+#[macro_export]
 macro_rules! spritesheet {
     (
         name: $name:ident,

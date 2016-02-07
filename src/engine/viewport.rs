@@ -1,5 +1,5 @@
-use engine::context::Window;
-use engine::level::GRID_SIZE;
+use context::Window;
+use level::GRID_SIZE;
 use sdl2::rect::Point;
 
 pub struct Viewport {

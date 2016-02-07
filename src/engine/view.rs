@@ -1,6 +1,6 @@
-use engine::context::Context;
-use engine::viewport::Viewport;
+use context::Context;
 use sdl2::rect::Rect;
+use viewport::Viewport;
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {

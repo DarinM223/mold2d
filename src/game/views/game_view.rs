@@ -1,12 +1,12 @@
+use actors::asteroid::Asteroid;
+use actors::block::Block;
 use engine::context::Context;
 use engine::level;
 use engine::view::{Actor, ActorAction, View, ViewAction};
 use engine::viewport::Viewport;
-use game::actors::asteroid::Asteroid;
-use game::actors::block::Block;
-use game::views::background_view::BackgroundView;
 use sdl2::pixels::Color;
 use std::collections::VecDeque;
+use views::background_view::BackgroundView;
 
 level_token_config! {
     '+' => Asteroid,

@@ -1,5 +1,5 @@
-use engine::sprite::SpriteRectangle;
-use sdl2::rect::{Point, Rect};
+use sdl2::rect::Rect;
+use sprite::SpriteRectangle;
 
 /// Checks if a rectangle contains another rectangle
 pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {

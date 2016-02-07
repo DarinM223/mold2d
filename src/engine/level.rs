@@ -1,11 +1,12 @@
-use engine::view::Actor;
-use engine::viewport::Viewport;
 use sdl2::render::Renderer;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
+use view::Actor;
+use viewport::Viewport;
 
 /// Generates the level character token to actor configurations
+#[macro_export]
 macro_rules! level_token_config {
     ( $( $token:expr => $actor:ident ),* ) => {
         pub fn actor_for_token(token: char, 

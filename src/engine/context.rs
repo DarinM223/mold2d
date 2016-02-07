@@ -1,4 +1,4 @@
-use engine::events::Events;
+use events::Events;
 use sdl2::render::Renderer;
 use sdl2_image;
 
