@@ -5,6 +5,7 @@ use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction};
 use engine::viewport::Viewport;
+use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 
 const ASTEROID_SIDE: u32 = 96;
@@ -78,7 +79,15 @@ impl Actor for Asteroid {
 
         let mut grounded = false;
         for actor in other_actors {
-            if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Bottom) {
+            if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Left) {
+                while self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Left) {
+                    self.rect.x -= 1;
+                }
+            } else if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Right) {
+                while self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Right) {
+                    self.rect.x += 1;
+                }
+            } else if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Bottom) {
                 if self.curr_state == AsteroidState::Jumping {
                     self.curr_state = AsteroidState::Idle;
                 }
@@ -86,6 +95,7 @@ impl Actor for Asteroid {
                 while self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Bottom) {
                     self.rect.y -= 1;
                 }
+                self.rect.y += 1;
 
                 grounded = true;
                 break;
@@ -115,6 +125,10 @@ impl Actor for Asteroid {
         if let Some(animation) = self.animations.get_mut(&self.curr_state) {
             animation.render(&mut context.renderer, rect);
         }
+
+        // Draw rectangle outline for checking collision detection
+        context.renderer.set_draw_color(Color::RGB(0, 255, 0));
+        context.renderer.draw_rect(rect);
     }
 
     fn set_position(&mut self, position: (i32, i32)) {
