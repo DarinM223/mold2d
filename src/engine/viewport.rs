@@ -1,6 +1,6 @@
 use context::Window;
 use level::GRID_SIZE;
-use sdl2::rect::Point;
+use sdl2::rect::{Point, Rect};
 
 pub struct Viewport {
     x: i32,
@@ -45,5 +45,15 @@ impl Viewport {
 
         (map_point.0 - self.x + left_margin,
          map_point.1 - self.y + top_margin)
+    }
+
+    /// Returns a rectangle in viewport coordinates or None if not in viewport
+    pub fn constrain_to_viewport(&self, rect: &Rect) -> Option<Rect> {
+        if self.in_viewport(Point::new(rect.x(), rect.y())) {
+            let (x, y) = self.relative_point((rect.x(), rect.y()));
+            Some(Rect::new_unwrap(x, y, rect.width(), rect.height()))
+        } else {
+            None
+        }
     }
 }

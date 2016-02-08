@@ -11,6 +11,7 @@ pub trait Renderable {
 }
 
 /// A mutable rectangle for a sprite so it can be moved around
+#[derive(Clone)]
 pub struct SpriteRectangle {
     pub x: i32,
     pub y: i32,
@@ -92,6 +93,7 @@ impl Renderable for Sprite {
 }
 
 /// Represents an animated sprite with multiple frames
+#[derive(Clone)]
 pub struct AnimatedSprite {
     /// frames that will be rendered
     frames: Vec<Sprite>,
@@ -182,11 +184,12 @@ macro_rules! spritesheet {
         animations: { $( $a_alias:ident : $a_range:expr ),* },
         properties: { $( $p_alias:ident : $p_type:ident => $p_value:expr ),* }
     ) => {
-        #[derive(Clone, PartialEq, Eq, Debug, Hash)]
+        #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
         pub enum $state {
             $( $a_alias ),*
         }
 
+        #[derive(Clone)]
         pub struct $name {
             pub path: &'static str,
             pub animations: ::std::collections::HashMap<$state, ::engine::sprite::AnimatedSprite>,

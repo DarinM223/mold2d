@@ -3,7 +3,7 @@ use engine::physics::collision::{Collision, CollisionSide};
 use engine::physics::vector::Vector2D;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
-use engine::view::{Actor, ActorAction};
+use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -33,7 +33,7 @@ spritesheet! {
 impl Actor for Asteroid {
     fn update(&mut self,
               context: &mut Context,
-              other_actors: Vec<&mut Box<Actor>>,
+              other_actors: &Vec<ActorData>,
               elapsed: f64)
               -> Option<ActorAction> {
         let max_y_speed = match self.curr_state {
@@ -79,20 +79,20 @@ impl Actor for Asteroid {
 
         let mut grounded = false;
         for actor in other_actors {
-            if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Left) {
-                while self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Left) {
+            if self.rect.collides_with(actor.rect) == Some(CollisionSide::Left) {
+                while self.rect.collides_with(actor.rect) == Some(CollisionSide::Left) {
                     self.rect.x -= 1;
                 }
-            } else if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Right) {
-                while self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Right) {
+            } else if self.rect.collides_with(actor.rect) == Some(CollisionSide::Right) {
+                while self.rect.collides_with(actor.rect) == Some(CollisionSide::Right) {
                     self.rect.x += 1;
                 }
-            } else if self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Bottom) {
+            } else if self.rect.collides_with(actor.rect) == Some(CollisionSide::Bottom) {
                 if self.curr_state == AsteroidState::Jumping {
                     self.curr_state = AsteroidState::Idle;
                 }
 
-                while self.rect.collides_with(actor.bounding_box()) == Some(CollisionSide::Bottom) {
+                while self.rect.collides_with(actor.rect) == Some(CollisionSide::Bottom) {
                     self.rect.y -= 1;
                 }
                 self.rect.y += 1;
@@ -131,16 +131,18 @@ impl Actor for Asteroid {
         context.renderer.draw_rect(rect);
     }
 
+    fn data(&self) -> ActorData {
+        ActorData {
+            id: 0,
+            state: self.curr_state as u32,
+            damage: 0,
+            rect: self.rect.to_sdl().unwrap(),
+            actor_type: ActorType::Player,
+        }
+    }
+
     fn set_position(&mut self, position: (i32, i32)) {
         self.rect.x = position.0;
         self.rect.y = position.1;
-    }
-
-    fn bounding_box(&self) -> Rect {
-        self.rect.to_sdl().unwrap()
-    }
-
-    fn position(&self) -> (i32, i32) {
-        (self.rect.x, self.rect.y)
     }
 }

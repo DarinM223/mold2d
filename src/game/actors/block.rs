@@ -1,6 +1,6 @@
 use engine::context::Context;
 use engine::sprite::SpriteRectangle;
-use engine::view::{Actor, ActorAction};
+use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -23,7 +23,7 @@ impl Block {
 impl Actor for Block {
     fn update(&mut self,
               _context: &mut Context,
-              other_actors: Vec<&mut Box<Actor>>,
+              other_actors: &Vec<ActorData>,
               _elapsed: f64)
               -> Option<ActorAction> {
         None
@@ -37,16 +37,18 @@ impl Actor for Block {
         context.renderer.fill_rect(rect);
     }
 
+    fn data(&self) -> ActorData {
+        ActorData {
+            id: 0,
+            state: 0 as u32,
+            damage: 0,
+            rect: self.rect.to_sdl().unwrap(),
+            actor_type: ActorType::Block,
+        }
+    }
+
     fn set_position(&mut self, position: (i32, i32)) {
         self.rect.x = position.0;
         self.rect.y = position.1;
-    }
-
-    fn bounding_box(&self) -> Rect {
-        self.rect.to_sdl().unwrap()
-    }
-
-    fn position(&self) -> (i32, i32) {
-        (self.rect.x, self.rect.y)
     }
 }

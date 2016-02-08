@@ -27,6 +27,7 @@ pub mod level;
 #[macro_use]
 pub mod sprite;
 
+pub mod actor_manager;
 pub mod context;
 pub mod event_loop;
 pub mod events;
