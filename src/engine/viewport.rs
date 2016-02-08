@@ -35,7 +35,8 @@ impl Viewport {
         let y_min = (self.y as f64) - (self.height as f64) / 2.0;
         let y_max = (self.y as f64) + (self.height as f64) / 2.0;
 
-        (point.x() as f64) >= x_min && (point.x() as f64) <= x_max && (point.y() as f64) >= y_min && (point.y() as f64) <= y_max
+        (point.x() as f64) >= x_min && (point.x() as f64) <= x_max && (point.y() as f64) >= y_min &&
+        (point.y() as f64) <= y_max
     }
 
     /// Returns the point in the game relative to the viewpoint

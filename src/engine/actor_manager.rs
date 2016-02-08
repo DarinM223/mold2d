@@ -1,5 +1,5 @@
-use view::Actor;
 use std::collections::HashMap;
+use view::Actor;
 
 pub struct ActorManager {
     next_id: i32,

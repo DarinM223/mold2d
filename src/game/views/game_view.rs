@@ -4,12 +4,10 @@ use engine::actor_manager::ActorManager;
 use engine::context::Context;
 use engine::level;
 use engine::physics::quadtree::Quadtree;
-use engine::view::{Actor, ActorAction, ActorData, View, ViewAction};
+use engine::view::{Actor, ActorAction, View, ViewAction};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use std::collections::VecDeque;
-use std::mem;
 use views::background_view::BackgroundView;
 
 level_token_config! {
@@ -60,10 +58,6 @@ impl View for GameView {
         context.renderer.set_draw_color(Color::RGB(0, 0, 0));
         context.renderer.clear();
 
-        context.renderer.set_draw_color(Color::RGB(255, 0, 0));
-        context.renderer
-               .fill_rect(Rect::new_unwrap(0, 0, context.window.width, context.window.height));
-
         // render contained actors
         for (_, actor) in &mut self.actors.actors {
             actor.render(context, &mut self.viewport, elapsed);
@@ -83,7 +77,7 @@ impl View for GameView {
         let mut quadtree = Quadtree::new(Rect::new_unwrap(0,
                                                           0,
                                                           context.window.width,
-                                                          context.window.height / 2),
+                                                          context.window.height),
                                          &self.viewport);
         let mut keys = Vec::new();
 
@@ -94,12 +88,12 @@ impl View for GameView {
         }
 
         for key in keys {
-            let mut actor = self.actors.get_mut(key);
+            let actor = self.actors.get_mut(key);
             if let Some(actor) = actor {
                 let collided_actors = quadtree.retrieve(&actor.data().rect)
                                               .into_iter()
                                               .map(|act| act.clone())
-                                              .collect();
+                                              .collect::<Vec<_>>();
                 let action = actor.update(context, &collided_actors, elapsed);
                 if let Some(action) = action {
                     actions.push(action);

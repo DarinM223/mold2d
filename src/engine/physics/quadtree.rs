@@ -2,8 +2,8 @@ use sdl2::rect::Rect;
 use view::ActorData;
 use viewport::Viewport;
 
-const MAX_OBJECTS: usize = 10;
-const MAX_LEVELS: i32 = 5;
+const MAX_OBJECTS: usize = 20;
+const MAX_LEVELS: i32 = 10;
 
 pub struct Quadtree<'a> {
     level: i32,
@@ -30,34 +30,36 @@ impl<'a> Quadtree<'a> {
         let height = ((self.bounds.height() as f64) / 2.0) as i32;
         let (x, y) = (self.bounds.x(), self.bounds.y());
 
-        self.nodes[0] = Some(Box::new(Quadtree {
-            level: self.level + 1,
-            objects: Vec::new(),
-            bounds: Rect::new_unwrap(x + width, y, width as u32, height as u32),
-            nodes: [None, None, None, None],
-            viewport: self.viewport,
-        }));
-        self.nodes[1] = Some(Box::new(Quadtree {
-            level: self.level + 1,
-            objects: Vec::new(),
-            bounds: Rect::new_unwrap(x, y, width as u32, height as u32),
-            nodes: [None, None, None, None],
-            viewport: self.viewport,
-        }));
-        self.nodes[2] = Some(Box::new(Quadtree {
-            level: self.level + 1,
-            objects: Vec::new(),
-            bounds: Rect::new_unwrap(x, y + height, width as u32, height as u32),
-            nodes: [None, None, None, None],
-            viewport: self.viewport,
-        }));
-        self.nodes[3] = Some(Box::new(Quadtree {
-            level: self.level + 1,
-            objects: Vec::new(),
-            bounds: Rect::new_unwrap(x + width, y + height, width as u32, height as u32),
-            nodes: [None, None, None, None],
-            viewport: self.viewport,
-        }));
+        if width as u32 > 0u32 && height as u32 > 0u32 {
+            self.nodes[0] = Some(Box::new(Quadtree {
+                level: self.level + 1,
+                objects: Vec::new(),
+                bounds: Rect::new_unwrap(x + width, y, width as u32, height as u32),
+                nodes: [None, None, None, None],
+                viewport: self.viewport,
+            }));
+            self.nodes[1] = Some(Box::new(Quadtree {
+                level: self.level + 1,
+                objects: Vec::new(),
+                bounds: Rect::new_unwrap(x, y, width as u32, height as u32),
+                nodes: [None, None, None, None],
+                viewport: self.viewport,
+            }));
+            self.nodes[2] = Some(Box::new(Quadtree {
+                level: self.level + 1,
+                objects: Vec::new(),
+                bounds: Rect::new_unwrap(x, y + height, width as u32, height as u32),
+                nodes: [None, None, None, None],
+                viewport: self.viewport,
+            }));
+            self.nodes[3] = Some(Box::new(Quadtree {
+                level: self.level + 1,
+                objects: Vec::new(),
+                bounds: Rect::new_unwrap(x + width, y + height, width as u32, height as u32),
+                nodes: [None, None, None, None],
+                viewport: self.viewport,
+            }));
+        }
     }
 
     /// Determine which node index the object belongs to
@@ -91,6 +93,9 @@ impl<'a> Quadtree<'a> {
 
     /// Inserts an actor into the quadtree
     pub fn insert(&mut self, actor: ActorData) {
+        if let None = self.viewport.constrain_to_viewport(&actor.rect) {
+            return;
+        }
         if let Some(_) = self.nodes[0] {
             if let Some(index) = self.index(&actor.rect) {
                 if let Some(ref mut node) = self.nodes[index as usize] {
@@ -107,14 +112,19 @@ impl<'a> Quadtree<'a> {
                 self.split();
             }
 
+            let mut leftover_parent = Vec::new();
             while !self.objects.is_empty() {
                 let object = self.objects.pop().unwrap();
                 if let Some(index) = self.index(&object.rect) {
                     if let Some(ref mut node) = self.nodes[index as usize] {
                         node.insert(object);
                     }
+                } else {
+                    leftover_parent.push(object);
                 }
             }
+
+            self.objects = leftover_parent;
         }
     }
 

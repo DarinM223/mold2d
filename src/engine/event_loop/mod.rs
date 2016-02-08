@@ -7,8 +7,6 @@ use sdl2::SdlResult;
 use sdl2_ttf;
 use self::frame_timer::{FrameAction, FrameTimer};
 use view::{Actor, View, ViewAction};
-use std::thread;
-use std::time::Duration;
 
 /// Initializes SDL and creates the window and event loop
 pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
@@ -51,7 +49,6 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
 
         // Render the scene
         game_context.renderer.present();
-        // thread::sleep(Duration::from_millis(500));
     }
 
     Ok(())

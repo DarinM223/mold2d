@@ -5,15 +5,12 @@ use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
-use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 
 const ASTEROID_SIDE: u32 = 96;
 const ASTEROID_X_MAXSPEED: f64 = 10.0;
 const ASTEROID_Y_MAXSPEED: f64 = 15.0;
 const ASTEROID_ACCELERATION: f64 = 0.2;
-
-pub type Other = Vec<ActorData>;
 
 spritesheet! {
     name: Asteroid,
@@ -26,7 +23,6 @@ spritesheet! {
         Idle: 1..143
     },
     properties: {
-        other: Other => Vec::new(),
         curr_state: AsteroidState => AsteroidState::Jumping,
         curr_speed: Vector2D => Vector2D { x: 0.0, y: 0.0 },
         rect: SpriteRectangle => SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE)
@@ -81,8 +77,6 @@ impl Actor for Asteroid {
         self.rect.x += self.curr_speed.x as i32;
 
         let mut grounded = false;
-        println!("Other actors: {}", other_actors.len());
-        self.other.clear();
         for actor in other_actors {
             if self.rect.collides_with(actor.rect) == Some(CollisionSide::Left) {
                 while self.rect.collides_with(actor.rect) == Some(CollisionSide::Left) {
@@ -105,8 +99,6 @@ impl Actor for Asteroid {
                 grounded = true;
                 break;
             }
-
-            self.other.push(actor.clone());
         }
 
         if !grounded && self.curr_state == AsteroidState::Idle {
@@ -131,16 +123,6 @@ impl Actor for Asteroid {
         // Render sprite animation
         if let Some(animation) = self.animations.get_mut(&self.curr_state) {
             animation.render(&mut context.renderer, rect);
-        }
-
-        // Draw rectangle outline for checking collision detection
-        context.renderer.set_draw_color(Color::RGB(0, 255, 0));
-        context.renderer.draw_rect(rect);
-
-        for actor in &self.other {
-            if let Some(rect) = viewport.constrain_to_viewport(&actor.rect) {
-                context.renderer.fill_rect(rect);
-            }
         }
     }
 
