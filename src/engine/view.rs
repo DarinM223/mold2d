@@ -11,6 +11,7 @@ pub enum ViewAction {
 /// Actions that the actor would want the parent view to do
 pub enum ActorAction {
     AddActor(Box<Actor>),
+    SetViewport(i32, i32),
 }
 
 pub trait View {
@@ -47,7 +48,7 @@ pub trait Actor {
               context: &mut Context,
               other_actors: &Vec<ActorData>,
               elapsed: f64)
-              -> Option<ActorAction>;
+              -> Vec<ActorAction>;
 
     /// Gets the actor data
     fn data(&self) -> ActorData;

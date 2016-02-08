@@ -74,29 +74,29 @@ impl View for GameView {
         }
 
         let mut actions = Vec::new();
-        let mut quadtree = Quadtree::new(Rect::new_unwrap(0,
-                                                          0,
-                                                          context.window.width,
-                                                          context.window.height),
-                                         &self.viewport);
-        let mut keys = Vec::new();
 
-        for (key, actor) in &self.actors.actors {
-            keys.push(key.clone());
+        {
+            let mut quadtree = Quadtree::new(Rect::new_unwrap(0,
+                                                              0,
+                                                              context.window.width,
+                                                              context.window.height),
+                                             &self.viewport);
+            let mut keys = Vec::new();
 
-            quadtree.insert(actor.data().clone());
-        }
+            for (key, actor) in &self.actors.actors {
+                keys.push(key.clone());
 
-        for key in keys {
-            let actor = self.actors.get_mut(key);
-            if let Some(actor) = actor {
-                let collided_actors = quadtree.retrieve(&actor.data().rect)
-                                              .into_iter()
-                                              .map(|act| act.clone())
-                                              .collect::<Vec<_>>();
-                let action = actor.update(context, &collided_actors, elapsed);
-                if let Some(action) = action {
-                    actions.push(action);
+                quadtree.insert(actor.data().clone());
+            }
+
+            for key in keys {
+                let actor = self.actors.get_mut(key);
+                if let Some(actor) = actor {
+                    let collided_actors = quadtree.retrieve(&actor.data().rect)
+                                                  .into_iter()
+                                                  .map(|act| act.clone())
+                                                  .collect::<Vec<_>>();
+                    actions.extend(actor.update(context,  &collided_actors, elapsed));
                 }
             }
         }
@@ -106,6 +106,7 @@ impl View for GameView {
             let action = actions.pop();
             match action {
                 Some(ActorAction::AddActor(actor)) => self.actors.add(actor),
+                Some(ActorAction::SetViewport(x, y)) => self.viewport.set_position((x, y)),
                 _ => {}
             }
         }

@@ -34,7 +34,9 @@ impl Actor for Asteroid {
               context: &mut Context,
               other_actors: &Vec<ActorData>,
               elapsed: f64)
-              -> Option<ActorAction> {
+              -> Vec<ActorAction> {
+        let mut actions = Vec::new();
+
         let max_y_speed = match self.curr_state {
             AsteroidState::Jumping => ASTEROID_Y_MAXSPEED,
             AsteroidState::Idle => 0.0,
@@ -101,6 +103,8 @@ impl Actor for Asteroid {
             }
         }
 
+        actions.push(ActorAction::SetViewport(self.rect.x, self.rect.y));
+
         if !grounded && self.curr_state == AsteroidState::Idle {
             self.curr_state = AsteroidState::Jumping;
         }
@@ -110,15 +114,12 @@ impl Actor for Asteroid {
             animation.add_time(elapsed);
         }
 
-        None
+        actions
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64) {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
-
-        // Follow the asteroid
-        viewport.set_position((self.rect.x, self.rect.y));
 
         // Render sprite animation
         if let Some(animation) = self.animations.get_mut(&self.curr_state) {

@@ -25,8 +25,8 @@ impl Actor for Block {
               _context: &mut Context,
               other_actors: &Vec<ActorData>,
               _elapsed: f64)
-              -> Option<ActorAction> {
-        None
+              -> Vec<ActorAction> {
+        Vec::new()
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
