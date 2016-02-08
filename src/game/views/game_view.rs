@@ -60,6 +60,10 @@ impl View for GameView {
         context.renderer.set_draw_color(Color::RGB(0, 0, 0));
         context.renderer.clear();
 
+        context.renderer.set_draw_color(Color::RGB(255, 0, 0));
+        context.renderer
+               .fill_rect(Rect::new_unwrap(0, 0, context.window.width, context.window.height));
+
         // render contained actors
         for (_, actor) in &mut self.actors.actors {
             actor.render(context, &mut self.viewport, elapsed);
@@ -79,7 +83,7 @@ impl View for GameView {
         let mut quadtree = Quadtree::new(Rect::new_unwrap(0,
                                                           0,
                                                           context.window.width,
-                                                          context.window.height),
+                                                          context.window.height / 2),
                                          &self.viewport);
         let mut keys = Vec::new();
 
@@ -92,11 +96,10 @@ impl View for GameView {
         for key in keys {
             let mut actor = self.actors.get_mut(key);
             if let Some(actor) = actor {
-                let mut collided_actors = Vec::new();
-                let rects = quadtree.retrieve(&actor.data().rect);
-                for rect in rects {
-                    collided_actors.push(rect.clone());
-                }
+                let collided_actors = quadtree.retrieve(&actor.data().rect)
+                                              .into_iter()
+                                              .map(|act| act.clone())
+                                              .collect();
                 let action = actor.update(context, &collided_actors, elapsed);
                 if let Some(action) = action {
                     actions.push(action);

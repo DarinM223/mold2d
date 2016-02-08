@@ -26,8 +26,8 @@ impl<'a> Quadtree<'a> {
 
     /// Splits the node into four subnodes
     fn split(&mut self) {
-        let width = self.bounds.width() as i32 / 2;
-        let height = self.bounds.height() as i32 / 2;
+        let width = ((self.bounds.width() as f64) / 2.0) as i32;
+        let height = ((self.bounds.height() as f64) / 2.0) as i32;
         let (x, y) = (self.bounds.x(), self.bounds.y());
 
         self.nodes[0] = Some(Box::new(Quadtree {
@@ -128,7 +128,9 @@ impl<'a> Quadtree<'a> {
         }
 
         for object in &self.objects {
-            retrieved_values.push(object);
+            if object.rect != *rect {
+                retrieved_values.push(object);
+            }
         }
 
         retrieved_values

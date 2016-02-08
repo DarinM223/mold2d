@@ -30,12 +30,12 @@ impl Viewport {
     }
 
     pub fn in_viewport(&self, point: Point) -> bool {
-        let x_min = self.x - (self.width / 2) as i32;
-        let x_max = self.x + (self.width / 2) as i32;
-        let y_min = self.y - (self.height / 2) as i32;
-        let y_max = self.y + (self.height / 2) as i32;
+        let x_min = (self.x as f64) - (self.width as f64) / 2.0;
+        let x_max = (self.x as f64) + (self.width as f64) / 2.0;
+        let y_min = (self.y as f64) - (self.height as f64) / 2.0;
+        let y_max = (self.y as f64) + (self.height as f64) / 2.0;
 
-        point.x() >= x_min && point.x() <= x_max && point.y() >= y_min && point.y() <= y_max
+        (point.x() as f64) >= x_min && (point.x() as f64) <= x_max && (point.y() as f64) >= y_min && (point.y() as f64) <= y_max
     }
 
     /// Returns the point in the game relative to the viewpoint
