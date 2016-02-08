@@ -33,7 +33,7 @@ impl Actor for Block {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
-        context.renderer.set_draw_color(Color::RGB(70, 15, 70));
+        context.renderer.set_draw_color(Color::RGB(85, 107, 47));
         context.renderer.fill_rect(rect);
     }
 

@@ -4,7 +4,7 @@ use engine::actor_manager::ActorManager;
 use engine::context::Context;
 use engine::level;
 use engine::physics::quadtree::Quadtree;
-use engine::view::{Actor, ActorAction, View, ViewAction};
+use engine::view::{Actor, ActorAction, ActorType, View, ViewAction};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -55,7 +55,7 @@ impl GameView {
 impl View for GameView {
     fn render(&mut self, context: &mut Context, elapsed: f64) {
         // start off with a black screen
-        context.renderer.set_draw_color(Color::RGB(0, 0, 0));
+        context.renderer.set_draw_color(Color::RGB(135, 206, 250));
         context.renderer.clear();
 
         // render contained actors
@@ -92,11 +92,15 @@ impl View for GameView {
             for key in keys {
                 let actor = self.actors.get_mut(key);
                 if let Some(actor) = actor {
-                    let collided_actors = quadtree.retrieve(&actor.data().rect)
-                                                  .into_iter()
-                                                  .map(|act| act.clone())
-                                                  .collect::<Vec<_>>();
-                    actions.extend(actor.update(context,  &collided_actors, elapsed));
+                    // Only check collisions for players and enemies
+                    if actor.data().actor_type == ActorType::Player ||
+                       actor.data().actor_type == ActorType::Enemy {
+                        let collided_actors = quadtree.retrieve(&actor.data().rect)
+                                                      .into_iter()
+                                                      .map(|act| act.clone())
+                                                      .collect::<Vec<_>>();
+                        actions.extend(actor.update(context, &collided_actors, elapsed));
+                    }
                 }
             }
         }
@@ -106,7 +110,11 @@ impl View for GameView {
             let action = actions.pop();
             match action {
                 Some(ActorAction::AddActor(actor)) => self.actors.add(actor),
-                Some(ActorAction::SetViewport(x, y)) => self.viewport.set_position((x, y)),
+                Some(ActorAction::SetViewport(x, y)) => {
+                    if y <= (context.window.height as i32) - ((context.window.height / 2) as i32) {
+                        self.viewport.set_position((x, y));
+                    }
+                }
                 _ => {}
             }
         }

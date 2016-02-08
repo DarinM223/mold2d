@@ -2,7 +2,7 @@ use sdl2::rect::Rect;
 use view::ActorData;
 use viewport::Viewport;
 
-const MAX_OBJECTS: usize = 20;
+const MAX_OBJECTS: usize = 5;
 const MAX_LEVELS: i32 = 10;
 
 pub struct Quadtree<'a> {
