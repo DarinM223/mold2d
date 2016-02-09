@@ -33,17 +33,12 @@ pub struct GameView {
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
         let mut viewport = Viewport::new(&context.window, (0, 0));
-        let mut actors = ActorManager::new();
-        let mut actor_vec: Vec<Box<Actor>> = level::load_level(path,
-                                                               actor_for_token,
-                                                               &mut viewport,
-                                                               &mut context.renderer,
-                                                               60.0)
-                                                 .unwrap();
-        while !actor_vec.is_empty() {
-            actors.add(actor_vec.pop().unwrap());
-        }
-
+        let mut actors = level::load_level(path,
+                                           actor_for_token,
+                                           &mut viewport,
+                                           &mut context.renderer,
+                                           60.0)
+                             .unwrap();
         GameView {
             state: GameState::Normal,
             actors: actors,

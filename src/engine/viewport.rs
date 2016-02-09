@@ -2,6 +2,8 @@ use context::Window;
 use level::GRID_SIZE;
 use sdl2::rect::{Point, Rect};
 
+/// Constrains coordinates from an open world into the current window view
+/// This allows for scrolling for levels larger than the current screen
 pub struct Viewport {
     x: i32,
     y: i32,
@@ -19,6 +21,7 @@ impl Viewport {
         }
     }
 
+    /// Updates a viewport to a new point
     pub fn update(&mut self, change: (i32, i32)) {
         self.x += change.0;
         self.y += change.1;
@@ -29,6 +32,7 @@ impl Viewport {
         self.y = point.1;
     }
 
+    /// Returns true if the point is inside the viewport, false otherwise
     pub fn in_viewport(&self, point: Point) -> bool {
         let x_min = (self.x as f64) - (self.width as f64) / 2.0;
         let x_max = (self.x as f64) + (self.width as f64) / 2.0;

@@ -1,5 +1,6 @@
 use std::ops::{Add, Div, Mul, Sub};
 
+/// A two-dimensional vector
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector2D {
     pub x: f64,

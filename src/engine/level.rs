@@ -1,3 +1,4 @@
+use actor_manager::ActorManager;
 use sdl2::render::Renderer;
 use std::fs::File;
 use std::io;
@@ -22,15 +23,16 @@ macro_rules! level_token_config {
 
 pub const GRID_SIZE: i32 = 40;
 
+/// Loads a new level and returns an ActorManager with the loaded actors
 pub fn load_level<F>(path: &str,
                      actor_for_token: F,
                      viewport: &mut Viewport,
                      renderer: &mut Renderer,
                      fps: f64)
-                     -> io::Result<Vec<Box<Actor>>>
+                     -> io::Result<ActorManager>
     where F: Fn(char, &mut Renderer, f64) -> Box<Actor>
 {
-    let mut actors = Vec::new();
+    let mut manager = ActorManager::new();
 
     let open_result = File::open(path);
 
@@ -47,7 +49,7 @@ pub fn load_level<F>(path: &str,
                 if token != ' ' {
                     let mut actor = actor_for_token(token, renderer, fps);
                     actor.set_position((x, y));
-                    actors.push(actor);
+                    manager.add(actor);
 
                     if token == 'P' {
                         has_player = true;
@@ -68,5 +70,5 @@ pub fn load_level<F>(path: &str,
         }
     }
 
-    Ok(actors)
+    Ok(manager)
 }

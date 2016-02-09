@@ -16,6 +16,13 @@ pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {
     check_xmin && check_xmax && check_ymin && check_ymax
 }
 
+/// Returns the center point of a rectangle as a tuple of decimals
+fn center_point(rect: Rect) -> (f64, f64) {
+    ((rect.x() as f64) + 0.5 * (rect.width() as f64),
+     (rect.y() as f64) + 0.5 * (rect.height() as f64))
+}
+
+/// The side of the actor being collided into
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum CollisionSide {
     Left,
@@ -24,6 +31,7 @@ pub enum CollisionSide {
     Bottom,
 }
 
+/// Checks collisions for different objects
 pub trait Collision<T> {
     fn collides_with(&self, other: T) -> Option<CollisionSide>;
 }
@@ -32,8 +40,8 @@ impl Collision<Rect> for Rect {
     fn collides_with(&self, other: Rect) -> Option<CollisionSide> {
         let w = 0.5 * (self.width() + other.width()) as f64;
         let h = 0.5 * (self.height() + other.height()) as f64;
-        let dx = (self.x() - other.x()) as f64;
-        let dy = (self.y() - other.y()) as f64;
+        let dx = center_point(*self).0 - center_point(other).0;
+        let dy = center_point(*self).1 - center_point(other).1;
 
         if dx.abs() <= w && dy.abs() <= h {
             let wy = w * dy;
