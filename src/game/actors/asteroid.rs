@@ -1,6 +1,6 @@
 use engine::context::Context;
-use engine::physics::collision::{Collision, CollisionSide};
-use engine::physics::vector::Vector2D;
+use engine::collision::{Collision, CollisionSide};
+use engine::vector::Vector2D;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};

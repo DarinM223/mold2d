@@ -28,9 +28,11 @@ pub mod level;
 pub mod sprite;
 
 pub mod actor_manager;
+pub mod collision;
 pub mod context;
 pub mod event_loop;
 pub mod events;
-pub mod physics;
+pub mod quadtree;
+pub mod vector;
 pub mod view;
 pub mod viewport;

@@ -1,4 +1,4 @@
-use physics::collision;
+use collision;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::LoadTexture;

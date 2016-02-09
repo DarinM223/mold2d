@@ -3,7 +3,7 @@ use actors::block::Block;
 use engine::actor_manager::ActorManager;
 use engine::context::Context;
 use engine::level;
-use engine::physics::quadtree::Quadtree;
+use engine::quadtree::Quadtree;
 use engine::view::{Actor, ActorAction, ActorType, View, ViewAction};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
