@@ -32,13 +32,12 @@ pub struct GameView {
 
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
-        let mut viewport = Viewport::new(&context.window, (0, 0));
-        let mut actors = level::load_level(path,
-                                           actor_for_token,
-                                           &mut viewport,
-                                           &mut context.renderer,
-                                           60.0)
-                             .unwrap();
+        let (actors, viewport) = level::load_level(path,
+                                                   actor_for_token,
+                                                   &mut context.renderer,
+                                                   &context.window,
+                                                   60.0)
+                                     .unwrap();
         GameView {
             state: GameState::Normal,
             actors: actors,
@@ -55,7 +54,9 @@ impl View for GameView {
 
         // render contained actors
         for (_, actor) in &mut self.actors.actors {
-            actor.render(context, &mut self.viewport, elapsed);
+            if let Some(_) = self.viewport.constrain_to_viewport(&actor.data().rect) {
+                actor.render(context, &mut self.viewport, elapsed);
+            }
         }
     }
 

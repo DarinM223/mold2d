@@ -1,4 +1,5 @@
 use actor_manager::ActorManager;
+use context::Window;
 use sdl2::render::Renderer;
 use std::fs::File;
 use std::io;
@@ -26,12 +27,13 @@ pub const GRID_SIZE: i32 = 40;
 /// Loads a new level and returns an ActorManager with the loaded actors
 pub fn load_level<F>(path: &str,
                      actor_for_token: F,
-                     viewport: &mut Viewport,
                      renderer: &mut Renderer,
+                     window: &Window,
                      fps: f64)
-                     -> io::Result<ActorManager>
+                     -> io::Result<(ActorManager, Viewport)>
     where F: Fn(char, &mut Renderer, f64) -> Box<Actor>
 {
+    let mut center_point = (0, 0);
     let mut manager = ActorManager::new();
 
     let open_result = File::open(path);
@@ -41,6 +43,8 @@ pub fn load_level<F>(path: &str,
 
         let mut x = 0;
         let mut y = 0;
+
+        let mut width = 0;
 
         let mut has_player = false;
 
@@ -53,22 +57,31 @@ pub fn load_level<F>(path: &str,
 
                     if token == 'P' {
                         has_player = true;
-                        viewport.update((x, y));
+                        center_point = (x, y);
                     }
                 }
 
                 x += GRID_SIZE;
+                width += GRID_SIZE;
             }
 
             x = 0;
             y += GRID_SIZE;
         }
 
+        let (width, height) = (width, y);
+
         if !has_player {
             return Err(io::Error::new(io::ErrorKind::Other,
                                       format!("Level at {} needs to have a player", path)));
         }
-    }
 
-    Ok(manager)
+        let mut viewport = Viewport::new(window, (width, height));
+        viewport.set_position(center_point);
+
+        Ok((manager, viewport))
+    } else {
+        Err(io::Error::new(io::ErrorKind::InvalidData,
+                           format!("File could not be opened")))
+    }
 }

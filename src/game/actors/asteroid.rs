@@ -68,9 +68,6 @@ impl Actor for Asteroid {
         self.curr_speed = (ASTEROID_ACCELERATION * target_speed) +
                           ((1.0 - ASTEROID_ACCELERATION) * self.curr_speed);
 
-        self.rect.x += self.curr_speed.x as i32;
-        self.rect.y += self.curr_speed.y as i32;
-
         match self.curr_state {
             AsteroidState::Jumping => self.rect.y += self.curr_speed.y as i32,
             AsteroidState::Idle => {}

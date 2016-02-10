@@ -155,4 +155,17 @@ impl<'a> Quadtree<'a> {
 
         retrieved_values
     }
+
+    /// Returns the total number of elements in the quadtree
+    pub fn len(&self) -> usize {
+        let mut l = self.objects.len();
+
+        for i in 0..4 {
+            if let Some(ref node) = self.nodes[i] {
+                l += node.len();
+            }
+        }
+
+        l
+    }
 }
