@@ -1,8 +1,8 @@
-use engine::context::Context;
 use engine::collision::{Collision, CollisionSide};
-use engine::vector::Vector2D;
+use engine::context::Context;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
+use engine::vector::Vector2D;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
 use sdl2::rect::Rect;
@@ -96,7 +96,6 @@ impl Actor for Asteroid {
                 self.rect.y += 1;
 
                 grounded = true;
-                break;
             }
         }
 

@@ -103,9 +103,6 @@ impl<'a> Quadtree<'a> {
 
     /// Inserts an actor into the quadtree
     pub fn insert(&mut self, actor: ActorData) {
-        if let None = self.viewport.constrain_to_viewport(&actor.rect) {
-            return;
-        }
         if let Some(_) = self.nodes[0] {
             if let Some(index) = self.index(&actor.rect) {
                 if let Some(ref mut node) = self.nodes[index as usize] {
@@ -144,6 +141,14 @@ impl<'a> Quadtree<'a> {
         if let Some(index) = self.index(rect) {
             if let Some(ref mut node) = self.nodes[index as usize] {
                 retrieved_values.extend(node.retrieve(rect).into_iter());
+            }
+        } else {
+            // if current object is not in a quadrant add all of the children
+            // since it could potentially collide with other objects in a quadrant
+            for node in &mut self.nodes[..] {
+                if let Some(ref mut node) = *node {
+                    retrieved_values.extend(node.retrieve(rect).into_iter());
+                }
             }
         }
 

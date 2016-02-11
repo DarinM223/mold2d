@@ -25,8 +25,8 @@ use engine::event_loop;
 pub fn start() {
     let window = Window {
         title: "Trage - The troll rage game",
-        width: 800,
-        height: 600,
+        width: 1024,
+        height: 800,
     };
 
     let result = event_loop::create_event_loop(window, |context| {

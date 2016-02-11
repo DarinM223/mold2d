@@ -82,7 +82,11 @@ impl View for GameView {
             for (key, actor) in &self.actors.actors {
                 keys.push(key.clone());
 
-                quadtree.insert(actor.data().clone());
+                let data = actor.data().clone();
+
+                if let Some(_) = self.viewport.constrain_to_viewport(&data.rect) {
+                    quadtree.insert(data);
+                }
             }
 
             for key in keys {

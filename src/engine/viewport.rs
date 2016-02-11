@@ -1,23 +1,24 @@
 use collision::center_point;
 use context::Window;
-use level::GRID_SIZE;
-use sdl2::rect::{Point, Rect};
-
-/// Constrains coordinates from an open world into the current window view
-/// This allows for scrolling for levels larger than the current screen
-pub struct Viewport {
-    pub x: i32,
-    pub y: i32,
-    /// Width and height of the window
-    pub window_dimensions: (i32, i32),
-    /// Width and height of the map
-    pub map_dimensions: (i32, i32),
-}
+use sdl2::rect::Rect;
 
 fn calc_viewport_point(cc: f64, vc: f64, mc: f64) -> f64 {
     let half = vc / 2.0;
 
     ((cc - half).max(0.0)).min((mc - vc).min((cc - half).abs()))
+}
+
+/// Constrains coordinates from an open world into the current window view
+/// This allows for scrolling for levels larger than the current screen
+pub struct Viewport {
+    /// The x value of the center coordinate of the viewport
+    pub x: i32,
+    /// The y value of the center coordinate of the viewport
+    pub y: i32,
+    /// Width and height of the window
+    pub window_dimensions: (i32, i32),
+    /// Width and height of the map
+    pub map_dimensions: (i32, i32),
 }
 
 impl Viewport {
@@ -59,8 +60,22 @@ impl Viewport {
 
     /// Returns a rectangle in viewport coordinates or None if not in viewport
     pub fn constrain_to_viewport(&self, rect: &Rect) -> Option<Rect> {
-        let center = center_point(rect);
-        if self.in_viewport((center.0 as i32, center.1 as i32)) {
+        let rect_points = [(rect.x(), rect.y()),
+                           (rect.x() + (rect.width() as i32), rect.y()),
+                           (rect.x(), rect.y() + (rect.height() as i32)),
+                           (rect.x() + (rect.width() as i32),
+                            rect.y() + (rect.height() as i32))];
+
+        let mut in_viewport = false;
+        for point in rect_points.iter() {
+            if self.in_viewport(*point) {
+                in_viewport = true;
+                break;
+            }
+        }
+
+        if in_viewport {
+            let center = center_point(rect);
             let (x, y) = self.relative_point((center.0 as i32, center.1 as i32));
             Some(Rect::new_unwrap(x, y, rect.width(), rect.height()))
         } else {
