@@ -7,3 +7,6 @@ readme = "README.md"
 
 [dependencies.game]
 path = "./src/game"
+
+[dependencies.engine]
+path = "./src/engine"

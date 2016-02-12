@@ -2,10 +2,12 @@ use collision::center_point;
 use context::Window;
 use sdl2::rect::Rect;
 
-fn calc_viewport_point(cc: f64, vc: f64, mc: f64) -> f64 {
-    let half = vc / 2.0;
+/// Calculates the origin coordinate for the viewport
+/// given the center coordinate, the canvas coordinate, and the map coordinate
+fn calc_viewport_point(center_coord: f64, window_coord: f64, map_coord: f64) -> f64 {
+    let half = window_coord / 2.0;
 
-    ((cc - half).max(0.0)).min((mc - vc).min((cc - half).abs()))
+    ((center_coord - half).max(0.0)).min((map_coord - window_coord).min((center_coord - half).abs()))
 }
 
 /// Constrains coordinates from an open world into the current window view

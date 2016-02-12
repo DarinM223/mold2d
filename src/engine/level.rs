@@ -62,9 +62,9 @@ pub fn load_level<F>(path: &str,
                 }
 
                 x += GRID_SIZE;
-                width += GRID_SIZE;
             }
 
+            width = x;
             x = 0;
             y += GRID_SIZE;
         }

@@ -17,24 +17,3 @@ extern crate sdl2_ttf;
 
 pub mod actors;
 pub mod views;
-
-use engine::context::Window;
-use engine::event_loop;
-
-/// Creates the window and starts the game
-pub fn start() {
-    let window = Window {
-        title: "Trage - The troll rage game",
-        width: 1024,
-        height: 800,
-    };
-
-    let result = event_loop::create_event_loop(window, |context| {
-        Box::new(views::game_view::GameView::new("levels/level1.txt", context))
-    });
-
-    match result {
-        Ok(_) => println!("Game exited successfully!"),
-        Err(e) => println!("{}", e),
-    }
-}
