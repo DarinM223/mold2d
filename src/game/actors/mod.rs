@@ -3,3 +3,4 @@
 
 pub mod asteroid;
 pub mod block;
+pub mod coin;

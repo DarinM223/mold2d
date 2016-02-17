@@ -179,7 +179,8 @@ macro_rules! spritesheet {
         name: $name:ident,
         state: $state:ident,
         path: $path:expr,
-        sprite_side: $sprite_side:expr,
+        sprite_width: $sprite_width:expr,
+        sprite_height: $sprite_height:expr,
         sprites_in_row: $sprites_in_row:expr,
         animations: { $( $a_alias:ident : $a_range:expr ),* },
         properties: { $( $p_alias:ident : $p_type:ident => $p_value:expr ),* }
@@ -210,7 +211,10 @@ macro_rules! spritesheet {
                         let x = elem % $sprites_in_row;
                         let y = elem / $sprites_in_row;
 
-                        let region = ::sdl2::rect::Rect::new_unwrap($sprite_side * x, $sprite_side * y, $sprite_side, $sprite_side);
+                        let region = ::sdl2::rect::Rect::new_unwrap($sprite_width * x, 
+                                                                    $sprite_height * y, 
+                                                                    $sprite_width, 
+                                                                    $sprite_height);
 
                         spritesheet.region(region)
                     }).flat_map(|sprite| sprite).collect();

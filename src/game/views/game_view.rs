@@ -1,4 +1,5 @@
 use actors::asteroid::Asteroid;
+use actors::coin::Coin;
 use actors::block::Block;
 use engine::actor_manager::ActorManager;
 use engine::context::Context;
@@ -13,6 +14,7 @@ use views::background_view::BackgroundView;
 level_token_config! {
     '+' => Asteroid,
     'P' => Asteroid,
+    'C' => Coin,
     '=' => Block
 }
 
@@ -92,9 +94,8 @@ impl View for GameView {
             for key in keys {
                 let actor = self.actors.get_mut(key);
                 if let Some(actor) = actor {
-                    // Only check collisions for players and enemies
-                    if actor.data().actor_type == ActorType::Player ||
-                       actor.data().actor_type == ActorType::Enemy {
+                    // Only check collisions for non-block actors
+                    if actor.data().actor_type != ActorType::Block {
                         let collided_actors = quadtree.retrieve(&actor.data().rect)
                                                       .into_iter()
                                                       .map(|act| act.clone())

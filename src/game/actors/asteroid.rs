@@ -16,11 +16,12 @@ spritesheet! {
     name: Asteroid,
     state: AsteroidState,
     path: "./assets/asteroid.png",
-    sprite_side: 96,
+    sprite_width: 96,
+    sprite_height: 96,
     sprites_in_row: 21,
     animations: {
-        Jumping: 1..2,
-        Idle: 1..143
+        Jumping: 0..1,
+        Idle: 0..143
     },
     properties: {
         curr_state: AsteroidState => AsteroidState::Jumping,

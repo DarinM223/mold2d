@@ -26,7 +26,7 @@ impl Actor for Block {
               other_actors: &Vec<ActorData>,
               _elapsed: f64)
               -> Vec<ActorAction> {
-        Vec::new()
+        vec![]
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {

@@ -24,6 +24,7 @@ pub trait View {
 
 #[derive(Clone, PartialEq)]
 pub enum ActorType {
+    Item,
     Block,
     Player,
     Enemy,
