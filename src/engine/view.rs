@@ -1,3 +1,4 @@
+use collision::CollisionSide;
 use context::Context;
 use sdl2::rect::Rect;
 use viewport::Viewport;
@@ -36,6 +37,7 @@ pub struct ActorData {
     pub id: i32,
     pub state: u32,
     pub damage: i32,
+    pub checks_collision: bool,
     pub rect: Rect,
     pub actor_type: ActorType,
 }
@@ -44,12 +46,11 @@ pub trait Actor {
     /// Called every frame to render an actor
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64);
 
+    /// Called when an actor collides with another actor
+    fn on_collision(&mut self, other_actor: ActorData, side: CollisionSide);
+
     /// Called every frame to update an actor
-    fn update(&mut self,
-              context: &mut Context,
-              other_actors: &Vec<ActorData>,
-              elapsed: f64)
-              -> Vec<ActorAction>;
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> Vec<ActorAction>;
 
     /// Gets the actor data
     fn data(&self) -> ActorData;

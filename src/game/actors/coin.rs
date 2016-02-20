@@ -1,4 +1,4 @@
-use engine::collision::{Collision, CollisionSide};
+use engine::collision::CollisionSide;
 use engine::context::Context;
 use engine::sprite::Renderable;
 use engine::sprite::SpriteRectangle;
@@ -22,12 +22,11 @@ spritesheet! {
 }
 
 impl Actor for Coin {
-    fn update(&mut self,
-              context: &mut Context,
-              other_actors: &Vec<ActorData>,
-              elapsed: f64)
-              -> Vec<ActorAction> {
+    fn on_collision(&mut self, _other_actor: ActorData, _side: CollisionSide) {
+        // Do nothing
+    }
 
+    fn update(&mut self, _context: &mut Context, elapsed: f64) -> Vec<ActorAction> {
         // Update sprite animation
         if let Some(animation) = self.animations.get_mut(&CoinState::Idle) {
             animation.add_time(elapsed);
@@ -36,7 +35,7 @@ impl Actor for Coin {
         vec![]
     }
 
-    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64) {
+    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
@@ -51,6 +50,7 @@ impl Actor for Coin {
             id: 0,
             state: 0,
             damage: 0,
+            checks_collision: false,
             rect: self.rect.to_sdl().unwrap(),
             actor_type: ActorType::Item,
         }

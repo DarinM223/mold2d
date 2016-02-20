@@ -1,3 +1,4 @@
+use engine::collision::CollisionSide;
 use engine::context::Context;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
@@ -21,11 +22,11 @@ impl Block {
 }
 
 impl Actor for Block {
-    fn update(&mut self,
-              _context: &mut Context,
-              other_actors: &Vec<ActorData>,
-              _elapsed: f64)
-              -> Vec<ActorAction> {
+    fn on_collision(&mut self, _other_actor: ActorData, _side: CollisionSide) {
+        // Do nothing
+    }
+
+    fn update(&mut self, _context: &mut Context, _elapsed: f64) -> Vec<ActorAction> {
         vec![]
     }
 
@@ -42,6 +43,7 @@ impl Actor for Block {
             id: 0,
             state: 0 as u32,
             damage: 0,
+            checks_collision: false,
             rect: self.rect.to_sdl().unwrap(),
             actor_type: ActorType::Block,
         }

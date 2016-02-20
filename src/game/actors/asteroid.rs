@@ -25,17 +25,43 @@ spritesheet! {
     },
     properties: {
         curr_state: AsteroidState => AsteroidState::Jumping,
+        grounded: bool => false,
         curr_speed: Vector2D => Vector2D { x: 0.0, y: 0.0 },
         rect: SpriteRectangle => SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE)
     }
 }
 
 impl Actor for Asteroid {
-    fn update(&mut self,
-              context: &mut Context,
-              other_actors: &Vec<ActorData>,
-              elapsed: f64)
-              -> Vec<ActorAction> {
+    fn on_collision(&mut self, other_actor: ActorData, side: CollisionSide) {
+        match side {
+            CollisionSide::Left => {
+                while self.rect.collides_with(other_actor.rect) == Some(CollisionSide::Left) {
+                    self.rect.x -= 1;
+                }
+            }
+            CollisionSide::Right => {
+                while self.rect.collides_with(other_actor.rect) == Some(CollisionSide::Right) {
+                    self.rect.x += 1;
+                }
+            }
+            CollisionSide::Top => {}
+            CollisionSide::Bottom => {
+                if self.curr_state == AsteroidState::Jumping {
+                    self.curr_state = AsteroidState::Idle;
+                }
+
+                while self.rect.collides_with(other_actor.rect) == Some(CollisionSide::Bottom) {
+                    self.rect.y -= 1;
+                }
+
+                self.rect.y += 1;
+                self.grounded = true;
+            }
+        }
+
+    }
+
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> Vec<ActorAction> {
         let mut actions = Vec::new();
 
         let max_y_speed = match self.curr_state {
@@ -76,35 +102,17 @@ impl Actor for Asteroid {
 
         self.rect.x += self.curr_speed.x as i32;
 
-        let mut grounded = false;
-        for actor in other_actors {
-            if self.rect.collides_with(actor.rect) == Some(CollisionSide::Left) {
-                while self.rect.collides_with(actor.rect) == Some(CollisionSide::Left) {
-                    self.rect.x -= 1;
-                }
-            } else if self.rect.collides_with(actor.rect) == Some(CollisionSide::Right) {
-                while self.rect.collides_with(actor.rect) == Some(CollisionSide::Right) {
-                    self.rect.x += 1;
-                }
-            } else if self.rect.collides_with(actor.rect) == Some(CollisionSide::Bottom) {
-                if self.curr_state == AsteroidState::Jumping {
-                    self.curr_state = AsteroidState::Idle;
-                }
+        // If actor is no longer grounded, change it to jumping
+        if !self.grounded && self.curr_state == AsteroidState::Idle {
+            self.curr_state = AsteroidState::Jumping;
+        }
 
-                while self.rect.collides_with(actor.rect) == Some(CollisionSide::Bottom) {
-                    self.rect.y -= 1;
-                }
-                self.rect.y += 1;
-
-                grounded = true;
-            }
+        // Reset grounded to check if there is a bottom collision again
+        if self.grounded {
+            self.grounded = false;
         }
 
         actions.push(ActorAction::SetViewport(self.rect.x, self.rect.y));
-
-        if !grounded && self.curr_state == AsteroidState::Idle {
-            self.curr_state = AsteroidState::Jumping;
-        }
 
         // Update sprite animation
         if let Some(animation) = self.animations.get_mut(&self.curr_state) {
@@ -114,7 +122,7 @@ impl Actor for Asteroid {
         actions
     }
 
-    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64) {
+    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
@@ -129,6 +137,7 @@ impl Actor for Asteroid {
             id: 0,
             state: self.curr_state as u32,
             damage: 0,
+            checks_collision: true,
             rect: self.rect.to_sdl().unwrap(),
             actor_type: ActorType::Player,
         }

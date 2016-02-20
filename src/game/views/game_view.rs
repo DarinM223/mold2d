@@ -1,11 +1,12 @@
 use actors::asteroid::Asteroid;
-use actors::coin::Coin;
 use actors::block::Block;
+use actors::coin::Coin;
 use engine::actor_manager::ActorManager;
+use engine::collision::Collision;
 use engine::context::Context;
 use engine::level;
 use engine::quadtree::Quadtree;
-use engine::view::{Actor, ActorAction, ActorType, View, ViewAction};
+use engine::view::{Actor, ActorAction, View, ViewAction};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -74,11 +75,9 @@ impl View for GameView {
         let mut actions = Vec::new();
 
         {
-            let mut quadtree = Quadtree::new(Rect::new_unwrap(0,
-                                                              0,
-                                                              context.window.width,
-                                                              context.window.height),
-                                             &self.viewport);
+            // TODO(DarinM223): eventually avoid creating the quadtree every frame
+            let window_rect = Rect::new_unwrap(0, 0, context.window.width, context.window.height);
+            let mut quadtree = Quadtree::new(window_rect, &self.viewport);
             let mut keys = Vec::new();
 
             for (key, actor) in &self.actors.actors {
@@ -93,15 +92,25 @@ impl View for GameView {
 
             for key in keys {
                 let actor = self.actors.get_mut(key);
+
                 if let Some(actor) = actor {
-                    // Only check collisions for non-block actors
-                    if actor.data().actor_type != ActorType::Block {
+                    // only check collisions for certain actors
+                    if actor.data().checks_collision == true {
                         let collided_actors = quadtree.retrieve(&actor.data().rect)
                                                       .into_iter()
                                                       .map(|act| act.clone())
                                                       .collect::<Vec<_>>();
-                        actions.extend(actor.update(context, &collided_actors, elapsed));
+                        for other_actor in collided_actors {
+                            if let Some(direction) = actor.data()
+                                                          .rect
+                                                          .collides_with(other_actor.rect) {
+                                actor.on_collision(other_actor, direction);
+                            }
+                        }
                     }
+
+                    // update the actor
+                    actions.extend(actor.update(context, elapsed));
                 }
             }
         }
@@ -111,11 +120,7 @@ impl View for GameView {
             let action = actions.pop();
             match action {
                 Some(ActorAction::AddActor(actor)) => self.actors.add(actor),
-                Some(ActorAction::SetViewport(x, y)) => {
-                    if y <= (context.window.height as i32) - ((context.window.height / 2) as i32) {
-                        self.viewport.set_position((x, y));
-                    }
-                }
+                Some(ActorAction::SetViewport(x, y)) => self.viewport.set_position((x, y)),
                 _ => {}
             }
         }

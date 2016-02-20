@@ -33,6 +33,7 @@ pub mod context;
 pub mod event_loop;
 pub mod events;
 pub mod quadtree;
+pub mod score;
 pub mod vector;
 pub mod view;
 pub mod viewport;
