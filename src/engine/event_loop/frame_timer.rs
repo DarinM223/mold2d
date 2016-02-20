@@ -11,10 +11,10 @@ pub enum FrameAction {
 
 /// Used by the event loop to limit frames to a maximum of a certain FPS
 pub struct FrameTimer<'a> {
+    pub fps: u16,
     timer: &'a mut TimerSubsystem,
     before: u32,
     last_second: u32,
-    pub fps: u16,
     debug: bool,
 }
 

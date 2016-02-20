@@ -9,16 +9,12 @@ const MAX_LEVELS: i32 = 10;
 pub struct Quadtree<'a> {
     /// The level of the current tree, (0 is root)
     level: i32,
-
     /// The actors that the current tree holds
     objects: Vec<ActorData>,
-
     /// An array of 4 subtrees to split into when parent is full
     nodes: [Option<Box<Quadtree<'a>>>; 4],
-
     /// The bounds of the current tree
     bounds: Rect,
-
     /// The viewport so that all points are adjusted to the view
     viewport: &'a Viewport,
 }

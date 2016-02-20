@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
+/// Maintains multiple updatable scores
 pub struct Score {
     scores: HashMap<String, i64>,
 }
 
-/// Maintains multiple updatable scores
 impl Score {
     pub fn new() -> Score {
         Score { scores: HashMap::new() }
@@ -26,5 +26,35 @@ impl Score {
 
     pub fn score(&self, counter_name: &str) -> i64 {
         self.scores.get(counter_name).unwrap().clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add_score() {
+        let mut score = Score::new();
+        score.add_score("GAME");
+        assert_eq!(score.score("GAME"), 0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_remove_score() {
+        let mut score = Score::new();
+        score.add_score("GAME");
+        assert_eq!(score.score("GAME"), 0);
+        score.remove_score("GAME");
+        score.score("GAME");
+    }
+
+    #[test]
+    fn test_update_score() {
+        let mut score = Score::new();
+        score.add_score("GAME");
+        score.update_score("GAME", 20);
+        assert_eq!(score.score("GAME"), 20);
     }
 }

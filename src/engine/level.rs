@@ -81,7 +81,6 @@ pub fn load_level<F>(path: &str,
 
         Ok((manager, viewport))
     } else {
-        Err(io::Error::new(io::ErrorKind::InvalidData,
-                           format!("File could not be opened")))
+        Err(io::Error::new(io::ErrorKind::InvalidData, "File could not be opened"))
     }
 }

@@ -35,12 +35,13 @@ pub struct GameView {
 
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
-        let (actors, viewport) = level::load_level(path,
-                                                   actor_for_token,
-                                                   &mut context.renderer,
-                                                   &context.window,
-                                                   60.0)
-                                     .unwrap();
+        let level_result = level::load_level(path,
+                                             actor_for_token,
+                                             &mut context.renderer,
+                                             &context.window,
+                                             60.0);
+        let (actors, viewport) = level_result.unwrap();
+
         GameView {
             state: GameState::Normal,
             actors: actors,
@@ -101,9 +102,8 @@ impl View for GameView {
                                                       .map(|act| act.clone())
                                                       .collect::<Vec<_>>();
                         for other_actor in collided_actors {
-                            if let Some(direction) = actor.data()
-                                                          .rect
-                                                          .collides_with(other_actor.rect) {
+                            let rect = actor.data().rect;
+                            if let Some(direction) = rect.collides_with(other_actor.rect) {
                                 actor.on_collision(other_actor, direction);
                             }
                         }
