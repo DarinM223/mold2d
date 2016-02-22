@@ -24,8 +24,6 @@ extern crate sdl2_ttf;
 
 #[macro_use]
 pub mod level;
-#[macro_use]
-pub mod sprite;
 
 pub mod actor_manager;
 pub mod collision;
@@ -34,6 +32,7 @@ pub mod event_loop;
 pub mod events;
 pub mod quadtree;
 pub mod score;
+pub mod sprite;
 pub mod vector;
 pub mod view;
 pub mod viewport;

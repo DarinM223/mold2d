@@ -153,81 +153,44 @@ impl Renderable for AnimatedSprite {
     }
 }
 
-/// Generates a spritesheet actor
-/// Example:
-/// ```
-/// spritesheet! {
-///     name: Koopa,
-///     state: KoopaState,
-///     path: "/assets/foo",
-///     sprite_side: 100,
-///     sprites_in_row: 5,
-///     animations: {
-///        Idle: 0..5,
-///        Walking: 5..10,
-///        Running: 10..15
-///     },
-///     properties: {
-///        curr_state: KoopaState => KoopaState::Idle,
-///        vel: f64 => 0.0
-///     }
-/// }
-/// ```
-#[macro_export]
-macro_rules! spritesheet {
-    (
-        name: $name:ident,
-        state: $state:ident,
-        path: $path:expr,
-        sprite_width: $sprite_width:expr,
-        sprite_height: $sprite_height:expr,
-        sprites_in_row: $sprites_in_row:expr,
-        animations: { $( $a_alias:ident : $a_range:expr ),* },
-        properties: { $( $p_alias:ident : $p_type:ident => $p_value:expr ),* }
-    ) => {
-        #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
-        pub enum $state {
-            $( $a_alias ),*
+pub struct AnimationData {
+    pub width: u32,
+    pub height: u32,
+    pub sprites_in_row: i32,
+    pub path: &'static str,
+}
+
+pub struct Animation {
+    data: AnimationData,
+    spritesheet: Sprite,
+}
+
+impl Animation {
+    pub fn new(data: AnimationData, renderer: &mut Renderer) -> Animation {
+        let spritesheet = match Sprite::load(renderer, data.path) {
+            Some(spritesheet) => spritesheet,
+            None => panic!("{} is not a valid path", data.path),
+        };
+
+        Animation {
+            data: data,
+            spritesheet: spritesheet,
         }
+    }
 
-        #[derive(Clone)]
-        pub struct $name {
-            pub path: &'static str,
-            pub animations: ::std::collections::HashMap<$state, ::engine::sprite::AnimatedSprite>,
-            $( pub $p_alias: $p_type ),*
-        }
+    pub fn range(&self, start: i32, end: i32) -> Vec<Sprite> {
+        (start..end)
+            .map(|elem| {
+                let x = elem % self.data.sprites_in_row;
+                let y = elem / self.data.sprites_in_row;
 
-        impl $name {
-            pub fn new(renderer: &mut ::sdl2::render::Renderer, fps: f64) -> $name {
-                let spritesheet = match ::engine::sprite::Sprite::load(renderer, $path) {
-                    Some(spritesheet) => spritesheet,
-                    None => panic!("{} is not a valid path", $path),
-                };
-
-                let mut animations = ::std::collections::HashMap::new();
-
-                $(
-                    let sprites: Vec<::engine::sprite::Sprite> = $a_range.map(|elem| {
-                        let x = elem % $sprites_in_row;
-                        let y = elem / $sprites_in_row;
-
-                        let region = ::sdl2::rect::Rect::new_unwrap($sprite_width * x, 
-                                                                    $sprite_height * y, 
-                                                                    $sprite_width, 
-                                                                    $sprite_height);
-
-                        spritesheet.region(region)
-                    }).flat_map(|sprite| sprite).collect();
-
-                    animations.insert($state::$a_alias, ::engine::sprite::AnimatedSprite::with_fps(sprites, fps));
-                 )*
-
-                 $name {
-                     path: $path,
-                     animations: animations,
-                     $( $p_alias: $p_value ),*
-                 }
-            }
-        }
+                let region = Rect::new_unwrap((self.data.width as i32) * x,
+                                              (self.data.height as i32) * y,
+                                              self.data.width,
+                                              self.data.height);
+                self.spritesheet.region(region)
+            })
+            .flat_map(|sprite| sprite)
+            .collect()
     }
 }

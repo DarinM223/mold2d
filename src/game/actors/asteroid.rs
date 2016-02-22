@@ -1,33 +1,59 @@
 use engine::collision::{Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::Renderable;
-use engine::sprite::SpriteRectangle;
+use engine::sprite::{AnimatedSprite, Animation, AnimationData, SpriteRectangle};
 use engine::vector::Vector2D;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
 use sdl2::rect::Rect;
+use sdl2::render::Renderer;
+use std::collections::HashMap;
 
 const ASTEROID_SIDE: u32 = 96;
 const ASTEROID_X_MAXSPEED: f64 = 10.0;
 const ASTEROID_Y_MAXSPEED: f64 = 15.0;
 const ASTEROID_ACCELERATION: f64 = 0.2;
 
-spritesheet! {
-    name: Asteroid,
-    state: AsteroidState,
-    path: "./assets/asteroid.png",
-    sprite_width: 96,
-    sprite_height: 96,
-    sprites_in_row: 21,
-    animations: {
-        Jumping: 0..1,
-        Idle: 0..143
-    },
-    properties: {
-        curr_state: AsteroidState => AsteroidState::Jumping,
-        grounded: bool => false,
-        curr_speed: Vector2D => Vector2D { x: 0.0, y: 0.0 },
-        rect: SpriteRectangle => SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE)
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub enum AsteroidState {
+    Jumping,
+    Idle,
+}
+
+pub struct Asteroid {
+    curr_state: AsteroidState,
+    grounded: bool,
+    curr_speed: Vector2D,
+    rect: SpriteRectangle,
+    animations: HashMap<AsteroidState, AnimatedSprite>,
+}
+
+impl Asteroid {
+    pub fn new(renderer: &mut Renderer, fps: f64) -> Asteroid {
+        let mut animations = HashMap::new();
+
+        let anim_data = AnimationData {
+            width: 96,
+            height: 96,
+            sprites_in_row: 21,
+            path: "./assets/asteroid.png",
+        };
+        let anim = Animation::new(anim_data, renderer);
+        let jumping_anims = anim.range(0, 1);
+        let idle_anims = anim.range(0, 143);
+
+        animations.insert(AsteroidState::Jumping,
+                          AnimatedSprite::with_fps(jumping_anims, fps));
+        animations.insert(AsteroidState::Idle,
+                          AnimatedSprite::with_fps(idle_anims, fps));
+
+        Asteroid {
+            curr_state: AsteroidState::Jumping,
+            grounded: false,
+            curr_speed: Vector2D { x: 0., y: 0. },
+            rect: SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE),
+            animations: animations,
+        }
     }
 }
 

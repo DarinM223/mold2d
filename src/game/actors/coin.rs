@@ -1,23 +1,31 @@
 use engine::collision::CollisionSide;
 use engine::context::Context;
-use engine::sprite::Renderable;
-use engine::sprite::SpriteRectangle;
+use engine::sprite::{AnimatedSprite, Animation, AnimationData, Renderable, SpriteRectangle};
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
 use sdl2::rect::Rect;
+use sdl2::render::Renderer;
 
-spritesheet! {
-    name: Coin,
-    state: CoinState,
-    path: "./assets/coin.png",
-    sprite_width: 32,
-    sprite_height: 32,
-    sprites_in_row: 8,
-    animations: {
-        Idle: 0..8
-    },
-    properties: {
-        rect: SpriteRectangle => SpriteRectangle::new(64, 64, 32, 32)
+pub struct Coin {
+    rect: SpriteRectangle,
+    animation: AnimatedSprite,
+}
+
+impl Coin {
+    pub fn new(renderer: &mut Renderer, fps: f64) -> Coin {
+        let anim_data = AnimationData {
+            width: 32,
+            height: 32,
+            sprites_in_row: 8,
+            path: "./assets/coin.png",
+        };
+        let anim = Animation::new(anim_data, renderer);
+        let anims = anim.range(0, 8);
+
+        Coin {
+            rect: SpriteRectangle::new(64, 64, 32, 32),
+            animation: AnimatedSprite::with_fps(anims, fps),
+        }
     }
 }
 
@@ -28,10 +36,7 @@ impl Actor for Coin {
 
     fn update(&mut self, _context: &mut Context, elapsed: f64) -> Vec<ActorAction> {
         // Update sprite animation
-        if let Some(animation) = self.animations.get_mut(&CoinState::Idle) {
-            animation.add_time(elapsed);
-        }
-
+        self.animation.add_time(elapsed);
         vec![]
     }
 
@@ -40,9 +45,7 @@ impl Actor for Coin {
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
         // Render sprite animation
-        if let Some(animation) = self.animations.get_mut(&CoinState::Idle) {
-            animation.render(&mut context.renderer, rect);
-        }
+        self.animation.render(&mut context.renderer, rect);
     }
 
     fn data(&self) -> ActorData {
