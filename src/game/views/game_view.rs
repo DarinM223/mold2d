@@ -42,6 +42,10 @@ impl GameView {
                                              60.0);
         let (actors, viewport) = level_result.unwrap();
 
+        if context.score.score("GAME_SCORE") == None {
+            context.score.add_score("GAME_SCORE");
+        }
+
         GameView {
             state: GameState::Normal,
             actors: actors,
@@ -62,6 +66,18 @@ impl View for GameView {
                 actor.render(context, &mut self.viewport, elapsed);
             }
         }
+
+        if let Some(score) = context.score.score("GAME_SCORE") {
+            let score_text = format!("Score: {}", score);
+            let font_sprite = context.font_renderer
+                                     .text_sprite(&context.renderer,
+                                                  &score_text[..],
+                                                  "assets/belligerent.ttf",
+                                                  32,
+                                                  Color::RGB(0, 255, 0))
+                                     .unwrap();
+            context.font_renderer.render_text(&mut context.renderer, font_sprite, (100, 100));
+        }
     }
 
     fn update(&mut self, context: &mut Context, elapsed: f64) -> Option<ViewAction> {
@@ -72,6 +88,9 @@ impl View for GameView {
         if context.events.event_called_once("ENTER") {
             return Some(ViewAction::ChangeView(Box::new(BackgroundView)));
         }
+
+        // TODO(DarinM223): remove this after coin score updating is implemented
+        context.score.increment_score("GAME_SCORE", 5);
 
         let mut actions = Vec::new();
 

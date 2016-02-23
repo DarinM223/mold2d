@@ -84,6 +84,10 @@ impl Sprite {
             None
         }
     }
+
+    pub fn size(&self) -> (u32, u32) {
+        (self.src.width(), self.src.height())
+    }
 }
 
 impl Renderable for Sprite {

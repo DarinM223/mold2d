@@ -24,9 +24,21 @@ impl Score {
         }
     }
 
-    pub fn score(&self, counter_name: &str) -> i64 {
-        self.scores.get(counter_name).unwrap().clone()
+    pub fn increment_score(&mut self, name: &str, increment_amount: i32) {
+        if let Some(score) = self.scores.get_mut(name) {
+            *score = *score + increment_amount as i64;
+        }
     }
+
+    pub fn score(&self, counter_name: &str) -> Option<i64> {
+        if let Some(score) = self.scores.get(counter_name) {
+            return Some(score.clone());
+        }
+
+        None
+    }
+
+    // TODO(DarinM223): add functions to save and load a score from a file
 }
 
 #[cfg(test)]

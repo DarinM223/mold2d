@@ -21,10 +21,11 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
                                .position_centered()
                                .opengl()
                                .build());
+    let sdl_renderer = try!(sdl_window.renderer().accelerated().build());
 
     let mut game_context = Context::new(window,
                                         Events::new(try!(sdl_context.event_pump()), ""),
-                                        try!(sdl_window.renderer().accelerated().build()));
+                                        sdl_renderer);
 
     let mut frame_timer = FrameTimer::new(&mut timer, true);
 

@@ -30,6 +30,7 @@ pub mod collision;
 pub mod context;
 pub mod event_loop;
 pub mod events;
+pub mod font;
 pub mod quadtree;
 pub mod score;
 pub mod sprite;
