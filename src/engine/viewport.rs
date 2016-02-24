@@ -80,7 +80,7 @@ impl Viewport {
         if in_viewport {
             let center = center_point(rect);
             let (x, y) = self.relative_point((center.0 as i32, center.1 as i32));
-            Some(Rect::new_unwrap(x, y, rect.width(), rect.height()))
+            Some(Rect::new(x, y, rect.width(), rect.height()))
         } else {
             None
         }

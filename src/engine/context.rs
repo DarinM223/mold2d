@@ -36,9 +36,3 @@ impl<'a> Context<'a> {
         }
     }
 }
-
-impl<'a> Drop for Context<'a> {
-    fn drop(&mut self) {
-        sdl2_image::quit();
-    }
-}

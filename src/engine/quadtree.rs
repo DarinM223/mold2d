@@ -40,28 +40,28 @@ impl<'a> Quadtree<'a> {
             self.nodes[0] = Some(Box::new(Quadtree {
                 level: self.level + 1,
                 objects: Vec::new(),
-                bounds: Rect::new_unwrap(x + width, y, width as u32, height as u32),
+                bounds: Rect::new(x + width, y, width as u32, height as u32),
                 nodes: [None, None, None, None],
                 viewport: self.viewport,
             }));
             self.nodes[1] = Some(Box::new(Quadtree {
                 level: self.level + 1,
                 objects: Vec::new(),
-                bounds: Rect::new_unwrap(x, y, width as u32, height as u32),
+                bounds: Rect::new(x, y, width as u32, height as u32),
                 nodes: [None, None, None, None],
                 viewport: self.viewport,
             }));
             self.nodes[2] = Some(Box::new(Quadtree {
                 level: self.level + 1,
                 objects: Vec::new(),
-                bounds: Rect::new_unwrap(x, y + height, width as u32, height as u32),
+                bounds: Rect::new(x, y + height, width as u32, height as u32),
                 nodes: [None, None, None, None],
                 viewport: self.viewport,
             }));
             self.nodes[3] = Some(Box::new(Quadtree {
                 level: self.level + 1,
                 objects: Vec::new(),
-                bounds: Rect::new_unwrap(x + width, y + height, width as u32, height as u32),
+                bounds: Rect::new(x + width, y + height, width as u32, height as u32),
                 nodes: [None, None, None, None],
                 viewport: self.viewport,
             }));

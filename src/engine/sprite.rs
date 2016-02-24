@@ -40,8 +40,8 @@ impl SpriteRectangle {
 
     /// Returns a SDL Rect created from the SpriteRectangle
     /// Used for rendering SpriteRectangles in SDL
-    pub fn to_sdl(&self) -> Option<Rect> {
-        Rect::new(self.x, self.y, self.w, self.h).unwrap()
+    pub fn to_sdl(&self) -> Rect {
+        Rect::new(self.x, self.y, self.w, self.h)
     }
 }
 
@@ -59,21 +59,21 @@ impl Sprite {
 
         Sprite {
             tex: Rc::new(RefCell::new(texture)),
-            src: Rect::new_unwrap(0, 0, tex_query.width, tex_query.height),
+            src: Rect::new(0, 0, tex_query.width, tex_query.height),
         }
     }
 
     /// Loads a new sprite from a path string to a sprite image file
     pub fn load(renderer: &Renderer, path: &str) -> Option<Sprite> {
-        renderer.load_texture(Path::new(path)).ok().map(Sprite::new)
+        renderer.load_texture(Path::new(path).into()).ok().map(Sprite::new)
     }
 
     /// Returns a sub-sprite from a rectangle region of the original sprite 
     pub fn region(&self, rect: Rect) -> Option<Sprite> {
-        let new_src = Rect::new_unwrap(rect.x() + self.src.x(),
-                                       rect.y() + self.src.y(),
-                                       rect.width(),
-                                       rect.height());
+        let new_src = Rect::new(rect.x() + self.src.x(),
+                                rect.y() + self.src.y(),
+                                rect.width(),
+                                rect.height());
 
         if collision::rect_contains_rect(self.src, new_src) {
             Some(Sprite {
@@ -188,10 +188,10 @@ impl Animation {
                 let x = elem % self.data.sprites_in_row;
                 let y = elem / self.data.sprites_in_row;
 
-                let region = Rect::new_unwrap((self.data.width as i32) * x,
-                                              (self.data.height as i32) * y,
-                                              self.data.width,
-                                              self.data.height);
+                let region = Rect::new((self.data.width as i32) * x,
+                                       (self.data.height as i32) * y,
+                                       self.data.width,
+                                       self.data.height);
                 self.spritesheet.region(region)
             })
             .flat_map(|sprite| sprite)

@@ -68,20 +68,12 @@ impl Collision<Rect> for Rect {
 
 impl Collision<SpriteRectangle> for Rect {
     fn collides_with(&self, other: SpriteRectangle) -> Option<CollisionSide> {
-        if let Some(rect) = other.to_sdl() {
-            return self.collides_with(rect);
-        }
-
-        None
+        self.collides_with(other.to_sdl())
     }
 }
 
 impl Collision<Rect> for SpriteRectangle {
     fn collides_with(&self, other: Rect) -> Option<CollisionSide> {
-        if let Some(rect) = self.to_sdl() {
-            return rect.collides_with(other);
-        }
-
-        None
+        self.to_sdl().collides_with(other)
     }
 }

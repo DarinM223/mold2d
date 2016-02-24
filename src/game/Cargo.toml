@@ -9,9 +9,9 @@ path = "lib.rs"
 
 [dependencies]
 rand = "0.3"
-sdl2 = "0.9"
-sdl2_image = "0.3"
-sdl2_ttf = "0.9"
+sdl2 = "0.15"
+sdl2_image = "1.0.0"
+sdl2_ttf = "0.13"
 clippy = { version = "*", optional = true }
 
 [dependencies.engine]

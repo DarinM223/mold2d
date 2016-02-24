@@ -3,14 +3,13 @@ mod frame_timer;
 use context::{Context, Window};
 use events::Events;
 use sdl2;
-use sdl2::SdlResult;
 use sdl2_ttf;
 use self::frame_timer::{FrameAction, FrameTimer};
 use view::{Actor, View, ViewAction};
 
 /// Initializes SDL and creates the window and event loop
-pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
-    where F: Fn(&mut Context) -> Box<View>
+pub fn create_event_loop<F>(window: Window, init_view: F) -> Result<(), String>
+where F: Fn(&mut Context) -> Box<View>
 {
     let sdl_context = try!(sdl2::init());
     let video = try!(sdl_context.video());
@@ -18,10 +17,11 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
     let _ttf_context = sdl2_ttf::init();
 
     let sdl_window = try!(video.window(window.title, window.width, window.height)
-                               .position_centered()
-                               .opengl()
-                               .build());
-    let sdl_renderer = try!(sdl_window.renderer().accelerated().build());
+                          .position_centered()
+                          .opengl()
+                          .build()
+                          .map_err(|err| "Error initializing window".to_owned()));
+    let sdl_renderer = try!(sdl_window.renderer().accelerated().build().map_err(|err| "Error initializing renderer".to_owned()));
 
     let mut game_context = Context::new(window,
                                         Events::new(try!(sdl_context.event_pump()), ""),
