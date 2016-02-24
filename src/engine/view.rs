@@ -11,8 +11,11 @@ pub enum ViewAction {
 
 /// Actions that the actor would want the parent view to do
 pub enum ActorAction {
-    AddActor(Box<Actor>),
+    AddActor(char, (i32, i32)),
+    RemoveActor(i32),
     SetViewport(i32, i32),
+    MultipleActions(Vec<Box<ActorAction>>),
+    None,
 }
 
 pub trait View {
@@ -47,13 +50,15 @@ pub trait Actor {
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64);
 
     /// Called when an actor collides with another actor
-    fn on_collision(&mut self, other_actor: ActorData, side: CollisionSide);
+    fn on_collision(&mut self,
+                    context: &mut Context,
+                    other_actor: ActorData,
+                    side: CollisionSide)
+                    -> ActorAction;
 
     /// Called every frame to update an actor
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> Vec<ActorAction>;
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction;
 
     /// Gets the actor data
     fn data(&self) -> ActorData;
-
-    fn set_position(&mut self, position: (i32, i32));
 }

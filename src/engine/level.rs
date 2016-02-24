@@ -1,40 +1,22 @@
-use actor_manager::ActorManager;
+use actor_manager::{ActorFromToken, ActorManager};
 use context::Window;
 use sdl2::render::Renderer;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
-use view::Actor;
 use viewport::Viewport;
-
-/// Generates the level character token to actor configurations
-#[macro_export]
-macro_rules! level_token_config {
-    ( $( $token:expr => $actor:ident ),* ) => {
-        pub fn actor_for_token(token: char, 
-                               renderer: &mut ::sdl2::render::Renderer, 
-                               fps: f64) -> Box<::engine::view::Actor> {
-            match token {
-                $( $token => Box::new($actor::new(renderer, fps)), )*
-                _ => unreachable!(),
-            }
-        }
-    }
-}
 
 pub const GRID_SIZE: i32 = 40;
 
 /// Loads a new level and returns an ActorManager with the loaded actors
-pub fn load_level<F>(path: &str,
-                     actor_for_token: F,
-                     renderer: &mut Renderer,
-                     window: &Window,
-                     fps: f64)
-                     -> io::Result<(ActorManager, Viewport)>
-    where F: Fn(char, &mut Renderer, f64) -> Box<Actor>
-{
+pub fn load_level(path: &str,
+                  actor_for_token: Box<ActorFromToken>,
+                  renderer: &mut Renderer,
+                  window: &Window,
+                  fps: f64)
+                  -> io::Result<(ActorManager, Viewport)> {
     let mut center_point = (0, 0);
-    let mut manager = ActorManager::new();
+    let mut manager = ActorManager::new(actor_for_token);
 
     let open_result = File::open(path);
 
@@ -51,9 +33,7 @@ pub fn load_level<F>(path: &str,
         for line in reader.lines() {
             for token in try!(line).chars() {
                 if token != ' ' {
-                    let mut actor = actor_for_token(token, renderer, fps);
-                    actor.set_position((x, y));
-                    manager.add(actor);
+                    manager.add(token, (x, y), renderer, fps);
 
                     if token == 'P' {
                         has_player = true;

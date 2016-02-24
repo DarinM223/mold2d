@@ -21,6 +21,7 @@ pub enum AsteroidState {
 }
 
 pub struct Asteroid {
+    id: i32,
     curr_state: AsteroidState,
     grounded: bool,
     curr_speed: Vector2D,
@@ -29,7 +30,7 @@ pub struct Asteroid {
 }
 
 impl Asteroid {
-    pub fn new(renderer: &mut Renderer, fps: f64) -> Asteroid {
+    pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Asteroid {
         let mut animations = HashMap::new();
 
         let anim_data = AnimationData {
@@ -48,25 +49,30 @@ impl Asteroid {
                           AnimatedSprite::with_fps(idle_anims, fps));
 
         Asteroid {
+            id: id,
             curr_state: AsteroidState::Jumping,
             grounded: false,
             curr_speed: Vector2D { x: 0., y: 0. },
-            rect: SpriteRectangle::new(64, 64, ASTEROID_SIDE, ASTEROID_SIDE),
+            rect: SpriteRectangle::new(position.0, position.1, ASTEROID_SIDE, ASTEROID_SIDE),
             animations: animations,
         }
     }
 }
 
 impl Actor for Asteroid {
-    fn on_collision(&mut self, other_actor: ActorData, side: CollisionSide) {
+    fn on_collision(&mut self, _: &mut Context, o: ActorData, side: CollisionSide) -> ActorAction {
+        if o.actor_type == ActorType::Item {
+            return ActorAction::None;
+        }
+
         match side {
             CollisionSide::Left => {
-                while self.rect.collides_with(other_actor.rect) == Some(CollisionSide::Left) {
+                while self.rect.collides_with(o.rect) == Some(CollisionSide::Left) {
                     self.rect.x -= 1;
                 }
             }
             CollisionSide::Right => {
-                while self.rect.collides_with(other_actor.rect) == Some(CollisionSide::Right) {
+                while self.rect.collides_with(o.rect) == Some(CollisionSide::Right) {
                     self.rect.x += 1;
                 }
             }
@@ -76,7 +82,7 @@ impl Actor for Asteroid {
                     self.curr_state = AsteroidState::Idle;
                 }
 
-                while self.rect.collides_with(other_actor.rect) == Some(CollisionSide::Bottom) {
+                while self.rect.collides_with(o.rect) == Some(CollisionSide::Bottom) {
                     self.rect.y -= 1;
                 }
 
@@ -85,11 +91,10 @@ impl Actor for Asteroid {
             }
         }
 
+        ActorAction::None
     }
 
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> Vec<ActorAction> {
-        let mut actions = Vec::new();
-
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
         let max_y_speed = match self.curr_state {
             AsteroidState::Jumping => ASTEROID_Y_MAXSPEED,
             AsteroidState::Idle => 0.0,
@@ -138,14 +143,12 @@ impl Actor for Asteroid {
             self.grounded = false;
         }
 
-        actions.push(ActorAction::SetViewport(self.rect.x, self.rect.y));
-
         // Update sprite animation
         if let Some(animation) = self.animations.get_mut(&self.curr_state) {
             animation.add_time(elapsed);
         }
 
-        actions
+        ActorAction::SetViewport(self.rect.x, self.rect.y)
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
@@ -160,17 +163,12 @@ impl Actor for Asteroid {
 
     fn data(&self) -> ActorData {
         ActorData {
-            id: 0,
+            id: self.id,
             state: self.curr_state as u32,
             damage: 0,
             checks_collision: true,
             rect: self.rect.to_sdl().unwrap(),
             actor_type: ActorType::Player,
         }
-    }
-
-    fn set_position(&mut self, position: (i32, i32)) {
-        self.rect.x = position.0;
-        self.rect.y = position.1;
     }
 }

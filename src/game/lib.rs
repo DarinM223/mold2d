@@ -8,9 +8,8 @@
 
 #[cfg_attr(feature="clippy", feature(plugin))]
 #[cfg_attr(feature="clippy", plugin(clippy))]
-#[macro_use(level_token_config)]
-extern crate engine;
 
+extern crate engine;
 extern crate sdl2;
 extern crate sdl2_image;
 extern crate sdl2_ttf;

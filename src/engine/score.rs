@@ -49,17 +49,16 @@ mod tests {
     fn test_add_score() {
         let mut score = Score::new();
         score.add_score("GAME");
-        assert_eq!(score.score("GAME"), 0);
+        assert_eq!(score.score("GAME"), Some(0));
     }
 
     #[test]
-    #[should_panic]
     fn test_remove_score() {
         let mut score = Score::new();
         score.add_score("GAME");
-        assert_eq!(score.score("GAME"), 0);
+        assert_eq!(score.score("GAME"), Some(0));
         score.remove_score("GAME");
-        score.score("GAME");
+        assert_eq!(score.score("GAME"), None);
     }
 
     #[test]
@@ -67,6 +66,6 @@ mod tests {
         let mut score = Score::new();
         score.add_score("GAME");
         score.update_score("GAME", 20);
-        assert_eq!(score.score("GAME"), 20);
+        assert_eq!(score.score("GAME"), Some(20));
     }
 }

@@ -1,7 +1,7 @@
 use actors::asteroid::Asteroid;
 use actors::block::Block;
 use actors::coin::Coin;
-use engine::actor_manager::ActorManager;
+use engine::actor_manager::{ActorFromToken, ActorManager};
 use engine::collision::Collision;
 use engine::context::Context;
 use engine::level;
@@ -10,33 +10,40 @@ use engine::view::{Actor, ActorAction, View, ViewAction};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
+use sdl2::render::Renderer;
 use views::background_view::BackgroundView;
 
-level_token_config! {
-    '+' => Asteroid,
-    'P' => Asteroid,
-    'C' => Coin,
-    '=' => Block
-}
-
-pub enum GameState {
-    Normal,
-    Paused,
-    Slowed(f64),
+pub struct GameActorGenerator;
+impl ActorFromToken for GameActorGenerator {
+    fn actor_from_token(&self,
+                        token: char,
+                        id: i32,
+                        position: (i32, i32),
+                        renderer: &mut Renderer,
+                        fps: f64)
+                        -> Box<Actor> {
+        match token {
+            '+' => Box::new(Asteroid::new(id, position, renderer, fps)),
+            'P' => Box::new(Asteroid::new(id, position, renderer, fps)),
+            'C' => Box::new(Coin::new(id, position, renderer, fps)),
+            '=' => Box::new(Block::new(id, position, renderer, fps)),
+            _ => panic!("Actor not implemented for token!"),
+        }
+    }
 }
 
 /// The main game view used for 
 /// the actual gameplay
 pub struct GameView {
-    state: GameState,
     actors: ActorManager,
     viewport: Viewport,
 }
 
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
+        let actor_generator = Box::new(GameActorGenerator);
         let level_result = level::load_level(path,
-                                             actor_for_token,
+                                             actor_generator,
                                              &mut context.renderer,
                                              &context.window,
                                              60.0);
@@ -47,9 +54,21 @@ impl GameView {
         }
 
         GameView {
-            state: GameState::Normal,
             actors: actors,
             viewport: viewport,
+        }
+    }
+}
+
+impl GameView {
+    pub fn apply_action(&mut self, c: &mut Context, action: &ActorAction) {
+        use engine::view::ActorAction::*;
+
+        match *action {
+            AddActor(token, pos) => self.actors.add(token, pos, &mut c.renderer, 60.),
+            RemoveActor(id) => self.actors.remove(id),
+            SetViewport(x, y) => self.viewport.set_position((x, y)),
+            _ => {}
         }
     }
 }
@@ -89,9 +108,6 @@ impl View for GameView {
             return Some(ViewAction::ChangeView(Box::new(BackgroundView)));
         }
 
-        // TODO(DarinM223): remove this after coin score updating is implemented
-        context.score.increment_score("GAME_SCORE", 5);
-
         let mut actions = Vec::new();
 
         {
@@ -123,25 +139,20 @@ impl View for GameView {
                         for other_actor in collided_actors {
                             let rect = actor.data().rect;
                             if let Some(direction) = rect.collides_with(other_actor.rect) {
-                                actor.on_collision(other_actor, direction);
+                                actions.push(actor.on_collision(context, other_actor, direction));
                             }
                         }
                     }
 
                     // update the actor
-                    actions.extend(actor.update(context, elapsed));
+                    actions.push(actor.update(context, elapsed));
                 }
             }
         }
 
-        // apply actor actions to view
-        while !actions.is_empty() {
-            let action = actions.pop();
-            match action {
-                Some(ActorAction::AddActor(actor)) => self.actors.add(actor),
-                Some(ActorAction::SetViewport(x, y)) => self.viewport.set_position((x, y)),
-                _ => {}
-            }
+        // apply actions sent by the actors
+        for action in &actions {
+            self.apply_action(context, action);
         }
 
         None

@@ -6,13 +6,16 @@ use engine::viewport::Viewport;
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
+const COIN_VALUE: i32 = 5;
+
 pub struct Coin {
+    id: i32,
     rect: SpriteRectangle,
     animation: AnimatedSprite,
 }
 
 impl Coin {
-    pub fn new(renderer: &mut Renderer, fps: f64) -> Coin {
+    pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Coin {
         let anim_data = AnimationData {
             width: 32,
             height: 32,
@@ -23,21 +26,28 @@ impl Coin {
         let anims = anim.range(0, 8);
 
         Coin {
-            rect: SpriteRectangle::new(64, 64, 32, 32),
+            id: id,
+            rect: SpriteRectangle::new(position.0, position.1, 32, 32),
             animation: AnimatedSprite::with_fps(anims, fps),
         }
     }
 }
 
 impl Actor for Coin {
-    fn on_collision(&mut self, _other_actor: ActorData, _side: CollisionSide) {
+    fn on_collision(&mut self, c: &mut Context, o: ActorData, _: CollisionSide) -> ActorAction {
         // Do nothing
+        if o.actor_type == ActorType::Player {
+            c.score.increment_score("GAME_SCORE", COIN_VALUE);
+            return ActorAction::RemoveActor(self.id);
+        }
+
+        ActorAction::None
     }
 
-    fn update(&mut self, _context: &mut Context, elapsed: f64) -> Vec<ActorAction> {
+    fn update(&mut self, _context: &mut Context, elapsed: f64) -> ActorAction {
         // Update sprite animation
         self.animation.add_time(elapsed);
-        vec![]
+        ActorAction::None
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
@@ -50,17 +60,12 @@ impl Actor for Coin {
 
     fn data(&self) -> ActorData {
         ActorData {
-            id: 0,
+            id: self.id,
             state: 0,
             damage: 0,
-            checks_collision: false,
+            checks_collision: true,
             rect: self.rect.to_sdl().unwrap(),
             actor_type: ActorType::Item,
         }
-    }
-
-    fn set_position(&mut self, position: (i32, i32)) {
-        self.rect.x = position.0;
-        self.rect.y = position.1;
     }
 }
