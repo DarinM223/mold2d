@@ -56,6 +56,9 @@ pub trait Actor {
                     side: CollisionSide)
                     -> ActorAction;
 
+    /// Returns the side of the collision if actor collides with another actor
+    fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide>;
+
     /// Called every frame to update an actor
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction;
 

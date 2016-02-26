@@ -1,4 +1,4 @@
-use engine::collision::CollisionSide;
+use engine::collision::{Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::SpriteRectangle;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
@@ -28,6 +28,10 @@ impl Block {
 impl Actor for Block {
     fn on_collision(&mut self, _c: &mut Context, _a: ActorData, _s: CollisionSide) -> ActorAction {
         ActorAction::None
+    }
+
+    fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
+        self.rect.collides_with(other_actor.rect)
     }
 
     fn update(&mut self, _context: &mut Context, _elapsed: f64) -> ActorAction {

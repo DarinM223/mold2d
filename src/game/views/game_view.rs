@@ -137,8 +137,7 @@ impl View for GameView {
                                                       .map(|act| act.clone())
                                                       .collect::<Vec<_>>();
                         for other_actor in collided_actors {
-                            let rect = actor.data().rect;
-                            if let Some(direction) = rect.collides_with(other_actor.rect) {
+                            if let Some(direction) = actor.collides_with(other_actor.clone()) {
                                 actions.push(actor.on_collision(context, other_actor, direction));
                             }
                         }

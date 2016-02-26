@@ -94,6 +94,10 @@ impl Actor for Asteroid {
         ActorAction::None
     }
 
+    fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
+        self.rect.collides_with(other_actor.rect)
+    }
+
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
         let max_y_speed = match self.curr_state {
             AsteroidState::Jumping => ASTEROID_Y_MAXSPEED,

@@ -1,4 +1,4 @@
-use engine::collision::CollisionSide;
+use engine::collision::{Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::{AnimatedSprite, Animation, AnimationData, Renderable, SpriteRectangle};
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
@@ -42,6 +42,10 @@ impl Actor for Coin {
         }
 
         ActorAction::None
+    }
+
+    fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
+        self.rect.collides_with(other_actor.rect)
     }
 
     fn update(&mut self, _context: &mut Context, elapsed: f64) -> ActorAction {
