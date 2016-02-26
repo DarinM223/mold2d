@@ -68,7 +68,7 @@ impl Sprite {
         renderer.load_texture(Path::new(path)).ok().map(Sprite::new)
     }
 
-    /// Returns a sub-sprite from a rectangle region of the original sprite 
+    /// Returns a sub-sprite from a rectangle region of the original sprite
     pub fn region(&self, rect: Rect) -> Option<Sprite> {
         let new_src = Rect::new_unwrap(rect.x() + self.src.x(),
                                        rect.y() + self.src.y(),
@@ -194,5 +194,101 @@ impl Animation {
             })
             .flat_map(|sprite| sprite)
             .collect()
+    }
+}
+
+/// Macro for easily creating block classes
+/// Example:
+/// block! {
+///     name: GrassBlock, // the name of the block
+///     path: "assets/spritesheet.png", // the path of the spritesheet
+///     index: 20, // the sprite index inside the spritesheet
+///     width: 5, // width of block
+///     height: 5, // height of block
+///     sprites_in_row: 10, // number of blocks in the spritesheet in a row
+///     size: 20, // size of the rendered block
+/// }
+#[macro_export]
+macro_rules! block {
+    (
+        name: $name:ident,
+        path: $path:expr,
+        index: $index:expr,
+        width: $width:expr,
+        height: $height:expr,
+        sprites_in_row: $sprites_in_row:expr,
+        size: $size:expr,
+    ) => {
+        pub struct $name {
+            id: i32,
+            pub rect: ::engine::sprite::SpriteRectangle,
+            pub sprite: ::engine::sprite::Sprite,
+        }
+
+        impl $name {
+            pub fn new(id: i32,
+                       position: (i32, i32),
+                       renderer: &mut ::sdl2::render::Renderer,
+                       _fps: f64)
+                       -> $name {
+                let anim_data = ::engine::sprite::AnimationData {
+                    width: $width,
+                    height: $height,
+                    sprites_in_row: $sprites_in_row,
+                    path: $path,
+                };
+
+                let anim = ::engine::sprite::Animation::new(anim_data, renderer);
+                let mut sprite_anims = anim.range($index, $index + 1);
+                let sprite = sprite_anims.pop().unwrap();
+
+                $name {
+                    id: id,
+                    rect: ::engine::sprite::SpriteRectangle::new(position.0,
+                                                                 position.1,
+                                                                 $size,
+                                                                 $size),
+                    sprite: sprite,
+                }
+            }
+        }
+
+        impl Actor for $name {
+            fn on_collision(&mut self,
+                            _c: &mut Context,
+                            _a: ActorData,
+                            _s: CollisionSide)
+                            -> ActorAction {
+                ActorAction::None
+            }
+
+            fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
+                self.rect.collides_with(other_actor.rect)
+            }
+
+            fn update(&mut self, _context: &mut Context, _elapsed: f64) -> ActorAction {
+                ActorAction::None
+            }
+
+            fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
+                use ::engine::sprite::Renderable;
+
+                let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
+                let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
+
+                self.sprite.render(&mut context.renderer, rect);
+            }
+
+            fn data(&self) -> ActorData {
+                ActorData {
+                    id: self.id,
+                    state: 0 as u32,
+                    damage: 0,
+                    checks_collision: false,
+                    rect: self.rect.to_sdl().unwrap(),
+                    actor_type: ActorType::Block,
+                }
+            }
+        }
     }
 }

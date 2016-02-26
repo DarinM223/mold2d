@@ -1,4 +1,4 @@
-use actors::block::Block;
+use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
 use actors::coin::Coin;
 use actors::player::Player;
 use engine::actor_manager::{ActorFromToken, ActorManager};
@@ -23,16 +23,18 @@ impl ActorFromToken for GameActorGenerator {
                         fps: f64)
                         -> Box<Actor> {
         match token {
-            '+' => Box::new(Player::new(id, position, renderer, fps)),
             'P' => Box::new(Player::new(id, position, renderer, fps)),
             'C' => Box::new(Coin::new(id, position, renderer, fps)),
-            '=' => Box::new(Block::new(id, position, renderer, fps)),
+            'S' => Box::new(StartBlock::new(id, position, renderer, fps)),
+            '=' => Box::new(GroundBlockTop::new(id, position, renderer, fps)),
+            '-' => Box::new(GroundBlockMid::new(id, position, renderer, fps)),
+            '_' => Box::new(StoneBlock::new(id, position, renderer, fps)),
             _ => panic!("Actor not implemented for token!"),
         }
     }
 }
 
-/// The main game view used for 
+/// The main game view used for
 /// the actual gameplay
 pub struct GameView {
     actors: ActorManager,

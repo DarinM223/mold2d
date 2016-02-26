@@ -10,9 +10,9 @@ use sdl2::render::Renderer;
 use std::collections::HashMap;
 
 const PLAYER_SIDE: u32 = 40;
-const PLAYER_X_MAXSPEED: f64 = 10.0;
+const PLAYER_X_MAXSPEED: f64 = 15.0;
 const PLAYER_Y_MAXSPEED: f64 = 15.0;
-const PLAYER_ACCELERATION: f64 = 0.2;
+const PLAYER_ACCELERATION: f64 = 0.18;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum PlayerState {

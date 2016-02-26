@@ -3,7 +3,7 @@ use sdl2::TimerSubsystem;
 const FRAME_INTERVAL: u32 = 1000 / 60;
 
 pub enum FrameAction {
-    /// Block the event loop 
+    /// Block the event loop
     Delay,
     /// Continue with the elapsed time
     Continue(f64),
@@ -30,7 +30,7 @@ impl<'a> FrameTimer<'a> {
         }
     }
 
-    /// Call this function every frame to limit the frames to a 
+    /// Call this function every frame to limit the frames to a
     /// certain FPS
     pub fn on_frame(&mut self) -> FrameAction {
         let now = self.timer.ticks();

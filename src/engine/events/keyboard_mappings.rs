@@ -4,12 +4,12 @@ use std::fs::File;
 
 // TODO(DarinM223): edit this as necessary for default keycodes
 pub const KEYBOARD_DEFAULTS: &'static str = r#"
-27 ESC 
-13 ENTER 
+27 ESC
+13 ENTER
 32 SPACE
-1073741906 UP 
-1073741905 DOWN 
-1073741904 LEFT 
+1073741906 UP
+1073741905 DOWN
+1073741904 LEFT
 1073741903 RIGHT
 "#;
 

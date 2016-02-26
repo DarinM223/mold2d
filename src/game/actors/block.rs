@@ -10,7 +10,6 @@ use sdl2::render::Renderer;
 const BLOCK_SIZE: u32 = 40;
 
 /// Prototype struct to test rendering blocks
-/// TODO: Remove after grid layout system is completed
 pub struct Block {
     id: i32,
     pub rect: SpriteRectangle,
@@ -56,4 +55,44 @@ impl Actor for Block {
             actor_type: ActorType::Block,
         }
     }
+}
+
+block! {
+    name: StartBlock,
+    path: "assets/tiles.png",
+    index: 0,
+    width: 80,
+    height: 80,
+    sprites_in_row: 7,
+    size: 40,
+}
+
+block! {
+    name: GroundBlockTop,
+    path: "assets/tiles.png",
+    index: 14,
+    width: 80,
+    height: 80,
+    sprites_in_row: 7,
+    size: 40,
+}
+
+block! {
+    name: GroundBlockMid,
+    path: "assets/tiles.png",
+    index: 21,
+    width: 80,
+    height: 80,
+    sprites_in_row: 7,
+    size: 40,
+}
+
+block! {
+    name: StoneBlock,
+    path: "assets/tiles.png",
+    index: 7,
+    width: 80,
+    height: 80,
+    sprites_in_row: 7,
+    size: 40,
 }

@@ -8,7 +8,7 @@
 
 #[cfg_attr(feature="clippy", feature(plugin))]
 #[cfg_attr(feature="clippy", plugin(clippy))]
-
+#[macro_use(block)]
 extern crate engine;
 extern crate sdl2;
 extern crate sdl2_image;
