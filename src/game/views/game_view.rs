@@ -1,6 +1,6 @@
-use actors::asteroid::Asteroid;
 use actors::block::Block;
 use actors::coin::Coin;
+use actors::player::Player;
 use engine::actor_manager::{ActorFromToken, ActorManager};
 use engine::collision::Collision;
 use engine::context::Context;
@@ -23,8 +23,8 @@ impl ActorFromToken for GameActorGenerator {
                         fps: f64)
                         -> Box<Actor> {
         match token {
-            '+' => Box::new(Asteroid::new(id, position, renderer, fps)),
-            'P' => Box::new(Asteroid::new(id, position, renderer, fps)),
+            '+' => Box::new(Player::new(id, position, renderer, fps)),
+            'P' => Box::new(Player::new(id, position, renderer, fps)),
             'C' => Box::new(Coin::new(id, position, renderer, fps)),
             '=' => Box::new(Block::new(id, position, renderer, fps)),
             _ => panic!("Actor not implemented for token!"),
@@ -58,9 +58,7 @@ impl GameView {
             viewport: viewport,
         }
     }
-}
 
-impl GameView {
     pub fn apply_action(&mut self, c: &mut Context, action: &ActorAction) {
         use engine::view::ActorAction::*;
 

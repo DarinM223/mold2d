@@ -101,10 +101,8 @@ impl Renderable for Sprite {
 pub struct AnimatedSprite {
     /// frames that will be rendered
     frames: Vec<Sprite>,
-
     /// time between frames
     frame_delay: f64,
-
     /// total time sprite has been alive
     current_time: f64,
 }
