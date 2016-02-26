@@ -1,6 +1,4 @@
-//! Trage - A troll rage 2d platformer game
-//! An attempt to build a 2d platformer game from scratch
-//! using only SDL for graphics
+//! A demo game to demonstrate mold2d
 
 #![feature(custom_attribute, plugin)]
 #![plugin(sorty)]

@@ -7,7 +7,7 @@ use game::views::game_view::GameView;
 
 fn main() {
     let window = Window {
-        title: "Trage - The troll rage game",
+        title: "Mold2d demo game",
         width: 1024,
         height: 600,
     };

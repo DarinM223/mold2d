@@ -253,40 +253,51 @@ macro_rules! block {
             }
         }
 
-        impl Actor for $name {
+        impl ::engine::view::Actor for $name {
             fn on_collision(&mut self,
-                            _c: &mut Context,
-                            _a: ActorData,
-                            _s: CollisionSide)
-                            -> ActorAction {
-                ActorAction::None
+                            _c: &mut ::engine::context::Context,
+                            _a: ::engine::view::ActorData,
+                            _s: ::engine::collision::CollisionSide)
+                            -> ::engine::view::ActorAction {
+                ::engine::view::ActorAction::None
             }
 
-            fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
+            fn collides_with(&mut self,
+                             other_actor: ::engine::view::ActorData)
+                             -> Option<::engine::collision::CollisionSide> {
+                use ::engine::collision::Collision;
+                use ::engine::sprite::SpriteRectangle;
+
                 self.rect.collides_with(other_actor.rect)
             }
 
-            fn update(&mut self, _context: &mut Context, _elapsed: f64) -> ActorAction {
-                ActorAction::None
+            fn update(&mut self,
+                      _context: &mut ::engine::context::Context,
+                      _elapsed: f64)
+                      -> ::engine::view::ActorAction {
+                ::engine::view::ActorAction::None
             }
 
-            fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
+            fn render(&mut self,
+                      context: &mut ::engine::context::Context,
+                      viewport: &mut ::engine::viewport::Viewport,
+                      _elapsed: f64) {
                 use ::engine::sprite::Renderable;
 
                 let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-                let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
+                let rect = ::sdl2::rect::Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
                 self.sprite.render(&mut context.renderer, rect);
             }
 
-            fn data(&self) -> ActorData {
-                ActorData {
+            fn data(&self) -> ::engine::view::ActorData {
+                ::engine::view::ActorData {
                     id: self.id,
                     state: 0 as u32,
                     damage: 0,
                     checks_collision: false,
                     rect: self.rect.to_sdl().unwrap(),
-                    actor_type: ActorType::Block,
+                    actor_type: ::engine::view::ActorType::Block,
                 }
             }
         }

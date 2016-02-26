@@ -1,8 +1,8 @@
 [package]
-name = "trage"
+name = "mold2d"
 version = "0.1.0"
 authors = ["Darin Minamoto <darinm223@gmail.com>"]
-description = "A work in progress rage 2d platformer game that only uses SDL"
+description = "A work in progress 2d platformer game and game engine that only uses SDL"
 readme = "README.md"
 
 [dependencies.game]
