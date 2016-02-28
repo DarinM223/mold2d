@@ -8,7 +8,7 @@ test the performance and correctness of the engine.
 
 TODO:
 -----
-- Cache fonts and spritesheets globally
+- ~~Cache fonts and spritesheets globally~~
 - Add sound support
 - Change quadtree implementation to Box2d's AABB mutable tree
 - Add particle systems

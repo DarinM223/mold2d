@@ -1,3 +1,4 @@
+use cache;
 use collision;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
@@ -65,7 +66,28 @@ impl Sprite {
 
     /// Loads a new sprite from a path string to a sprite image file
     pub fn load(renderer: &Renderer, path: &str) -> Option<Sprite> {
-        renderer.load_texture(Path::new(path)).ok().map(Sprite::new)
+        let sprite_cache = cache::sprite_cache();
+        let retrieve_result = sprite_cache.cache
+                                          .lock()
+                                          .unwrap()
+                                          .get(path)
+                                          .map(|sprite| sprite.clone());
+        // if sprite is cached, return from cache
+        if let Some(sprite) = retrieve_result {
+            Some(sprite)
+        } else {
+            let sprite = renderer.load_texture(Path::new(path)).ok().map(Sprite::new);
+
+            // cache result if successful
+            if let Some(ref sprite) = sprite {
+                sprite_cache.cache
+                            .lock()
+                            .unwrap()
+                            .insert(path.to_owned(), sprite.clone());
+            }
+
+            sprite
+        }
     }
 
     /// Returns a sub-sprite from a rectangle region of the original sprite

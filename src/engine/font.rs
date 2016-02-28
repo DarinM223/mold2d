@@ -9,13 +9,11 @@ use sprite::{Renderable, Sprite};
 use std::collections::HashMap;
 use std::path::Path;
 
-pub struct FontRenderer {
-    fonts: HashMap<String, Font>,
-}
+pub struct FontRenderer;
 
 impl FontRenderer {
     pub fn new() -> FontRenderer {
-        FontRenderer { fonts: HashMap::new() }
+        FontRenderer
     }
 
     pub fn text_sprite(&mut self,
