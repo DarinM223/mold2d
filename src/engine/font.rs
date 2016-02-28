@@ -1,3 +1,4 @@
+use cache;
 use sdl2::SdlResult;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -24,8 +25,10 @@ impl FontRenderer {
                        size: i32,
                        color: Color)
                        -> SdlResult<Sprite> {
+        let font_cache = cache::font_cache();
+
         {
-            if let Some(font) = self.fonts.get(font_path) {
+            if let Some(font) = font_cache.cache.lock().unwrap().get(font_path) {
                 let surface = try!(font.render(text, sdl2_ttf::blended(color)));
                 let texture = try!(renderer.create_texture_from_surface(&surface));
 
@@ -43,7 +46,7 @@ impl FontRenderer {
             sprite = Sprite::new(texture);
         }
 
-        self.fonts.insert(font_path.to_owned(), font);
+        font_cache.cache.lock().unwrap().insert(font_path.to_owned(), font);
 
         Ok(sprite)
     }

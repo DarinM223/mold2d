@@ -18,6 +18,7 @@
 #[cfg_attr(feature="clippy", feature(plugin))]
 #[cfg_attr(feature="clippy", plugin(clippy))]
 
+extern crate libc;
 extern crate sdl2;
 extern crate sdl2_image;
 extern crate sdl2_ttf;
@@ -26,6 +27,7 @@ extern crate sdl2_ttf;
 pub mod sprite;
 
 pub mod actor_manager;
+pub mod cache;
 pub mod collision;
 pub mod context;
 pub mod event_loop;
