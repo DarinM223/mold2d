@@ -19,16 +19,15 @@ impl ActorFromToken for GameActorGenerator {
                         token: char,
                         id: i32,
                         position: (i32, i32),
-                        renderer: &mut Renderer,
-                        fps: f64)
+                        renderer: &mut Renderer)
                         -> Box<Actor> {
         match token {
-            'P' => Box::new(Player::new(id, position, renderer, fps)),
-            'C' => Box::new(Coin::new(id, position, renderer, fps)),
-            'S' => Box::new(StartBlock::new(id, position, renderer, fps)),
-            '=' => Box::new(GroundBlockTop::new(id, position, renderer, fps)),
-            '-' => Box::new(GroundBlockMid::new(id, position, renderer, fps)),
-            '_' => Box::new(StoneBlock::new(id, position, renderer, fps)),
+            'P' => Box::new(Player::new(id, position, renderer, 30.)),
+            'C' => Box::new(Coin::new(id, position, renderer, 20.)),
+            'S' => Box::new(StartBlock::new(id, position, renderer, 1.)),
+            '=' => Box::new(GroundBlockTop::new(id, position, renderer, 1.)),
+            '-' => Box::new(GroundBlockMid::new(id, position, renderer, 1.)),
+            '_' => Box::new(StoneBlock::new(id, position, renderer, 1.)),
             _ => panic!("Actor not implemented for token!"),
         }
     }
@@ -47,8 +46,7 @@ impl GameView {
         let level_result = level::load_level(path,
                                              actor_generator,
                                              &mut context.renderer,
-                                             &context.window,
-                                             60.0);
+                                             &context.window);
         let (actors, viewport) = level_result.unwrap();
 
         if context.score.score("GAME_SCORE") == None {
@@ -65,7 +63,7 @@ impl GameView {
         use engine::view::ActorAction::*;
 
         match *action {
-            AddActor(token, pos) => self.actors.add(token, pos, &mut c.renderer, 60.),
+            AddActor(token, pos) => self.actors.add(token, pos, &mut c.renderer),
             RemoveActor(id) => self.actors.remove(id),
             SetViewport(x, y) => self.viewport.set_position((x, y)),
             _ => {}

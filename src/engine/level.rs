@@ -12,8 +12,7 @@ pub const GRID_SIZE: i32 = 40;
 pub fn load_level(path: &str,
                   actor_for_token: Box<ActorFromToken>,
                   renderer: &mut Renderer,
-                  window: &Window,
-                  fps: f64)
+                  window: &Window)
                   -> io::Result<(ActorManager, Viewport)> {
     let mut center_point = (0, 0);
     let mut manager = ActorManager::new(actor_for_token);
@@ -33,7 +32,7 @@ pub fn load_level(path: &str,
         for line in reader.lines() {
             for token in try!(line).chars() {
                 if token != ' ' {
-                    manager.add(token, (x, y), renderer, fps);
+                    manager.add(token, (x, y), renderer);
 
                     if token == 'P' {
                         has_player = true;

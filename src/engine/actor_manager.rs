@@ -15,8 +15,7 @@ pub trait ActorFromToken {
                         token: char,
                         id: i32,
                         position: (i32, i32),
-                        renderer: &mut Renderer,
-                        fps: f64)
+                        renderer: &mut Renderer)
                         -> Box<Actor>;
 }
 
@@ -30,8 +29,8 @@ impl ActorManager {
     }
 
     /// Add a new actor into the manager
-    pub fn add(&mut self, token: char, position: (i32, i32), renderer: &mut Renderer, fps: f64) {
-        let actor = self.actor_gen.actor_from_token(token, self.next_id, position, renderer, fps);
+    pub fn add(&mut self, token: char, position: (i32, i32), renderer: &mut Renderer) {
+        let actor = self.actor_gen.actor_from_token(token, self.next_id, position, renderer);
         self.actors.insert(self.next_id, actor);
         self.next_id += 1;
     }

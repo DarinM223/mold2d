@@ -6,7 +6,6 @@ use sdl2::render::Renderer;
 use sdl2_ttf;
 use sdl2_ttf::Font;
 use sprite::{Renderable, Sprite};
-use std::collections::HashMap;
 use std::path::Path;
 
 pub struct FontRenderer;
@@ -25,15 +24,19 @@ impl FontRenderer {
                        -> SdlResult<Sprite> {
         let font_cache = cache::font_cache();
 
+        // if font is cached use the cached font
         {
-            if let Some(font) = font_cache.cache.lock().unwrap().get(font_path) {
-                let surface = try!(font.render(text, sdl2_ttf::blended(color)));
-                let texture = try!(renderer.create_texture_from_surface(&surface));
+            if let Ok(ref cache) = font_cache.cache.lock() {
+                if let Some(font) = cache.get(font_path) {
+                    let surface = try!(font.render(text, sdl2_ttf::blended(color)));
+                    let texture = try!(renderer.create_texture_from_surface(&surface));
 
-                return Ok(Sprite::new(texture));
+                    return Ok(Sprite::new(texture));
+                }
             }
         }
 
+        // otherwise load font from file path
         let font = try!(Font::from_file(Path::new(font_path), size));
         let sprite;
 
@@ -44,7 +47,10 @@ impl FontRenderer {
             sprite = Sprite::new(texture);
         }
 
-        font_cache.cache.lock().unwrap().insert(font_path.to_owned(), font);
+        // cache if successful
+        if let Ok(ref mut cache) = font_cache.cache.lock() {
+            cache.insert(font_path.to_owned(), font);
+        }
 
         Ok(sprite)
     }

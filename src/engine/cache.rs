@@ -1,4 +1,3 @@
-use libc;
 use sdl2_ttf::Font;
 use sprite::Sprite;
 use std::collections::HashMap;

@@ -67,27 +67,25 @@ impl Sprite {
     /// Loads a new sprite from a path string to a sprite image file
     pub fn load(renderer: &Renderer, path: &str) -> Option<Sprite> {
         let sprite_cache = cache::sprite_cache();
-        let retrieve_result = sprite_cache.cache
-                                          .lock()
-                                          .unwrap()
-                                          .get(path)
-                                          .map(|sprite| sprite.clone());
+
         // if sprite is cached, return from cache
-        if let Some(sprite) = retrieve_result {
-            Some(sprite)
-        } else {
-            let sprite = renderer.load_texture(Path::new(path)).ok().map(Sprite::new);
-
-            // cache result if successful
-            if let Some(ref sprite) = sprite {
-                sprite_cache.cache
-                            .lock()
-                            .unwrap()
-                            .insert(path.to_owned(), sprite.clone());
+        if let Ok(ref cache) = sprite_cache.cache.lock() {
+            if let Some(sprite) = cache.get(path).map(|sprite| sprite.clone()) {
+                return Some(sprite);
             }
-
-            sprite
         }
+
+        // otherwise load sprite from texture
+        let sprite = renderer.load_texture(Path::new(path)).ok().map(Sprite::new);
+
+        // cache result if successful
+        if let Some(ref sprite) = sprite {
+            if let Ok(ref mut cache) = sprite_cache.cache.lock() {
+                cache.insert(path.to_owned(), sprite.clone());
+            }
+        }
+
+        sprite
     }
 
     /// Returns a sub-sprite from a rectangle region of the original sprite
@@ -284,6 +282,7 @@ macro_rules! block {
                 ::engine::view::ActorAction::None
             }
 
+            #[allow(unused_imports)]
             fn collides_with(&mut self,
                              other_actor: ::engine::view::ActorData)
                              -> Option<::engine::collision::CollisionSide> {
@@ -300,6 +299,7 @@ macro_rules! block {
                 ::engine::view::ActorAction::None
             }
 
+            #[allow(unused_imports)]
             fn render(&mut self,
                       context: &mut ::engine::context::Context,
                       viewport: &mut ::engine::viewport::Viewport,
