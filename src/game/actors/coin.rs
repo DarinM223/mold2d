@@ -1,4 +1,4 @@
-use engine::collision::{Collision, CollisionSide};
+use engine::collision::{BoundingBox, Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::{AnimatedSprite, Animation, AnimationData, Renderable, SpriteRectangle};
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
@@ -16,13 +16,14 @@ pub struct Coin {
 
 impl Coin {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Coin {
-        let anim_data = AnimationData {
-            width: 32,
-            height: 32,
-            sprites_in_row: 8,
-            path: "./assets/coin.png",
-        };
-        let anim = Animation::new(anim_data, renderer);
+        let anim = Animation::new(AnimationData {
+                                      width: 32,
+                                      height: 32,
+                                      sprites_in_row: 8,
+                                      path: "./assets/coin.png",
+                                  },
+                                  renderer);
+
         let anims = anim.range(0, 8);
 
         Coin {
@@ -69,6 +70,7 @@ impl Actor for Coin {
             damage: 0,
             checks_collision: true,
             rect: self.rect.to_sdl().unwrap(),
+            bounding_box: Some(BoundingBox::Rectangle(self.rect.clone())),
             actor_type: ActorType::Item,
         }
     }

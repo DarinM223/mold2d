@@ -1,4 +1,4 @@
-use collision::CollisionSide;
+use collision::{BoundingBox, CollisionSide};
 use context::Context;
 use sdl2::rect::Rect;
 use viewport::Viewport;
@@ -42,6 +42,7 @@ pub struct ActorData {
     pub damage: i32,
     pub checks_collision: bool,
     pub rect: Rect,
+    pub bounding_box: Option<BoundingBox>,
     pub actor_type: ActorType,
 }
 

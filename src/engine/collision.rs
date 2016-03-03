@@ -85,3 +85,41 @@ impl Collision<Rect> for SpriteRectangle {
         None
     }
 }
+
+impl Collision<SpriteRectangle> for SpriteRectangle {
+    fn collides_with(&self, other: SpriteRectangle) -> Option<CollisionSide> {
+        if let Some(rect) = other.to_sdl() {
+            return self.collides_with(rect);
+        }
+
+        None
+    }
+}
+
+#[derive(Clone, PartialEq)]
+pub enum BoundingBox {
+    Rectangle(SpriteRectangle),
+}
+
+impl BoundingBox {
+    pub fn change_pos(&mut self, point: (i32, i32)) {
+        match *self {
+            BoundingBox::Rectangle(ref mut rect) => {
+                rect.x = point.0;
+                rect.y = point.1;
+            }
+        }
+    }
+}
+
+impl Collision<BoundingBox> for BoundingBox {
+    fn collides_with(&self, other: BoundingBox) -> Option<CollisionSide> {
+        match (self, other) {
+            (&BoundingBox::Rectangle(ref rect1),
+             BoundingBox::Rectangle(ref rect2)) => {
+                // TODO(DarinM223): avoid cloning the second rectangle
+                rect1.collides_with(rect2.clone())
+            }
+        }
+    }
+}

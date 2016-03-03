@@ -1,13 +1,12 @@
-use engine::collision::{Collision, CollisionSide};
+use engine::collision::{BoundingBox, Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::Renderable;
-use engine::sprite::{AnimatedSprite, Animation, AnimationData, SpriteRectangle};
+use engine::sprite::{Animation, AnimationData, AnimationManager, SpriteRectangle};
 use engine::vector::Vector2D;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
-use std::collections::HashMap;
 
 const PLAYER_SIDE: u32 = 40;
 const PLAYER_X_MAXSPEED: f64 = 15.0;
@@ -34,39 +33,35 @@ pub struct Player {
     grounded: bool,
     curr_speed: Vector2D,
     rect: SpriteRectangle,
-    animations: HashMap<(PlayerState, WalkDirection), AnimatedSprite>,
+    anims: AnimationManager<(PlayerState, WalkDirection)>,
 }
 
 impl Player {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Player {
-        let mut animations = HashMap::new();
+        use self::PlayerState::*;
+        use self::WalkDirection::*;
 
-        let anim_data = AnimationData {
-            width: 16,
-            height: 16,
-            sprites_in_row: 4,
-            path: "./assets/mario-small.png",
-        };
-        let anim = Animation::new(anim_data, renderer);
-        let stand_left_anims = anim.range(0, 1);
-        let walk_left_anims = anim.range(1, 4);
-        let jump_left_anims = anim.range(4, 5);
-        let stand_right_anims = anim.range(8, 9);
-        let walk_right_anims = anim.range(9, 12);
-        let jump_right_anims = anim.range(12, 13);
+        let mut anims = AnimationManager::new(fps);
 
-        animations.insert((PlayerState::Idle, WalkDirection::Left),
-                          AnimatedSprite::with_fps(stand_left_anims, fps));
-        animations.insert((PlayerState::Idle, WalkDirection::Right),
-                          AnimatedSprite::with_fps(stand_right_anims, fps));
-        animations.insert((PlayerState::Walking, WalkDirection::Left),
-                          AnimatedSprite::with_fps(walk_left_anims, fps));
-        animations.insert((PlayerState::Walking, WalkDirection::Right),
-                          AnimatedSprite::with_fps(walk_right_anims, fps));
-        animations.insert((PlayerState::Jumping, WalkDirection::Left),
-                          AnimatedSprite::with_fps(jump_left_anims, fps));
-        animations.insert((PlayerState::Jumping, WalkDirection::Right),
-                          AnimatedSprite::with_fps(jump_right_anims, fps));
+        let anim = Animation::new(AnimationData {
+                                      width: 16,
+                                      height: 16,
+                                      sprites_in_row: 4,
+                                      path: "./assets/mario-small.png",
+                                  },
+                                  renderer);
+
+        let bounding_box = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
+                                                                       position.1,
+                                                                       PLAYER_SIDE,
+                                                                       PLAYER_SIDE));
+
+        anims.add((Idle, Left), anim.range(0, 1), bounding_box.clone());
+        anims.add((Idle, Right), anim.range(8, 9), bounding_box.clone());
+        anims.add((Walking, Left), anim.range(1, 4), bounding_box.clone());
+        anims.add((Walking, Right), anim.range(9, 12), bounding_box.clone());
+        anims.add((Jumping, Left), anim.range(4, 5), bounding_box.clone());
+        anims.add((Jumping, Right), anim.range(12, 13), bounding_box.clone());
 
         Player {
             id: id,
@@ -75,7 +70,7 @@ impl Player {
             grounded: false,
             curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, PLAYER_SIDE, PLAYER_SIDE),
-            animations: animations,
+            anims: anims,
         }
     }
 }
@@ -116,7 +111,13 @@ impl Actor for Player {
     }
 
     fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
-        self.rect.collides_with(other_actor.rect)
+        if let Some(bounding_box) = self.anims.bbox(&(self.curr_state, self.direction)) {
+            if let Some(other_box) = other_actor.bounding_box {
+                return bounding_box.collides_with(other_box);
+            }
+        }
+
+        None
     }
 
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
@@ -182,8 +183,13 @@ impl Actor for Player {
         }
 
         // Update sprite animation
-        if let Some(animation) = self.animations.get_mut(&(self.curr_state, self.direction)) {
+        if let Some(animation) = self.anims.anim_mut(&(self.curr_state, self.direction)) {
             animation.add_time(elapsed);
+        }
+
+        // Update sprite bounding box
+        if let Some(bounding_box) = self.anims.bbox_mut(&(self.curr_state, self.direction)) {
+            bounding_box.change_pos((self.rect.x, self.rect.y));
         }
 
         ActorAction::SetViewport(self.rect.x, self.rect.y)
@@ -194,7 +200,7 @@ impl Actor for Player {
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
         // Render sprite animation
-        if let Some(animation) = self.animations.get_mut(&(self.curr_state, self.direction)) {
+        if let Some(animation) = self.anims.anim_mut(&(self.curr_state, self.direction)) {
             animation.render(&mut context.renderer, rect);
         } else {
             println!("Could not find animation for {:?} {:?}",
@@ -210,6 +216,9 @@ impl Actor for Player {
             damage: 0,
             checks_collision: true,
             rect: self.rect.to_sdl().unwrap(),
+            bounding_box: self.anims
+                              .bbox(&(self.curr_state, self.direction))
+                              .map(|bb| bb.clone()),
             actor_type: ActorType::Player,
         }
     }

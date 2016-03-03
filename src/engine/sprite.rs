@@ -1,9 +1,12 @@
 use cache;
 use collision;
+use collision::BoundingBox;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::LoadTexture;
 use std::cell::RefCell;
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::path::Path;
 use std::rc::Rc;
 
@@ -12,7 +15,7 @@ pub trait Renderable {
 }
 
 /// A mutable rectangle for a sprite so it can be moved around
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct SpriteRectangle {
     pub x: i32,
     pub y: i32,
@@ -217,6 +220,61 @@ impl Animation {
     }
 }
 
+pub struct AnimationManager<State> {
+    fps: f64,
+    animations: HashMap<State, (AnimatedSprite, BoundingBox)>,
+}
+
+impl<State> AnimationManager<State> where State: Eq + Hash
+{
+    pub fn new(fps: f64) -> AnimationManager<State> {
+        AnimationManager {
+            fps: fps,
+            animations: HashMap::new(),
+        }
+    }
+
+    pub fn add(&mut self, s: State, anims: Vec<Sprite>, bound: BoundingBox) {
+        self.animations.insert(s, (AnimatedSprite::with_fps(anims, self.fps), bound));
+    }
+
+    /// Returns an immutable reference to the animation for the given state
+    pub fn anim(&self, s: &State) -> Option<&AnimatedSprite> {
+        self.animations.get(s).map(|result| {
+            match *result {
+                (ref sprite, _) => sprite,
+            }
+        })
+    }
+
+    /// Returns a mutable reference to the animation for the given state
+    pub fn anim_mut(&mut self, s: &State) -> Option<&mut AnimatedSprite> {
+        self.animations.get_mut(s).map(|result| {
+            match *result {
+                (ref mut sprite, _) => sprite,
+            }
+        })
+    }
+
+    /// Returns an immutable reference to the bounding box for the given state
+    pub fn bbox(&self, s: &State) -> Option<&BoundingBox> {
+        self.animations.get(s).map(|result| {
+            match *result {
+                (_, ref bounding_box) => bounding_box,
+            }
+        })
+    }
+
+    /// Returns a mutable reference to the bounding box for the given state
+    pub fn bbox_mut(&mut self, s: &State) -> Option<&mut BoundingBox> {
+        self.animations.get_mut(s).map(|result| {
+            match *result {
+                (_, ref mut bounding_box) => bounding_box,
+            }
+        })
+    }
+}
+
 /// Macro for easily creating block classes
 /// Example:
 /// block! {
@@ -319,6 +377,8 @@ macro_rules! block {
                     damage: 0,
                     checks_collision: false,
                     rect: self.rect.to_sdl().unwrap(),
+                    bounding_box: Some(::engine::collision::BoundingBox::Rectangle(
+                            self.rect.clone())),
                     actor_type: ::engine::view::ActorType::Block,
                 }
             }
