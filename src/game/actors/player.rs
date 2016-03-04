@@ -8,8 +8,8 @@ use engine::viewport::Viewport;
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
-const PLAYER_WIDTH: u32 = 40;
-const PLAYER_HEIGHT: u32 = 80;
+const PLAYER_WIDTH: u32 = 30;
+const PLAYER_HEIGHT: u32 = 60;
 const PLAYER_X_MAXSPEED: f64 = 15.0;
 const PLAYER_Y_MAXSPEED: f64 = 15.0;
 const PLAYER_ACCELERATION: f64 = 0.18;
@@ -75,7 +75,7 @@ impl Player {
         let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
                                                                 position.1,
                                                                 PLAYER_WIDTH,
-                                                                PLAYER_HEIGHT / 2));
+                                                                PLAYER_HEIGHT / 2 + 10));
 
         anims.add((Big, Idle, Left), banim.range(1, 2), bbox.clone());
         anims.add((Big, Idle, Right), banim.range(12, 13), bbox.clone());
@@ -114,38 +114,62 @@ impl Actor for Player {
             return ActorAction::None;
         }
 
-        match side {
-            CollisionSide::Left => {
-                while self.rect.collides_with(o.rect) == Some(CollisionSide::Left) {
-                    self.rect.x -= 1;
-                }
-            }
-            CollisionSide::Right => {
-                while self.rect.collides_with(o.rect) == Some(CollisionSide::Right) {
-                    self.rect.x += 1;
-                }
-            }
-            CollisionSide::Top => {}
-            CollisionSide::Bottom => {
-                if self.curr_state == PlayerState::Jumping {
-                    self.curr_state = PlayerState::Idle;
-                }
+        let other_bbox = match o.bounding_box {
+            Some(b) => b,
+            None => return ActorAction::None,
+        };
 
-                while self.rect.collides_with(o.rect) == Some(CollisionSide::Bottom) {
-                    self.rect.y -= 1;
-                }
+        let key = (self.size, self.curr_state, self.direction);
 
-                self.rect.y += 1;
-                self.grounded = true;
+        if let Some(ref mut self_bbox) = self.anims.bbox_mut(&key) {
+            match side {
+                CollisionSide::Left => {
+                    while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Left) {
+                        self.rect.x -= 1;
+                        self_bbox.change_pos((self.rect.x, self.rect.y),
+                                             (self.rect.w, self.rect.h));
+                    }
+                }
+                CollisionSide::Right => {
+                    while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Right) {
+                        self.rect.x += 1;
+                        self_bbox.change_pos((self.rect.x, self.rect.y),
+                                             (self.rect.w, self.rect.h));
+                    }
+                }
+                CollisionSide::Top => {
+                    while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Top) {
+                        self.rect.y += 1;
+                        self_bbox.change_pos((self.rect.x, self.rect.y),
+                                             (self.rect.w, self.rect.h));
+                    }
+
+                    self.curr_speed.y = 0.;
+                }
+                CollisionSide::Bottom => {
+                    if self.curr_state == PlayerState::Jumping {
+                        self.curr_state = PlayerState::Idle;
+                    }
+
+                    while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Bottom) {
+                        self.rect.y -= 1;
+                        self_bbox.change_pos((self.rect.x, self.rect.y),
+                                             (self.rect.w, self.rect.h));
+                    }
+
+                    self.rect.y += 1;
+                    self_bbox.change_pos((self.rect.x, self.rect.y), (self.rect.w, self.rect.h));
+                    self.grounded = true;
+                }
             }
         }
 
         ActorAction::None
     }
 
-    fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other_actor: &ActorData) -> Option<CollisionSide> {
         if let Some(bounding_box) = self.anims.bbox(&(self.size, self.curr_state, self.direction)) {
-            if let Some(other_box) = other_actor.bounding_box {
+            if let Some(ref other_box) = other_actor.bounding_box {
                 return bounding_box.collides_with(other_box);
             }
         }
@@ -235,6 +259,18 @@ impl Actor for Player {
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
         let key = (self.size, self.curr_state, self.direction);
+
+        // TODO(DarinM223): draws bounding box for debugging purposes only
+        if let Some(bounding_box) = self.anims.bbox(&key) {
+            match *bounding_box {
+                BoundingBox::Rectangle(ref rect) => {
+                    context.renderer.set_draw_color(::sdl2::pixels::Color::RGB(230, 230, 230));
+                    let (rx, ry) = viewport.relative_point((rect.x, rect.y));
+                    let rect = Rect::new_unwrap(rx, ry, rect.w, rect.h);
+                    context.renderer.fill_rect(rect);
+                }
+            }
+        }
 
         // Render sprite animation
         if let Some(animation) = self.anims.anim_mut(&key) {

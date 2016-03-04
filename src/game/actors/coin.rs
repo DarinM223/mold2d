@@ -45,7 +45,7 @@ impl Actor for Coin {
         ActorAction::None
     }
 
-    fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other_actor: &ActorData) -> Option<CollisionSide> {
         self.rect.collides_with(other_actor.rect)
     }
 

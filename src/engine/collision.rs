@@ -115,11 +115,11 @@ impl BoundingBox {
     }
 }
 
-impl Collision<BoundingBox> for BoundingBox {
-    fn collides_with(&self, other: BoundingBox) -> Option<CollisionSide> {
+impl<'a> Collision<&'a BoundingBox> for BoundingBox {
+    fn collides_with(&self, other: &'a BoundingBox) -> Option<CollisionSide> {
         match (self, other) {
             (&BoundingBox::Rectangle(ref rect1),
-             BoundingBox::Rectangle(ref rect2)) => {
+             &BoundingBox::Rectangle(ref rect2)) => {
                 // TODO(DarinM223): avoid cloning the second rectangle
                 rect1.collides_with(rect2.clone())
             }

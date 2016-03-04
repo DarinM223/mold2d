@@ -346,7 +346,7 @@ macro_rules! block {
 
             #[allow(unused_imports)]
             fn collides_with(&mut self,
-                             other_actor: ::engine::view::ActorData)
+                             other_actor: &::engine::view::ActorData)
                              -> Option<::engine::collision::CollisionSide> {
                 use ::engine::collision::Collision;
                 use ::engine::sprite::SpriteRectangle;
