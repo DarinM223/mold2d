@@ -171,6 +171,10 @@ impl AnimatedSprite {
 
 impl Renderable for AnimatedSprite {
     fn render(&self, renderer: &mut Renderer, dest: Rect) {
+        if self.frames.len() == 0 {
+            panic!("There has to be at least one frame!");
+        }
+
         let current_frame = (self.current_time / self.frame_delay) as usize % self.frames.len();
 
         let frame = &self.frames[current_frame];

@@ -8,7 +8,8 @@ use engine::viewport::Viewport;
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
-const PLAYER_SIDE: u32 = 40;
+const PLAYER_WIDTH: u32 = 40;
+const PLAYER_HEIGHT: u32 = 80;
 const PLAYER_X_MAXSPEED: f64 = 15.0;
 const PLAYER_Y_MAXSPEED: f64 = 15.0;
 const PLAYER_ACCELERATION: f64 = 0.18;
@@ -21,6 +22,12 @@ pub enum PlayerState {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub enum PlayerSize {
+    Big,
+    Small,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum WalkDirection {
     Left,
     Right,
@@ -30,46 +37,68 @@ pub struct Player {
     id: i32,
     curr_state: PlayerState,
     direction: WalkDirection,
+    size: PlayerSize,
     grounded: bool,
     curr_speed: Vector2D,
     rect: SpriteRectangle,
-    anims: AnimationManager<(PlayerState, WalkDirection)>,
+    anims: AnimationManager<(PlayerSize, PlayerState, WalkDirection)>,
 }
 
 impl Player {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Player {
+        use self::PlayerSize::*;
         use self::PlayerState::*;
         use self::WalkDirection::*;
 
         let mut anims = AnimationManager::new(fps);
 
-        let anim = Animation::new(AnimationData {
-                                      width: 16,
-                                      height: 16,
-                                      sprites_in_row: 4,
-                                      path: "./assets/mario-small.png",
-                                  },
-                                  renderer);
+        let banim = Animation::new(AnimationData {
+                                       width: 16,
+                                       height: 32,
+                                       sprites_in_row: 4,
+                                       path: "./assets/mario-big.png",
+                                   },
+                                   renderer);
+        let sanim = Animation::new(AnimationData {
+                                       width: 16,
+                                       height: 16,
+                                       sprites_in_row: 4,
+                                       path: "./assets/mario-small.png",
+                                   },
+                                   renderer);
 
-        let bounding_box = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
-                                                                       position.1,
-                                                                       PLAYER_SIDE,
-                                                                       PLAYER_SIDE));
+        let bbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
+                                                               position.1,
+                                                               PLAYER_WIDTH,
+                                                               PLAYER_HEIGHT));
 
-        anims.add((Idle, Left), anim.range(0, 1), bounding_box.clone());
-        anims.add((Idle, Right), anim.range(8, 9), bounding_box.clone());
-        anims.add((Walking, Left), anim.range(1, 4), bounding_box.clone());
-        anims.add((Walking, Right), anim.range(9, 12), bounding_box.clone());
-        anims.add((Jumping, Left), anim.range(4, 5), bounding_box.clone());
-        anims.add((Jumping, Right), anim.range(12, 13), bounding_box.clone());
+        let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
+                                                                position.1,
+                                                                PLAYER_WIDTH,
+                                                                PLAYER_HEIGHT / 2));
+
+        anims.add((Big, Idle, Left), banim.range(1, 2), bbox.clone());
+        anims.add((Big, Idle, Right), banim.range(12, 13), bbox.clone());
+        anims.add((Big, Walking, Left), banim.range(5, 8), bbox.clone());
+        anims.add((Big, Walking, Right), banim.range(13, 16), bbox.clone());
+        anims.add((Big, Jumping, Left), banim.range(3, 4), bbox.clone());
+        anims.add((Big, Jumping, Right), banim.range(11, 12), bbox.clone());
+
+        anims.add((Small, Idle, Left), sanim.range(0, 1), cbbox.clone());
+        anims.add((Small, Idle, Right), sanim.range(8, 9), cbbox.clone());
+        anims.add((Small, Walking, Left), sanim.range(1, 4), cbbox.clone());
+        anims.add((Small, Walking, Right), sanim.range(9, 12), cbbox.clone());
+        anims.add((Small, Jumping, Left), sanim.range(4, 5), cbbox.clone());
+        anims.add((Small, Jumping, Right), sanim.range(12, 13), cbbox.clone());
 
         Player {
             id: id,
             curr_state: PlayerState::Jumping,
             direction: WalkDirection::Right,
+            size: PlayerSize::Big,
             grounded: false,
             curr_speed: Vector2D { x: 0., y: 0. },
-            rect: SpriteRectangle::new(position.0, position.1, PLAYER_SIDE, PLAYER_SIDE),
+            rect: SpriteRectangle::new(position.0, position.1, PLAYER_WIDTH, PLAYER_HEIGHT),
             anims: anims,
         }
     }
@@ -78,6 +107,10 @@ impl Player {
 impl Actor for Player {
     fn on_collision(&mut self, _: &mut Context, o: ActorData, side: CollisionSide) -> ActorAction {
         if o.actor_type == ActorType::Item {
+            if self.size == PlayerSize::Big {
+                self.rect.h /= 2;
+                self.size = PlayerSize::Small;
+            }
             return ActorAction::None;
         }
 
@@ -111,7 +144,7 @@ impl Actor for Player {
     }
 
     fn collides_with(&mut self, other_actor: ActorData) -> Option<CollisionSide> {
-        if let Some(bounding_box) = self.anims.bbox(&(self.curr_state, self.direction)) {
+        if let Some(bounding_box) = self.anims.bbox(&(self.size, self.curr_state, self.direction)) {
             if let Some(other_box) = other_actor.bounding_box {
                 return bounding_box.collides_with(other_box);
             }
@@ -182,14 +215,16 @@ impl Actor for Player {
             self.grounded = false;
         }
 
+        let key = (self.size, self.curr_state, self.direction);
+
         // Update sprite animation
-        if let Some(animation) = self.anims.anim_mut(&(self.curr_state, self.direction)) {
+        if let Some(animation) = self.anims.anim_mut(&key) {
             animation.add_time(elapsed);
         }
 
         // Update sprite bounding box
-        if let Some(bounding_box) = self.anims.bbox_mut(&(self.curr_state, self.direction)) {
-            bounding_box.change_pos((self.rect.x, self.rect.y));
+        if let Some(bounding_box) = self.anims.bbox_mut(&key) {
+            bounding_box.change_pos((self.rect.x, self.rect.y), (self.rect.w, self.rect.h));
         }
 
         ActorAction::SetViewport(self.rect.x, self.rect.y)
@@ -199,11 +234,14 @@ impl Actor for Player {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
+        let key = (self.size, self.curr_state, self.direction);
+
         // Render sprite animation
-        if let Some(animation) = self.anims.anim_mut(&(self.curr_state, self.direction)) {
+        if let Some(animation) = self.anims.anim_mut(&key) {
             animation.render(&mut context.renderer, rect);
         } else {
-            println!("Could not find animation for {:?} {:?}",
+            println!("Could not find animation for {:?} {:?} {:?}",
+                     self.size,
                      self.curr_state,
                      self.direction);
         }
@@ -217,7 +255,7 @@ impl Actor for Player {
             checks_collision: true,
             rect: self.rect.to_sdl().unwrap(),
             bounding_box: self.anims
-                              .bbox(&(self.curr_state, self.direction))
+                              .bbox(&(self.size, self.curr_state, self.direction))
                               .map(|bb| bb.clone()),
             actor_type: ActorType::Player,
         }
