@@ -25,6 +25,7 @@ pub enum PlayerState {
 pub enum PlayerSize {
     Big,
     Small,
+    Crouching,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -39,6 +40,7 @@ pub struct Player {
     direction: WalkDirection,
     size: PlayerSize,
     grounded: bool,
+    hit_ceiling: bool,
     curr_speed: Vector2D,
     rect: SpriteRectangle,
     anims: AnimationManager<(PlayerSize, PlayerState, WalkDirection)>,
@@ -91,12 +93,25 @@ impl Player {
         anims.add((Small, Jumping, Left), sanim.range(4, 5), cbbox.clone());
         anims.add((Small, Jumping, Right), sanim.range(12, 13), cbbox.clone());
 
+        anims.add((Crouching, Idle, Left), banim.range(2, 3), cbbox.clone());
+        anims.add((Crouching, Idle, Right), banim.range(10, 11), cbbox.clone());
+        anims.add((Crouching, Jumping, Left), banim.range(2, 3), cbbox.clone());
+        anims.add((Crouching, Jumping, Right),
+                  banim.range(10, 11),
+                  cbbox.clone());
+        // This should never be called but included in case of a bug
+        anims.add((Crouching, Walking, Left), banim.range(2, 3), cbbox.clone());
+        anims.add((Crouching, Walking, Right),
+                  banim.range(10, 11),
+                  cbbox.clone());
+
         Player {
             id: id,
             curr_state: PlayerState::Jumping,
             direction: WalkDirection::Right,
             size: PlayerSize::Big,
             grounded: false,
+            hit_ceiling: false,
             curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, PLAYER_WIDTH, PLAYER_HEIGHT),
             anims: anims,
@@ -107,7 +122,7 @@ impl Player {
 impl Actor for Player {
     fn on_collision(&mut self, _: &mut Context, o: ActorData, side: CollisionSide) -> ActorAction {
         if o.actor_type == ActorType::Item {
-            if self.size == PlayerSize::Big {
+            if self.size == PlayerSize::Big || self.size == PlayerSize::Crouching {
                 self.rect.h /= 2;
                 self.size = PlayerSize::Small;
             }
@@ -145,6 +160,7 @@ impl Actor for Player {
                     }
 
                     self.curr_speed.y = 0.;
+                    self.hit_ceiling = true;
                 }
                 CollisionSide::Bottom => {
                     if self.curr_state == PlayerState::Jumping {
@@ -183,6 +199,15 @@ impl Actor for Player {
             PlayerState::Idle | PlayerState::Walking => 0.0,
         };
 
+        if context.events.event_called("DOWN") {
+            if self.size == PlayerSize::Big &&
+               (self.curr_state == PlayerState::Walking || self.curr_state == PlayerState::Idle) {
+                self.size = PlayerSize::Crouching;
+            }
+        } else if self.size == PlayerSize::Crouching && !self.hit_ceiling {
+            self.size = PlayerSize::Big;
+        }
+
         let max_x_speed;
         if context.events.event_called("RIGHT") {
             if self.curr_state == PlayerState::Idle {
@@ -203,11 +228,11 @@ impl Actor for Player {
             max_x_speed = 0.0;
         }
 
-        if context.events.event_called_once("SPACE") {
+        if context.events.event_called_once("SPACE") && !self.hit_ceiling {
             match self.curr_state {
                 PlayerState::Jumping => {}
                 PlayerState::Idle | PlayerState::Walking => {
-                    self.curr_speed.y = -100.0;
+                    self.curr_speed.y = -70.0;
                     self.curr_state = PlayerState::Jumping;
                 }
             }
@@ -220,6 +245,14 @@ impl Actor for Player {
 
         self.curr_speed = (PLAYER_ACCELERATION * target_speed) +
                           ((1.0 - PLAYER_ACCELERATION) * self.curr_speed);
+
+        // Don't allow jumping if player already collides with the ceiling
+        if self.hit_ceiling {
+            self.hit_ceiling = false;
+            if self.curr_speed.y < 0. {
+                self.curr_speed.y = 0.;
+            }
+        }
 
         match self.curr_state {
             PlayerState::Jumping => self.rect.y += self.curr_speed.y as i32,
