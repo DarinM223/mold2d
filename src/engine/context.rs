@@ -1,5 +1,4 @@
 use events::Events;
-use font::FontRenderer;
 use score::Score;
 use sdl2::render::Renderer;
 use sdl2_image;
@@ -17,7 +16,6 @@ pub struct Context<'a> {
     pub events: Events,
     pub renderer: Renderer<'a>,
     pub window: Window,
-    pub font_renderer: FontRenderer,
     pub score: Score,
 }
 
@@ -31,7 +29,6 @@ impl<'a> Context<'a> {
             window: window,
             events: events,
             renderer: renderer,
-            font_renderer: FontRenderer::new(),
             score: Score::new(),
         }
     }

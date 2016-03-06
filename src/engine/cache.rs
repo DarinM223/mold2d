@@ -29,7 +29,7 @@ pub fn font_cache() -> FontCache {
     }
 }
 
-/// A global thread-safe cache for resolvingsprites
+/// A global thread-safe cache for resolving sprites
 /// from file path
 #[derive(Clone)]
 pub struct SpriteCache {

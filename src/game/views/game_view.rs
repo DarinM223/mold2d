@@ -4,6 +4,7 @@ use actors::player::Player;
 use engine::actor_manager::{ActorFromToken, ActorManager};
 use engine::collision::Collision;
 use engine::context::Context;
+use engine::font;
 use engine::level;
 use engine::quadtree::Quadtree;
 use engine::view::{Actor, ActorAction, View, ViewAction};
@@ -86,14 +87,13 @@ impl View for GameView {
 
         if let Some(score) = context.score.score("GAME_SCORE") {
             let score_text = format!("Score: {}", score);
-            let font_sprite = context.font_renderer
-                                     .text_sprite(&context.renderer,
-                                                  &score_text[..],
-                                                  "assets/belligerent.ttf",
-                                                  32,
-                                                  Color::RGB(0, 255, 0))
-                                     .unwrap();
-            context.font_renderer.render_text(&mut context.renderer, font_sprite, (100, 100));
+            let font_sprite = font::text_sprite(&context.renderer,
+                                                &score_text[..],
+                                                "assets/belligerent.ttf",
+                                                32,
+                                                Color::RGB(0, 255, 0))
+                                  .unwrap();
+            font::render_text(&mut context.renderer, font_sprite, (100, 100));
         }
     }
 

@@ -183,9 +183,13 @@ impl Renderable for AnimatedSprite {
 }
 
 pub struct AnimationData {
+    /// The width of each animation frame
     pub width: u32,
+    /// The height of each animation frame
     pub height: u32,
+    /// The number of frames in each row of the spritesheet
     pub sprites_in_row: i32,
+    /// The path to the spritesheet file
     pub path: &'static str,
 }
 
