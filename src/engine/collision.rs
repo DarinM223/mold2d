@@ -102,14 +102,14 @@ pub enum BoundingBox {
 }
 
 impl BoundingBox {
-    pub fn change_pos(&mut self, point: (i32, i32), dimensions: (u32, u32)) {
+    pub fn change_pos(&mut self, pos: &SpriteRectangle) {
         match *self {
             BoundingBox::Rectangle(ref mut rect) => {
-                rect.x = point.0;
+                rect.x = pos.x;
 
-                let sprite_h = dimensions.1 as i32;
+                let sprite_h = pos.h as i32;
                 let rect_h = rect.h as i32;
-                rect.y = point.1 + sprite_h - rect_h;
+                rect.y = pos.y + sprite_h - rect_h;
             }
         }
     }

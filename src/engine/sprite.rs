@@ -1,6 +1,6 @@
 use cache;
 use collision;
-use collision::BoundingBox;
+use collision::{BoundingBox, Collision, CollisionSide};
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::LoadTexture;
@@ -9,6 +9,13 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::path::Path;
 use std::rc::Rc;
+
+/// The direction that a sprite is facing
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub enum Direction {
+    Left,
+    Right,
+}
 
 pub trait Renderable {
     fn render(&self, renderer: &mut Renderer, dest: Rect);
@@ -280,6 +287,35 @@ impl<State> AnimationManager<State> where State: Eq + Hash
                 (_, ref mut bounding_box) => bounding_box,
             }
         })
+    }
+
+    /// Checks if the animation at the state collides with another bounding box
+    /// and returns the side of the collision if it happens
+    pub fn collides_with(&self,
+                         s: &State,
+                         other_bbox: &Option<BoundingBox>)
+                         -> Option<CollisionSide> {
+        if let Some(bounding_box) = self.bbox(s) {
+            if let Some(ref bbox) = *other_bbox {
+                return bounding_box.collides_with(bbox);
+            }
+        }
+
+        None
+    }
+
+    /// Adds time to the current animation
+    pub fn add_time(&mut self, s: &State, elapsed: f64) {
+        if let Some(animation) = self.anim_mut(s) {
+            animation.add_time(elapsed);
+        }
+    }
+
+    /// Changes the bounding box of the current animation
+    pub fn change_pos(&mut self, s: &State, rect: &SpriteRectangle) {
+        if let Some(bounding_box) = self.bbox_mut(s) {
+            bounding_box.change_pos(rect);
+        }
     }
 }
 

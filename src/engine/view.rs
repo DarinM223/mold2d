@@ -15,6 +15,7 @@ pub enum ActorAction {
     RemoveActor(i32),
     SetViewport(i32, i32),
     MultipleActions(Vec<Box<ActorAction>>),
+    PlayerDied,
     None,
 }
 

@@ -3,4 +3,5 @@
 
 pub mod block;
 pub mod coin;
+pub mod koopa;
 pub mod player;

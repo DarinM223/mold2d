@@ -1,7 +1,6 @@
 use engine::collision::{BoundingBox, Collision, CollisionSide};
 use engine::context::Context;
-use engine::sprite::Renderable;
-use engine::sprite::{Animation, AnimationData, AnimationManager, SpriteRectangle};
+use engine::sprite::{Animation, AnimationManager, Direction, Renderable, SpriteRectangle};
 use engine::vector::Vector2D;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
@@ -28,29 +27,24 @@ pub enum PlayerSize {
     Crouching,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
-pub enum WalkDirection {
-    Left,
-    Right,
-}
-
 pub struct Player {
     id: i32,
     curr_state: PlayerState,
-    direction: WalkDirection,
+    direction: Direction,
     size: PlayerSize,
     grounded: bool,
     hit_ceiling: bool,
     curr_speed: Vector2D,
     rect: SpriteRectangle,
-    anims: AnimationManager<(PlayerSize, PlayerState, WalkDirection)>,
+    anims: AnimationManager<(PlayerSize, PlayerState, Direction)>,
 }
 
 impl Player {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Player {
+        use engine::sprite::AnimationData;
+        use engine::sprite::Direction::*;
         use self::PlayerSize::*;
         use self::PlayerState::*;
-        use self::WalkDirection::*;
 
         let mut anims = AnimationManager::new(fps);
 
@@ -108,7 +102,7 @@ impl Player {
         Player {
             id: id,
             curr_state: PlayerState::Jumping,
-            direction: WalkDirection::Right,
+            direction: Direction::Right,
             size: PlayerSize::Big,
             grounded: false,
             hit_ceiling: false,
@@ -122,11 +116,16 @@ impl Player {
 impl Actor for Player {
     fn on_collision(&mut self, _: &mut Context, o: ActorData, side: CollisionSide) -> ActorAction {
         if o.actor_type == ActorType::Item {
-            if self.size == PlayerSize::Big || self.size == PlayerSize::Crouching {
-                self.rect.h /= 2;
-                self.size = PlayerSize::Small;
-            }
-            return ActorAction::None;
+            return match self.size {
+                PlayerSize::Big |
+                PlayerSize::Crouching => {
+                    self.rect.h /= 2;
+                    self.size = PlayerSize::Small;
+
+                    ActorAction::None
+                }
+                PlayerSize::Small => ActorAction::PlayerDied,
+            };
         }
 
         let other_bbox = match o.bounding_box {
@@ -141,22 +140,19 @@ impl Actor for Player {
                 CollisionSide::Left => {
                     while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Left) {
                         self.rect.x -= 1;
-                        self_bbox.change_pos((self.rect.x, self.rect.y),
-                                             (self.rect.w, self.rect.h));
+                        self_bbox.change_pos(&self.rect);
                     }
                 }
                 CollisionSide::Right => {
                     while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Right) {
                         self.rect.x += 1;
-                        self_bbox.change_pos((self.rect.x, self.rect.y),
-                                             (self.rect.w, self.rect.h));
+                        self_bbox.change_pos(&self.rect);
                     }
                 }
                 CollisionSide::Top => {
                     while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Top) {
                         self.rect.y += 1;
-                        self_bbox.change_pos((self.rect.x, self.rect.y),
-                                             (self.rect.w, self.rect.h));
+                        self_bbox.change_pos(&self.rect);
                     }
 
                     self.curr_speed.y = 0.;
@@ -169,12 +165,11 @@ impl Actor for Player {
 
                     while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Bottom) {
                         self.rect.y -= 1;
-                        self_bbox.change_pos((self.rect.x, self.rect.y),
-                                             (self.rect.w, self.rect.h));
+                        self_bbox.change_pos(&self.rect);
                     }
 
                     self.rect.y += 1;
-                    self_bbox.change_pos((self.rect.x, self.rect.y), (self.rect.w, self.rect.h));
+                    self_bbox.change_pos(&self.rect);
                     self.grounded = true;
                 }
             }
@@ -183,14 +178,9 @@ impl Actor for Player {
         ActorAction::None
     }
 
-    fn collides_with(&mut self, other_actor: &ActorData) -> Option<CollisionSide> {
-        if let Some(bounding_box) = self.anims.bbox(&(self.size, self.curr_state, self.direction)) {
-            if let Some(ref other_box) = other_actor.bounding_box {
-                return bounding_box.collides_with(other_box);
-            }
-        }
-
-        None
+    fn collides_with(&mut self, other: &ActorData) -> Option<CollisionSide> {
+        let key = (self.size, self.curr_state, self.direction);
+        self.anims.collides_with(&key, &other.bounding_box)
     }
 
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
@@ -213,13 +203,13 @@ impl Actor for Player {
             if self.curr_state == PlayerState::Idle {
                 self.curr_state = PlayerState::Walking;
             }
-            self.direction = WalkDirection::Right;
+            self.direction = Direction::Right;
             max_x_speed = PLAYER_X_MAXSPEED;
         } else if context.events.event_called("LEFT") {
             if self.curr_state == PlayerState::Idle {
                 self.curr_state = PlayerState::Walking;
             }
-            self.direction = WalkDirection::Left;
+            self.direction = Direction::Left;
             max_x_speed = -PLAYER_X_MAXSPEED;
         } else {
             if self.curr_state == PlayerState::Walking {
@@ -272,17 +262,10 @@ impl Actor for Player {
             self.grounded = false;
         }
 
-        let key = (self.size, self.curr_state, self.direction);
-
         // Update sprite animation
-        if let Some(animation) = self.anims.anim_mut(&key) {
-            animation.add_time(elapsed);
-        }
-
-        // Update sprite bounding box
-        if let Some(bounding_box) = self.anims.bbox_mut(&key) {
-            bounding_box.change_pos((self.rect.x, self.rect.y), (self.rect.w, self.rect.h));
-        }
+        let key = (self.size, self.curr_state, self.direction);
+        self.anims.add_time(&key, elapsed);
+        self.anims.change_pos(&key, &self.rect);
 
         ActorAction::SetViewport(self.rect.x, self.rect.y)
     }
@@ -292,18 +275,6 @@ impl Actor for Player {
         let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
         let key = (self.size, self.curr_state, self.direction);
-
-        // TODO(DarinM223): draws bounding box for debugging purposes only
-        if let Some(bounding_box) = self.anims.bbox(&key) {
-            match *bounding_box {
-                BoundingBox::Rectangle(ref rect) => {
-                    context.renderer.set_draw_color(::sdl2::pixels::Color::RGB(230, 230, 230));
-                    let (rx, ry) = viewport.relative_point((rect.x, rect.y));
-                    let rect = Rect::new_unwrap(rx, ry, rect.w, rect.h);
-                    context.renderer.fill_rect(rect);
-                }
-            }
-        }
 
         // Render sprite animation
         if let Some(animation) = self.anims.anim_mut(&key) {

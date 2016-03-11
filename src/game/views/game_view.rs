@@ -39,6 +39,7 @@ impl ActorFromToken for GameActorGenerator {
 pub struct GameView {
     actors: ActorManager,
     viewport: Viewport,
+    level_path: String,
 }
 
 impl GameView {
@@ -57,6 +58,7 @@ impl GameView {
         GameView {
             actors: actors,
             viewport: viewport,
+            level_path: path.to_owned(),
         }
     }
 
@@ -67,6 +69,9 @@ impl GameView {
             AddActor(token, pos) => self.actors.add(token, pos, &mut c.renderer),
             RemoveActor(id) => self.actors.remove(id),
             SetViewport(x, y) => self.viewport.set_position((x, y)),
+            // TODO(DarinM223): change this to check # of lives left and if
+            // it is 0, display the game over screen, otherwise display the level screen again
+            PlayerDied => println!("Oh no! The player died!"),
             _ => {}
         }
     }
