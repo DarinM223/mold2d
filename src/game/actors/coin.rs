@@ -63,7 +63,7 @@ impl Actor for Coin {
         self.animation.render(&mut context.renderer, rect);
     }
 
-    fn data(&self) -> ActorData {
+    fn data(&mut self) -> ActorData {
         ActorData {
             id: self.id,
             state: 0,

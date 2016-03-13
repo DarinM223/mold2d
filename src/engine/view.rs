@@ -65,5 +65,5 @@ pub trait Actor {
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction;
 
     /// Gets the actor data
-    fn data(&self) -> ActorData;
+    fn data(&mut self) -> ActorData;
 }

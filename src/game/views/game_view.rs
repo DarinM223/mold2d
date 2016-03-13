@@ -119,7 +119,7 @@ impl View for GameView {
             let mut quadtree = Quadtree::new(window_rect, &self.viewport);
             let mut keys = Vec::new();
 
-            for (key, actor) in &self.actors.actors {
+            for (key, actor) in &mut self.actors.actors {
                 keys.push(key.clone());
 
                 let data = actor.data().clone();

@@ -4,7 +4,6 @@ use engine::sprite::{Animation, AnimationManager, Direction, Renderable, SpriteR
 use engine::vector::Vector2D;
 use engine::view::{Actor, ActorAction, ActorData, ActorType};
 use engine::viewport::Viewport;
-use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
 const PLAYER_WIDTH: u32 = 30;
@@ -271,23 +270,11 @@ impl Actor for Player {
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
-        let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-        let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
-
         let key = (self.size, self.curr_state, self.direction);
-
-        // Render sprite animation
-        if let Some(animation) = self.anims.anim_mut(&key) {
-            animation.render(&mut context.renderer, rect);
-        } else {
-            println!("Could not find animation for {:?} {:?} {:?}",
-                     self.size,
-                     self.curr_state,
-                     self.direction);
-        }
+        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
     }
 
-    fn data(&self) -> ActorData {
+    fn data(&mut self) -> ActorData {
         ActorData {
             id: self.id,
             state: self.curr_state as u32,

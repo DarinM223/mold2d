@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::path::Path;
 use std::rc::Rc;
+use viewport::Viewport;
 
 /// The direction that a sprite is facing
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -238,14 +239,23 @@ impl Animation {
 pub struct AnimationManager<State> {
     fps: f64,
     animations: HashMap<State, (AnimatedSprite, BoundingBox)>,
+    /// Saves the current state for better performance
+    curr_state: Option<State>,
+    /// Saves the current bounding box for better performance
+    curr_bbox: Option<BoundingBox>,
+    /// Saves the current animation for better performance
+    curr_anim: Option<AnimatedSprite>,
 }
 
-impl<State> AnimationManager<State> where State: Eq + Hash
+impl<State> AnimationManager<State> where State: Clone + Eq + Hash
 {
     pub fn new(fps: f64) -> AnimationManager<State> {
         AnimationManager {
             fps: fps,
             animations: HashMap::new(),
+            curr_state: None,
+            curr_bbox: None,
+            curr_anim: None,
         }
     }
 
@@ -253,45 +263,73 @@ impl<State> AnimationManager<State> where State: Eq + Hash
         self.animations.insert(s, (AnimatedSprite::with_fps(anims, self.fps), bound));
     }
 
+    fn set_state(&mut self, s: &State) {
+        // Insert the saved bounding box and animation back into the hashmap
+        if let (Some(state), Some(bbox), Some(anim)) = (self.curr_state.take(),
+                                                        self.curr_bbox.take(),
+                                                        self.curr_anim.take()) {
+            self.animations.insert(state, (anim, bbox));
+        }
+
+        // Save the new state
+        self.curr_state = Some(s.clone());
+        if let Some((anim, bbox)) = self.animations.remove(s) {
+            self.curr_bbox = Some(bbox);
+            self.curr_anim = Some(anim);
+        }
+    }
+
     /// Returns an immutable reference to the animation for the given state
-    pub fn anim(&self, s: &State) -> Option<&AnimatedSprite> {
-        self.animations.get(s).map(|result| {
-            match *result {
-                (ref sprite, _) => sprite,
+    pub fn anim(&mut self, s: &State) -> Option<&AnimatedSprite> {
+        if let Some(ref state) = self.curr_state {
+            if state == s {
+                return self.curr_anim.as_ref();
             }
-        })
+        }
+
+        self.set_state(s);
+        self.curr_anim.as_ref()
     }
 
     /// Returns a mutable reference to the animation for the given state
     pub fn anim_mut(&mut self, s: &State) -> Option<&mut AnimatedSprite> {
-        self.animations.get_mut(s).map(|result| {
-            match *result {
-                (ref mut sprite, _) => sprite,
+        if let Some(ref state) = self.curr_state {
+            if state == s {
+                return self.curr_anim.as_mut();
             }
-        })
+        }
+
+        self.set_state(s);
+        self.curr_anim.as_mut()
     }
 
     /// Returns an immutable reference to the bounding box for the given state
-    pub fn bbox(&self, s: &State) -> Option<&BoundingBox> {
-        self.animations.get(s).map(|result| {
-            match *result {
-                (_, ref bounding_box) => bounding_box,
+    pub fn bbox(&mut self, s: &State) -> Option<&BoundingBox> {
+        if let Some(ref state) = self.curr_state {
+            if state == s {
+                return self.curr_bbox.as_ref();
             }
-        })
+        }
+
+        self.set_state(s);
+        self.curr_bbox.as_ref()
     }
 
     /// Returns a mutable reference to the bounding box for the given state
     pub fn bbox_mut(&mut self, s: &State) -> Option<&mut BoundingBox> {
-        self.animations.get_mut(s).map(|result| {
-            match *result {
-                (_, ref mut bounding_box) => bounding_box,
+        if let Some(ref state) = self.curr_state {
+            if state == s {
+                return self.curr_bbox.as_mut();
             }
-        })
+        }
+
+        self.set_state(s);
+        self.curr_bbox.as_mut()
     }
 
     /// Checks if the animation at the state collides with another bounding box
     /// and returns the side of the collision if it happens
-    pub fn collides_with(&self,
+    pub fn collides_with(&mut self,
                          s: &State,
                          other_bbox: &Option<BoundingBox>)
                          -> Option<CollisionSide> {
@@ -315,6 +353,36 @@ impl<State> AnimationManager<State> where State: Eq + Hash
     pub fn change_pos(&mut self, s: &State, rect: &SpriteRectangle) {
         if let Some(bounding_box) = self.bbox_mut(s) {
             bounding_box.change_pos(rect);
+        }
+    }
+
+    /// Renders an animation in the manager
+    pub fn render(&mut self,
+                  s: &State,
+                  rect: &SpriteRectangle,
+                  viewport: &mut Viewport,
+                  renderer: &mut Renderer,
+                  debug: bool) {
+        if debug {
+            if let Some(bounding_box) = self.bbox(s) {
+                match *bounding_box {
+                    BoundingBox::Rectangle(ref rect) => {
+                        renderer.set_draw_color(::sdl2::pixels::Color::RGB(230, 230, 230));
+                        let (rx, ry) = viewport.relative_point((rect.x, rect.y));
+                        let rect = Rect::new_unwrap(rx, ry, rect.w, rect.h);
+                        renderer.fill_rect(rect);
+                    }
+                }
+            }
+        }
+
+        let (rx, ry) = viewport.relative_point((rect.x, rect.y));
+        let rect = Rect::new_unwrap(rx, ry, rect.w, rect.h);
+
+        if let Some(animation) = self.anim_mut(s) {
+            animation.render(renderer, rect);
+        } else {
+            panic!("Could not find animation");
         }
     }
 }
@@ -414,7 +482,7 @@ macro_rules! block {
                 self.sprite.render(&mut context.renderer, rect);
             }
 
-            fn data(&self) -> ::engine::view::ActorData {
+            fn data(&mut self) -> ::engine::view::ActorData {
                 ::engine::view::ActorData {
                     id: self.id,
                     state: 0 as u32,

@@ -61,34 +61,11 @@ impl Actor for Koopa {
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
-        let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-        let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
-
         let key = (self.curr_state, self.direction);
-
-        // TODO(DarinM223): draws bounding box for debugging purposes only
-        if let Some(bounding_box) = self.anims.bbox(&key) {
-            match *bounding_box {
-                BoundingBox::Rectangle(ref rect) => {
-                    context.renderer.set_draw_color(::sdl2::pixels::Color::RGB(230, 230, 230));
-                    let (rx, ry) = viewport.relative_point((rect.x, rect.y));
-                    let rect = Rect::new_unwrap(rx, ry, rect.w, rect.h);
-                    context.renderer.fill_rect(rect);
-                }
-            }
-        }
-
-        // Render sprite animation
-        if let Some(animation) = self.anims.anim_mut(&key) {
-            animation.render(&mut context.renderer, rect);
-        } else {
-            println!("Could not find animation for {:?} {:?}",
-                     self.curr_state,
-                     self.direction);
-        }
+        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, true);
     }
 
-    fn data(&self) -> ActorData {
+    fn data(&mut self) -> ActorData {
         ActorData {
             id: self.id,
             state: self.curr_state as u32,
