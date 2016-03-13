@@ -1,8 +1,9 @@
+use actions::{ActorMessage, ActorType};
 use engine::collision::{BoundingBox, Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::{Animation, AnimationManager, Direction, Renderable, SpriteRectangle};
 use engine::vector::Vector2D;
-use engine::view::{Actor, ActorAction, ActorData, ActorType};
+use engine::view::{Actor, ActorData};
 use engine::viewport::Viewport;
 use sdl2::render::Renderer;
 
@@ -112,24 +113,28 @@ impl Player {
     }
 }
 
-impl Actor for Player {
-    fn on_collision(&mut self, _: &mut Context, o: ActorData, side: CollisionSide) -> ActorAction {
-        if o.actor_type == ActorType::Item {
+impl Actor<ActorType, ActorMessage> for Player {
+    fn on_collision(&mut self,
+                    _: &mut Context,
+                    o: ActorData<ActorType>,
+                    side: CollisionSide)
+                    -> ActorMessage {
+        if o.actor_type == ActorType::Enemy && side != CollisionSide::Bottom {
             return match self.size {
                 PlayerSize::Big |
                 PlayerSize::Crouching => {
                     self.rect.h /= 2;
                     self.size = PlayerSize::Small;
 
-                    ActorAction::None
+                    ActorMessage::None
                 }
-                PlayerSize::Small => ActorAction::PlayerDied,
+                PlayerSize::Small => ActorMessage::PlayerDied,
             };
         }
 
         let other_bbox = match o.bounding_box {
             Some(b) => b,
-            None => return ActorAction::None,
+            None => return ActorMessage::None,
         };
 
         let key = (self.size, self.curr_state, self.direction);
@@ -174,15 +179,15 @@ impl Actor for Player {
             }
         }
 
-        ActorAction::None
+        ActorMessage::None
     }
 
-    fn collides_with(&mut self, other: &ActorData) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<CollisionSide> {
         let key = (self.size, self.curr_state, self.direction);
         self.anims.collides_with(&key, &other.bounding_box)
     }
 
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorMessage {
         let max_y_speed = match self.curr_state {
             PlayerState::Jumping => PLAYER_Y_MAXSPEED,
             PlayerState::Idle | PlayerState::Walking => 0.0,
@@ -266,7 +271,7 @@ impl Actor for Player {
         self.anims.add_time(&key, elapsed);
         self.anims.change_pos(&key, &self.rect);
 
-        ActorAction::SetViewport(self.rect.x, self.rect.y)
+        ActorMessage::SetViewport(self.rect.x, self.rect.y)
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
@@ -274,7 +279,7 @@ impl Actor for Player {
         self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
     }
 
-    fn data(&mut self) -> ActorData {
+    fn data(&mut self) -> ActorData<ActorType> {
         ActorData {
             id: self.id,
             state: self.curr_state as u32,

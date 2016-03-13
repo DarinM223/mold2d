@@ -1,7 +1,8 @@
+use actions::{ActorMessage, ActorType};
 use engine::collision::{BoundingBox, Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::{AnimatedSprite, Animation, AnimationData, Renderable, SpriteRectangle};
-use engine::view::{Actor, ActorAction, ActorData, ActorType};
+use engine::view::{Actor, ActorData};
 use engine::viewport::Viewport;
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
@@ -34,25 +35,29 @@ impl Coin {
     }
 }
 
-impl Actor for Coin {
-    fn on_collision(&mut self, c: &mut Context, o: ActorData, _: CollisionSide) -> ActorAction {
+impl Actor<ActorType, ActorMessage> for Coin {
+    fn on_collision(&mut self,
+                    c: &mut Context,
+                    o: ActorData<ActorType>,
+                    _: CollisionSide)
+                    -> ActorMessage {
         // Do nothing
         if o.actor_type == ActorType::Player {
             c.score.increment_score("GAME_SCORE", COIN_VALUE);
-            return ActorAction::RemoveActor(self.id);
+            return ActorMessage::RemoveActor(self.id);
         }
 
-        ActorAction::None
+        ActorMessage::None
     }
 
-    fn collides_with(&mut self, other_actor: &ActorData) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other_actor: &ActorData<ActorType>) -> Option<CollisionSide> {
         self.rect.collides_with(other_actor.rect)
     }
 
-    fn update(&mut self, _context: &mut Context, elapsed: f64) -> ActorAction {
+    fn update(&mut self, _context: &mut Context, elapsed: f64) -> ActorMessage {
         // Update sprite animation
         self.animation.add_time(elapsed);
-        ActorAction::None
+        ActorMessage::None
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
@@ -63,7 +68,7 @@ impl Actor for Coin {
         self.animation.render(&mut context.renderer, rect);
     }
 
-    fn data(&mut self) -> ActorData {
+    fn data(&mut self) -> ActorData<ActorType> {
         ActorData {
             id: self.id,
             state: 0,

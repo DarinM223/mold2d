@@ -1,7 +1,9 @@
+use actions::{ActorMessage, ActorType};
 use engine::collision::{BoundingBox, Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::{Animation, AnimationManager, Direction, Renderable, SpriteRectangle};
-use engine::view::{Actor, ActorAction, ActorData, ActorType};
+use engine::vector::Vector2D;
+use engine::view::{Actor, ActorData};
 use engine::viewport::Viewport;
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
@@ -23,6 +25,7 @@ pub struct Koopa {
     curr_state: KoopaState,
     direction: Direction,
     grounded: bool,
+    curr_speed: Vector2D,
     rect: SpriteRectangle,
     anims: AnimationManager<(KoopaState, Direction)>,
 }
@@ -40,24 +43,33 @@ impl Koopa {
             curr_state: KoopaState::Walking,
             direction: Direction::Left,
             grounded: false,
+            curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, KOOPA_WIDTH, KOOPA_HEIGHT),
             anims: anims,
         }
     }
 }
 
-impl Actor for Koopa {
-    fn on_collision(&mut self, _: &mut Context, o: ActorData, side: CollisionSide) -> ActorAction {
-        ActorAction::None
+impl Actor<ActorType, ActorMessage> for Koopa {
+    fn on_collision(&mut self,
+                    _: &mut Context,
+                    o: ActorData<ActorType>,
+                    side: CollisionSide)
+                    -> ActorMessage {
+        if o.actor_type == ActorType::Player && side == CollisionSide::Top {
+            // TODO(DarinM223):
+        }
+
+        ActorMessage::None
     }
 
-    fn collides_with(&mut self, other: &ActorData) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<CollisionSide> {
         let key = (self.curr_state, self.direction);
         self.anims.collides_with(&key, &other.bounding_box)
     }
 
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorAction {
-        ActorAction::None
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorMessage {
+        ActorMessage::None
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
@@ -65,7 +77,7 @@ impl Actor for Koopa {
         self.anims.render(&key, &self.rect, viewport, &mut context.renderer, true);
     }
 
-    fn data(&mut self) -> ActorData {
+    fn data(&mut self) -> ActorData<ActorType> {
         ActorData {
             id: self.id,
             state: self.curr_state as u32,

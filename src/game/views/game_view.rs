@@ -1,3 +1,4 @@
+use actions::{ActorType, ActorMessage};
 use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
 use actors::coin::Coin;
 use actors::player::Player;
@@ -7,7 +8,7 @@ use engine::context::Context;
 use engine::font;
 use engine::level;
 use engine::quadtree::Quadtree;
-use engine::view::{Actor, ActorAction, View, ViewAction};
+use engine::view::{Actor, View, ViewAction};
 use engine::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
@@ -15,13 +16,13 @@ use sdl2::render::Renderer;
 use views::background_view::BackgroundView;
 
 pub struct GameActorGenerator;
-impl ActorFromToken for GameActorGenerator {
+impl ActorFromToken<ActorType, ActorMessage> for GameActorGenerator {
     fn actor_from_token(&self,
                         token: char,
                         id: i32,
                         position: (i32, i32),
                         renderer: &mut Renderer)
-                        -> Box<Actor> {
+                        -> Box<Actor<ActorType, ActorMessage>> {
         match token {
             'P' => Box::new(Player::new(id, position, renderer, 30.)),
             'C' => Box::new(Coin::new(id, position, renderer, 20.)),
@@ -37,7 +38,7 @@ impl ActorFromToken for GameActorGenerator {
 /// The main game view used for
 /// the actual gameplay
 pub struct GameView {
-    actors: ActorManager,
+    actors: ActorManager<ActorType, ActorMessage>,
     viewport: Viewport,
     level_path: String,
 }
@@ -62,8 +63,8 @@ impl GameView {
         }
     }
 
-    pub fn apply_action(&mut self, c: &mut Context, action: &ActorAction) {
-        use engine::view::ActorAction::*;
+    pub fn apply_action(&mut self, c: &mut Context, action: &ActorMessage) {
+        use actions::ActorMessage::*;
 
         match *action {
             AddActor(token, pos) => self.actors.add(token, pos, &mut c.renderer),

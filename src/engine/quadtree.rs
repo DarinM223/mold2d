@@ -6,21 +6,21 @@ const MAX_OBJECTS: usize = 5;
 const MAX_LEVELS: i32 = 10;
 
 /// A quadtree for minimizing collision checks between actors
-pub struct Quadtree<'a> {
+pub struct Quadtree<'a, Type> {
     /// The level of the current tree, (0 is root)
     level: i32,
     /// The actors that the current tree holds
-    objects: Vec<ActorData>,
+    objects: Vec<ActorData<Type>>,
     /// An array of 4 subtrees to split into when parent is full
-    nodes: [Option<Box<Quadtree<'a>>>; 4],
+    nodes: [Option<Box<Quadtree<'a, Type>>>; 4],
     /// The bounds of the current tree
     bounds: Rect,
     /// The viewport so that all points are adjusted to the view
     viewport: &'a Viewport,
 }
 
-impl<'a> Quadtree<'a> {
-    pub fn new(rect: Rect, viewport: &'a Viewport) -> Quadtree<'a> {
+impl<'a, Type> Quadtree<'a, Type> {
+    pub fn new(rect: Rect, viewport: &'a Viewport) -> Quadtree<'a, Type> {
         Quadtree {
             level: 0,
             objects: Vec::new(),
@@ -98,7 +98,7 @@ impl<'a> Quadtree<'a> {
     }
 
     /// Inserts an actor into the quadtree
-    pub fn insert(&mut self, actor: ActorData) {
+    pub fn insert(&mut self, actor: ActorData<Type>) {
         if let Some(_) = self.nodes[0] {
             if let Some(index) = self.index(&actor.rect) {
                 if let Some(ref mut node) = self.nodes[index as usize] {
@@ -132,7 +132,7 @@ impl<'a> Quadtree<'a> {
     }
 
     /// Return all objects that could collide
-    pub fn retrieve(&mut self, rect: &Rect) -> Vec<&ActorData> {
+    pub fn retrieve(&mut self, rect: &Rect) -> Vec<&ActorData<Type>> {
         let mut retrieved_values = Vec::new();
         if let Some(index) = self.index(rect) {
             if let Some(ref mut node) = self.nodes[index as usize] {
