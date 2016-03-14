@@ -23,9 +23,6 @@ extern crate sdl2;
 extern crate sdl2_image;
 extern crate sdl2_ttf;
 
-#[macro_use]
-pub mod sprite;
-
 pub mod actor_manager;
 pub mod cache;
 pub mod collision;
@@ -36,6 +33,7 @@ pub mod font;
 pub mod level;
 pub mod quadtree;
 pub mod score;
+pub mod sprite;
 pub mod vector;
 pub mod view;
 pub mod viewport;

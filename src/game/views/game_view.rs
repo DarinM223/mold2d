@@ -1,6 +1,7 @@
-use actions::{ActorType, ActorMessage};
+use actions::{ActorMessage, ActorType};
 use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
 use actors::coin::Coin;
+use actors::koopa::Koopa;
 use actors::player::Player;
 use engine::actor_manager::{ActorFromToken, ActorManager};
 use engine::collision::Collision;
@@ -26,6 +27,7 @@ impl ActorFromToken<ActorType, ActorMessage> for GameActorGenerator {
         match token {
             'P' => Box::new(Player::new(id, position, renderer, 30.)),
             'C' => Box::new(Coin::new(id, position, renderer, 20.)),
+            'K' => Box::new(Koopa::new(id, position, renderer, 30.)),
             'S' => Box::new(StartBlock::new(id, position, renderer, 1.)),
             '=' => Box::new(GroundBlockTop::new(id, position, renderer, 1.)),
             '-' => Box::new(GroundBlockMid::new(id, position, renderer, 1.)),
@@ -121,11 +123,10 @@ impl View for GameView {
             let mut keys = Vec::new();
 
             for (key, actor) in &mut self.actors.actors {
-                keys.push(key.clone());
-
                 let data = actor.data().clone();
 
                 if let Some(_) = self.viewport.constrain_to_viewport(&data.rect) {
+                    keys.push(key.clone());
                     quadtree.insert(data);
                 }
             }

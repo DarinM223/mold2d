@@ -67,7 +67,6 @@ impl Player {
                                                                position.1,
                                                                PLAYER_WIDTH,
                                                                PLAYER_HEIGHT));
-
         let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
                                                                 position.1,
                                                                 PLAYER_WIDTH,
@@ -93,7 +92,6 @@ impl Player {
         anims.add((Crouching, Jumping, Right),
                   banim.range(10, 11),
                   cbbox.clone());
-        // This should never be called but included in case of a bug
         anims.add((Crouching, Walking, Left), banim.range(2, 3), cbbox.clone());
         anims.add((Crouching, Walking, Right),
                   banim.range(10, 11),
@@ -116,10 +114,10 @@ impl Player {
 impl Actor<ActorType, ActorMessage> for Player {
     fn on_collision(&mut self,
                     _: &mut Context,
-                    o: ActorData<ActorType>,
+                    other: ActorData<ActorType>,
                     side: CollisionSide)
                     -> ActorMessage {
-        if o.actor_type == ActorType::Enemy && side != CollisionSide::Bottom {
+        if other.actor_type == ActorType::Enemy && side != CollisionSide::Bottom {
             return match self.size {
                 PlayerSize::Big |
                 PlayerSize::Crouching => {
@@ -132,7 +130,7 @@ impl Actor<ActorType, ActorMessage> for Player {
             };
         }
 
-        let other_bbox = match o.bounding_box {
+        let other_bbox = match other.bounding_box {
             Some(b) => b,
             None => return ActorMessage::None,
         };

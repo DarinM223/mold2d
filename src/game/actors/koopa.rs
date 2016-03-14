@@ -5,8 +5,11 @@ use engine::sprite::{Animation, AnimationManager, Direction, Renderable, SpriteR
 use engine::vector::Vector2D;
 use engine::view::{Actor, ActorData};
 use engine::viewport::Viewport;
-use sdl2::rect::Rect;
 use sdl2::render::Renderer;
+
+const KOOPA_X_MAXSPEED: f64 = 10.0;
+const KOOPA_Y_MAXSPEED: f64 = 15.0;
+const KOOPA_ACCELERATION: f64 = 0.18;
 
 // TODO(DarinM223): modify this until it works
 
@@ -14,7 +17,8 @@ use sdl2::render::Renderer;
 pub enum KoopaState {
     Jumping,
     Walking,
-    Shell,
+    ShellSitting,
+    ShellMoving,
 }
 
 pub const KOOPA_WIDTH: u32 = 30;
@@ -38,6 +42,38 @@ impl Koopa {
 
         let mut anims = AnimationManager::new(fps);
 
+        let banim = Animation::new(AnimationData {
+                                       width: 16,
+                                       height: 29,
+                                       sprites_in_row: 4,
+                                       path: "./assets/koopa.png",
+                                   },
+                                   renderer);
+        let sanim = Animation::new(AnimationData {
+                                       width: 16,
+                                       height: 16,
+                                       sprites_in_row: 4,
+                                       path: "./assets/shell.png",
+                                   },
+                                   renderer);
+
+        let bbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
+                                                               position.1,
+                                                               KOOPA_WIDTH,
+                                                               KOOPA_HEIGHT));
+        let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
+                                                                position.1,
+                                                                KOOPA_WIDTH,
+                                                                KOOPA_WIDTH / 2));
+
+        anims.add((Jumping, Left), banim.range(0, 1), bbox.clone());
+        anims.add((Jumping, Right), banim.range(3, 4), bbox.clone());
+        anims.add((Walking, Left), banim.range(0, 2), bbox.clone());
+        anims.add((Walking, Right), banim.range(2, 4), bbox.clone());
+        anims.add((ShellSitting, Left), sanim.range(0, 1), cbbox.clone());
+        anims.add((ShellSitting, Right), sanim.range(4, 5), cbbox.clone());
+        anims.add((ShellMoving, Left), sanim.range(1, 4), cbbox.clone());
+
         Koopa {
             id: id,
             curr_state: KoopaState::Walking,
@@ -53,11 +89,35 @@ impl Koopa {
 impl Actor<ActorType, ActorMessage> for Koopa {
     fn on_collision(&mut self,
                     _: &mut Context,
-                    o: ActorData<ActorType>,
+                    other: ActorData<ActorType>,
                     side: CollisionSide)
                     -> ActorMessage {
-        if o.actor_type == ActorType::Player && side == CollisionSide::Top {
-            // TODO(DarinM223):
+
+        let other_bbox = match other.bounding_box {
+            Some(b) => b,
+            None => return ActorMessage::None,
+        };
+
+        let key = (self.curr_state, self.direction);
+
+        if let Some(ref mut self_bbox) = self.anims.bbox_mut(&key) {
+            match (side, other.actor_type) {
+                (CollisionSide::Bottom, ActorType::Block) => {
+                    if self.curr_state == KoopaState::Jumping {
+                        self.curr_state = KoopaState::Walking;
+                    }
+
+                    while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Bottom) {
+                        self.rect.y -= 1;
+                        self_bbox.change_pos(&self.rect);
+                    }
+
+                    self.rect.y += 1;
+                    self_bbox.change_pos(&self.rect);
+                    self.grounded = true;
+                }
+                _ => {}
+            }
         }
 
         ActorMessage::None
@@ -68,7 +128,40 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         self.anims.collides_with(&key, &other.bounding_box)
     }
 
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorMessage {
+    fn update(&mut self, _context: &mut Context, _elapsed: f64) -> ActorMessage {
+        let max_y_speed = match self.curr_state {
+            KoopaState::Jumping => KOOPA_Y_MAXSPEED,
+            KoopaState::Walking | KoopaState::ShellSitting | KoopaState::ShellMoving => 0.,
+        };
+
+        let target_speed = Vector2D {
+            x: 0.,
+            y: max_y_speed,
+        };
+
+        self.curr_speed = (KOOPA_ACCELERATION * target_speed) +
+                          ((1.0 - KOOPA_ACCELERATION) * self.curr_speed);
+
+        match self.curr_state {
+            KoopaState::Jumping => self.rect.y += self.curr_speed.y as i32,
+            KoopaState::Walking | KoopaState::ShellSitting | KoopaState::ShellMoving => {}
+        };
+
+        self.rect.x += self.curr_speed.x as i32;
+
+        // If actor is no longer grounded, change it to jumping
+        if !self.grounded &&
+           (self.curr_state == KoopaState::ShellSitting ||
+            self.curr_state == KoopaState::ShellMoving ||
+            self.curr_state == KoopaState::Walking) {
+            self.curr_state = KoopaState::Jumping;
+        }
+
+        // Reset grounded to check if there is a bottom collision again
+        if self.grounded {
+            self.grounded = false;
+        }
+
         ActorMessage::None
     }
 
