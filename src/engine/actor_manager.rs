@@ -1,5 +1,5 @@
 use sdl2::render::Renderer;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use view::Actor;
 
 pub trait ActorFromToken<Type, Message> {
@@ -16,7 +16,7 @@ pub trait ActorFromToken<Type, Message> {
 pub struct ActorManager<Type, Message> {
     next_id: i32,
     pub actors: HashMap<i32, Box<Actor<Type, Message>>>,
-    removed_actors: HashSet<i32>,
+    temporary: Option<i32>,
     actor_gen: Box<ActorFromToken<Type, Message>>,
 }
 
@@ -25,7 +25,7 @@ impl<Type, Message> ActorManager<Type, Message> {
         ActorManager {
             next_id: 0,
             actors: HashMap::new(),
-            removed_actors: HashSet::new(),
+            temporary: None,
             actor_gen: actor_gen,
         }
     }
@@ -39,12 +39,18 @@ impl<Type, Message> ActorManager<Type, Message> {
 
     /// Remove an actor from the actors
     pub fn remove(&mut self, id: i32) {
-        self.removed_actors.insert(id);
+        if let Some(temp_id) = self.temporary {
+            if id == temp_id {
+                self.temporary = None;
+            }
+        }
+
         self.actors.remove(&id);
     }
 
     /// Temporarily remove an actor to appease borrow checker
     pub fn temp_remove(&mut self, id: i32) -> Option<Box<Actor<Type, Message>>> {
+        self.temporary = Some(id);
         self.actors.remove(&id)
     }
 
@@ -53,9 +59,13 @@ impl<Type, Message> ActorManager<Type, Message> {
         self.actors.get_mut(&id)
     }
 
-    pub fn add_existing(&mut self, id: i32, actor: Box<Actor<Type, Message>>) {
-        if !self.removed_actors.contains(&id) {
-            self.actors.insert(id, actor);
+    /// Reinsert a temporarily removed actor
+    pub fn temp_reinsert(&mut self, id: i32, actor: Box<Actor<Type, Message>>) {
+        if let Some(temp_id) = self.temporary {
+            // only insert the actor if it is the temporary one
+            if id == temp_id {
+                self.actors.insert(id, actor);
+            }
         }
     }
 }

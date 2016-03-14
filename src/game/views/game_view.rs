@@ -47,9 +47,11 @@ fn handle_message(actors: &mut ActorManager<ActorType, ActorMessage>,
         AddActor(token, pos) => actors.add(token, pos, &mut c.renderer),
         RemoveActor(id) => actors.remove(id),
         SetViewport(x, y) => viewport.set_position((x, y)),
-        DamageActor(id, damage) => {
-            let message = actors.get_mut(id).unwrap().handle_message(&DamageActor(id, damage));
-            handle_message(actors, viewport, c, &message);
+        ref action @ ActorAction(_, _) => {
+            if let ActorAction(id, _) = *action {
+                let message = actors.get_mut(id).unwrap().handle_message(&action);
+                handle_message(actors, viewport, c, &message);
+            }
         }
         // TODO(DarinM223): change this to check # of lives left and if
         // it is 0, display the game over screen, otherwise display the level screen again
@@ -161,7 +163,7 @@ impl View for GameView {
                     // update the actor
                     let message = actor.update(context, elapsed);
                     handle_message(&mut self.actors, &mut self.viewport, context, &message);
-                    self.actors.add_existing(actor.data().id, actor);
+                    self.actors.temp_reinsert(actor.data().id, actor);
                 }
             }
         }

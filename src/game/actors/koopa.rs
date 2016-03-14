@@ -1,4 +1,4 @@
-use actions::{ActorMessage, ActorType};
+use actions::{ActorAction, ActorMessage, ActorType};
 use engine::collision::{BoundingBox, Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::{Animation, AnimationManager, Direction, Renderable, SpriteRectangle};
@@ -127,7 +127,9 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     }
                 }
                 (CollisionSide::Top, ActorType::Player) => {}
-                (_, ActorType::Player) => return ActorMessage::DamageActor(other.id, 0),
+                (_, ActorType::Player) => {
+                    return ActorMessage::ActorAction(other.id, ActorAction::DamageActor(0))
+                }
                 _ => {}
             }
         }

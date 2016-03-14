@@ -1,4 +1,4 @@
-use actions::{ActorMessage, ActorType};
+use actions::{ActorAction, ActorMessage, ActorType};
 use engine::collision::{BoundingBox, Collision, CollisionSide};
 use engine::context::Context;
 use engine::sprite::{Animation, AnimationManager, Direction, Renderable, SpriteRectangle};
@@ -114,16 +114,20 @@ impl Player {
 impl Actor<ActorType, ActorMessage> for Player {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         match *message {
-            ActorMessage::DamageActor(_, _) => {
-                match self.size {
-                    PlayerSize::Big |
-                    PlayerSize::Crouching => {
-                        self.rect.h /= 2;
-                        self.size = PlayerSize::Small;
+            ActorMessage::ActorAction(_, ref message) => {
+                match *message {
+                    ActorAction::DamageActor(_) => {
+                        match self.size {
+                            PlayerSize::Big |
+                            PlayerSize::Crouching => {
+                                self.rect.h /= 2;
+                                self.size = PlayerSize::Small;
 
-                        ActorMessage::None
+                                ActorMessage::None
+                            }
+                            PlayerSize::Small => ActorMessage::PlayerDied,
+                        }
                     }
-                    PlayerSize::Small => ActorMessage::PlayerDied,
                 }
             }
             _ => ActorMessage::None,
