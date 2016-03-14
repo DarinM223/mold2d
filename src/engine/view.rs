@@ -33,6 +33,9 @@ pub trait Actor<Type, Message> {
     /// Called every frame to render an actor
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64);
 
+    /// Handle a message sent by another actor
+    fn handle_message(&mut self, message: &Message) -> Message;
+
     /// Called when an actor collides with another actor
     fn on_collision(&mut self,
                     context: &mut Context,

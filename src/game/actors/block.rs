@@ -64,6 +64,10 @@ macro_rules! block {
         }
 
         impl Actor<ActorType, ActorMessage> for $name {
+            fn handle_message(&mut self, _: &ActorMessage) -> ActorMessage {
+                ActorMessage::None
+            }
+
             fn on_collision(&mut self,
                             _c: &mut Context,
                             _a: ActorData<ActorType>,

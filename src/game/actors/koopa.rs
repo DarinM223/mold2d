@@ -11,8 +11,6 @@ const KOOPA_X_MAXSPEED: f64 = 10.0;
 const KOOPA_Y_MAXSPEED: f64 = 15.0;
 const KOOPA_ACCELERATION: f64 = 0.18;
 
-// TODO(DarinM223): modify this until it works
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum KoopaState {
     Jumping,
@@ -87,6 +85,12 @@ impl Koopa {
 }
 
 impl Actor<ActorType, ActorMessage> for Koopa {
+    fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
+        match *message {
+            _ => ActorMessage::None,
+        }
+    }
+
     fn on_collision(&mut self,
                     _: &mut Context,
                     other: ActorData<ActorType>,
@@ -116,6 +120,14 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     self_bbox.change_pos(&self.rect);
                     self.grounded = true;
                 }
+                (CollisionSide::Top, ActorType::Enemy) => {
+                    while self_bbox.collides_with(&other_bbox) == Some(CollisionSide::Top) {
+                        self.rect.y += 1;
+                        self_bbox.change_pos(&self.rect);
+                    }
+                }
+                (CollisionSide::Top, ActorType::Player) => {}
+                (_, ActorType::Player) => return ActorMessage::DamageActor(other.id, 0),
                 _ => {}
             }
         }
@@ -167,7 +179,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
         let key = (self.curr_state, self.direction);
-        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, true);
+        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
     }
 
     fn data(&mut self) -> ActorData<ActorType> {

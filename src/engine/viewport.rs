@@ -13,6 +13,7 @@ fn calc_viewport_point(center_coord: f64, window_coord: f64, map_coord: f64) -> 
 
 /// Constrains coordinates from an open world into the current window view
 /// This allows for scrolling for levels larger than the current screen
+#[derive(Clone)]
 pub struct Viewport {
     /// The x value of the center coordinate of the viewport
     pub x: i32,

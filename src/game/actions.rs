@@ -4,11 +4,12 @@ pub enum ActorMessage {
     RemoveActor(i32),
     SetViewport(i32, i32),
     DamageActor(i32, i32),
-    MultipleActions(Vec<Box<ActorMessage>>),
+    MultipleMessages(Vec<Box<ActorMessage>>),
     PlayerDied,
     None,
 }
 
+/// Actor types
 #[derive(Clone, PartialEq)]
 pub enum ActorType {
     Item,

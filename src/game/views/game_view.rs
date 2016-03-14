@@ -37,6 +37,27 @@ impl ActorFromToken<ActorType, ActorMessage> for GameActorGenerator {
     }
 }
 
+fn handle_message(actors: &mut ActorManager<ActorType, ActorMessage>,
+                  viewport: &mut Viewport,
+                  c: &mut Context,
+                  action: &ActorMessage) {
+    use actions::ActorMessage::*;
+
+    match *action {
+        AddActor(token, pos) => actors.add(token, pos, &mut c.renderer),
+        RemoveActor(id) => actors.remove(id),
+        SetViewport(x, y) => viewport.set_position((x, y)),
+        DamageActor(id, damage) => {
+            let message = actors.get_mut(id).unwrap().handle_message(&DamageActor(id, damage));
+            handle_message(actors, viewport, c, &message);
+        }
+        // TODO(DarinM223): change this to check # of lives left and if
+        // it is 0, display the game over screen, otherwise display the level screen again
+        PlayerDied => println!("Oh no! The player died!"),
+        _ => {}
+    }
+}
+
 /// The main game view used for
 /// the actual gameplay
 pub struct GameView {
@@ -62,20 +83,6 @@ impl GameView {
             actors: actors,
             viewport: viewport,
             level_path: path.to_owned(),
-        }
-    }
-
-    pub fn apply_action(&mut self, c: &mut Context, action: &ActorMessage) {
-        use actions::ActorMessage::*;
-
-        match *action {
-            AddActor(token, pos) => self.actors.add(token, pos, &mut c.renderer),
-            RemoveActor(id) => self.actors.remove(id),
-            SetViewport(x, y) => self.viewport.set_position((x, y)),
-            // TODO(DarinM223): change this to check # of lives left and if
-            // it is 0, display the game over screen, otherwise display the level screen again
-            PlayerDied => println!("Oh no! The player died!"),
-            _ => {}
         }
     }
 }
@@ -114,12 +121,11 @@ impl View for GameView {
             return Some(ViewAction::ChangeView(Box::new(BackgroundView)));
         }
 
-        let mut actions = Vec::new();
-
         {
             // TODO(DarinM223): eventually avoid creating the quadtree every frame
             let window_rect = Rect::new_unwrap(0, 0, context.window.width, context.window.height);
-            let mut quadtree = Quadtree::new(window_rect, &self.viewport);
+            let viewport_clone = self.viewport.clone();
+            let mut quadtree = Quadtree::new(window_rect, &viewport_clone);
             let mut keys = Vec::new();
 
             for (key, actor) in &mut self.actors.actors {
@@ -132,31 +138,32 @@ impl View for GameView {
             }
 
             for key in keys {
-                let actor = self.actors.get_mut(key);
+                let actor = self.actors.temp_remove(key);
 
-                if let Some(actor) = actor {
-                    // only check collisions for certain actors
+                if let Some(mut actor) = actor {
                     if actor.data().checks_collision == true {
+                        // only check collisions for certain actors
                         let collided_actors = quadtree.retrieve(&actor.data().rect)
                                                       .into_iter()
                                                       .map(|act| act.clone())
                                                       .collect::<Vec<_>>();
                         for other_actor in collided_actors {
                             if let Some(direction) = actor.collides_with(&other_actor) {
-                                actions.push(actor.on_collision(context, other_actor, direction));
+                                let message = actor.on_collision(context, other_actor, direction);
+                                handle_message(&mut self.actors,
+                                               &mut self.viewport,
+                                               context,
+                                               &message);
                             }
                         }
                     }
 
                     // update the actor
-                    actions.push(actor.update(context, elapsed));
+                    let message = actor.update(context, elapsed);
+                    handle_message(&mut self.actors, &mut self.viewport, context, &message);
+                    self.actors.add_existing(actor.data().id, actor);
                 }
             }
-        }
-
-        // apply actions sent by the actors
-        for action in &actions {
-            self.apply_action(context, action);
         }
 
         None

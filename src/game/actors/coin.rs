@@ -36,14 +36,18 @@ impl Coin {
 }
 
 impl Actor<ActorType, ActorMessage> for Coin {
+    fn handle_message(&mut self, _: &ActorMessage) -> ActorMessage {
+        ActorMessage::None
+    }
+
     fn on_collision(&mut self,
-                    c: &mut Context,
-                    o: ActorData<ActorType>,
+                    context: &mut Context,
+                    other: ActorData<ActorType>,
                     _: CollisionSide)
                     -> ActorMessage {
         // Do nothing
-        if o.actor_type == ActorType::Player {
-            c.score.increment_score("GAME_SCORE", COIN_VALUE);
+        if other.actor_type == ActorType::Player {
+            context.score.increment_score("GAME_SCORE", COIN_VALUE);
             return ActorMessage::RemoveActor(self.id);
         }
 
