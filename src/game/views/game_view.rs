@@ -102,6 +102,7 @@ impl View for GameView {
             }
         }
 
+        // render score
         if let Some(score) = context.score.score("GAME_SCORE") {
             let score_text = format!("Score: {}", score);
             let font_sprite = font::text_sprite(&context.renderer,
@@ -128,7 +129,7 @@ impl View for GameView {
             let window_rect = Rect::new_unwrap(0, 0, context.window.width, context.window.height);
             let viewport_clone = self.viewport.clone();
             let mut quadtree = Quadtree::new(window_rect, &viewport_clone);
-            let mut keys = Vec::new();
+            let mut keys = Vec::with_capacity(self.actors.actors.len());
 
             for (key, actor) in &mut self.actors.actors {
                 let data = actor.data().clone();

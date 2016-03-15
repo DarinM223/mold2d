@@ -23,7 +23,7 @@ impl<'a, Type> Quadtree<'a, Type> {
     pub fn new(rect: Rect, viewport: &'a Viewport) -> Quadtree<'a, Type> {
         Quadtree {
             level: 0,
-            objects: Vec::new(),
+            objects: Vec::with_capacity(MAX_OBJECTS),
             bounds: rect,
             nodes: [None, None, None, None],
             viewport: viewport,
@@ -39,28 +39,28 @@ impl<'a, Type> Quadtree<'a, Type> {
         if width as u32 > 0u32 && height as u32 > 0u32 {
             self.nodes[0] = Some(Box::new(Quadtree {
                 level: self.level + 1,
-                objects: Vec::new(),
+                objects: Vec::with_capacity(MAX_OBJECTS),
                 bounds: Rect::new_unwrap(x + width, y, width as u32, height as u32),
                 nodes: [None, None, None, None],
                 viewport: self.viewport,
             }));
             self.nodes[1] = Some(Box::new(Quadtree {
                 level: self.level + 1,
-                objects: Vec::new(),
+                objects: Vec::with_capacity(MAX_OBJECTS),
                 bounds: Rect::new_unwrap(x, y, width as u32, height as u32),
                 nodes: [None, None, None, None],
                 viewport: self.viewport,
             }));
             self.nodes[2] = Some(Box::new(Quadtree {
                 level: self.level + 1,
-                objects: Vec::new(),
+                objects: Vec::with_capacity(MAX_OBJECTS),
                 bounds: Rect::new_unwrap(x, y + height, width as u32, height as u32),
                 nodes: [None, None, None, None],
                 viewport: self.viewport,
             }));
             self.nodes[3] = Some(Box::new(Quadtree {
                 level: self.level + 1,
-                objects: Vec::new(),
+                objects: Vec::with_capacity(MAX_OBJECTS),
                 bounds: Rect::new_unwrap(x + width, y + height, width as u32, height as u32),
                 nodes: [None, None, None, None],
                 viewport: self.viewport,
@@ -108,14 +108,12 @@ impl<'a, Type> Quadtree<'a, Type> {
             }
         }
 
-        self.objects.push(actor);
-
-        if self.objects.len() > MAX_OBJECTS && self.level < MAX_LEVELS {
+        if self.objects.len() == MAX_OBJECTS && self.level < MAX_LEVELS {
             if let None = self.nodes[0] {
                 self.split();
             }
 
-            let mut leftover_parent = Vec::new();
+            let mut leftover_parent = Vec::with_capacity(MAX_OBJECTS);
             while !self.objects.is_empty() {
                 let object = self.objects.pop().unwrap();
                 if let Some(index) = self.index(&object.rect) {
@@ -127,7 +125,18 @@ impl<'a, Type> Quadtree<'a, Type> {
                 }
             }
 
+            // Handle the overflowing actor also
+            if let Some(index) = self.index(&actor.rect) {
+                if let Some(ref mut node) = self.nodes[index as usize] {
+                    node.insert(actor);
+                }
+            } else {
+                leftover_parent.push(actor);
+            }
+
             self.objects = leftover_parent;
+        } else {
+            self.objects.push(actor);
         }
     }
 

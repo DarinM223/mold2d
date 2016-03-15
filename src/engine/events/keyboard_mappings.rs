@@ -62,7 +62,7 @@ impl KeyboardMappings {
         match File::open(path) {
             Ok(ref mut f) => {
                 let mut mappings = String::new();
-                f.read_to_string(&mut mappings);
+                let _ = f.read_to_string(&mut mappings);
                 KeyboardMappings::new(&mappings[..])
             }
             _ => KeyboardMappings::new(KEYBOARD_DEFAULTS),
