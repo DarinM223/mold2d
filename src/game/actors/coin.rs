@@ -1,5 +1,5 @@
 use actions::{ActorMessage, ActorType};
-use engine::collision::{BoundingBox, Collision, CollisionSide};
+use engine::collision::{BoundingBox, Collision};
 use engine::context::Context;
 use engine::sprite::{AnimatedSprite, Animation, AnimationData, Renderable, SpriteRectangle};
 use engine::view::{Actor, ActorData};
@@ -43,7 +43,7 @@ impl Actor<ActorType, ActorMessage> for Coin {
     fn on_collision(&mut self,
                     context: &mut Context,
                     other: ActorData<ActorType>,
-                    _: CollisionSide)
+                    _: u8)
                     -> ActorMessage {
         // Do nothing
         if other.actor_type == ActorType::Player {
@@ -54,7 +54,7 @@ impl Actor<ActorType, ActorMessage> for Coin {
         ActorMessage::None
     }
 
-    fn collides_with(&mut self, other_actor: &ActorData<ActorType>) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other_actor: &ActorData<ActorType>) -> Option<u8> {
         self.rect.collides_with(other_actor.rect)
     }
 
@@ -77,7 +77,7 @@ impl Actor<ActorType, ActorMessage> for Coin {
             id: self.id,
             state: 0,
             damage: 0,
-            checks_collision: true,
+            collision_filter: 0b1111,
             rect: self.rect.to_sdl().unwrap(),
             bounding_box: Some(BoundingBox::Rectangle(self.rect.clone())),
             actor_type: ActorType::Item,

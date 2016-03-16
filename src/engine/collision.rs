@@ -22,22 +22,18 @@ pub fn center_point(rect: &Rect) -> (f64, f64) {
      (rect.y() as f64) + 0.5 * (rect.height() as f64))
 }
 
-/// The side of the actor being collided into
-#[derive(PartialEq, Eq, Clone, Copy)]
-pub enum CollisionSide {
-    Left,
-    Right,
-    Top,
-    Bottom,
-}
+pub const COLLISION_LEFT: u8 = 0b1000;
+pub const COLLISION_RIGHT: u8 = 0b0100;
+pub const COLLISION_TOP: u8 = 0b0010;
+pub const COLLISION_BOTTOM: u8 = 0b0001;
 
 /// Checks collisions for different objects
 pub trait Collision<T> {
-    fn collides_with(&self, other: T) -> Option<CollisionSide>;
+    fn collides_with(&self, other: T) -> Option<u8>;
 }
 
 impl Collision<Rect> for Rect {
-    fn collides_with(&self, other: Rect) -> Option<CollisionSide> {
+    fn collides_with(&self, other: Rect) -> Option<u8> {
         let w = 0.5 * (self.width() + other.width()) as f64;
         let h = 0.5 * (self.height() + other.height()) as f64;
         let dx = center_point(self).0 - center_point(&other).0;
@@ -49,15 +45,15 @@ impl Collision<Rect> for Rect {
 
             if wy > hx {
                 if wy > -hx {
-                    return Some(CollisionSide::Top);
+                    return Some(COLLISION_TOP);
                 } else {
-                    return Some(CollisionSide::Left);
+                    return Some(COLLISION_LEFT);
                 }
             } else {
                 if wy > -hx {
-                    return Some(CollisionSide::Right);
+                    return Some(COLLISION_RIGHT);
                 } else {
-                    return Some(CollisionSide::Bottom);
+                    return Some(COLLISION_BOTTOM);
                 }
             }
         }
@@ -67,7 +63,7 @@ impl Collision<Rect> for Rect {
 }
 
 impl Collision<SpriteRectangle> for Rect {
-    fn collides_with(&self, other: SpriteRectangle) -> Option<CollisionSide> {
+    fn collides_with(&self, other: SpriteRectangle) -> Option<u8> {
         if let Some(rect) = other.to_sdl() {
             return self.collides_with(rect);
         }
@@ -77,7 +73,7 @@ impl Collision<SpriteRectangle> for Rect {
 }
 
 impl Collision<Rect> for SpriteRectangle {
-    fn collides_with(&self, other: Rect) -> Option<CollisionSide> {
+    fn collides_with(&self, other: Rect) -> Option<u8> {
         if let Some(rect) = self.to_sdl() {
             return rect.collides_with(other);
         }
@@ -87,7 +83,7 @@ impl Collision<Rect> for SpriteRectangle {
 }
 
 impl Collision<SpriteRectangle> for SpriteRectangle {
-    fn collides_with(&self, other: SpriteRectangle) -> Option<CollisionSide> {
+    fn collides_with(&self, other: SpriteRectangle) -> Option<u8> {
         if let Some(rect) = other.to_sdl() {
             return self.collides_with(rect);
         }
@@ -116,7 +112,7 @@ impl BoundingBox {
 }
 
 impl<'a> Collision<&'a BoundingBox> for BoundingBox {
-    fn collides_with(&self, other: &'a BoundingBox) -> Option<CollisionSide> {
+    fn collides_with(&self, other: &'a BoundingBox) -> Option<u8> {
         match (self, other) {
             (&BoundingBox::Rectangle(ref rect1),
              &BoundingBox::Rectangle(ref rect2)) => {

@@ -1,5 +1,5 @@
 use actions::{ActorMessage, ActorType};
-use engine::collision::{BoundingBox, Collision, CollisionSide};
+use engine::collision::{BoundingBox, Collision};
 use engine::context::Context;
 use engine::sprite::{Animation, AnimationData, Renderable, Sprite, SpriteRectangle};
 use engine::view::{Actor, ActorData};
@@ -28,6 +28,7 @@ macro_rules! block {
         height: $height:expr,
         sprites_in_row: $sprites_in_row:expr,
         size: $size:expr,
+        collision_filter: $filter:expr,
     ) => {
         pub struct $name {
             id: i32,
@@ -71,7 +72,7 @@ macro_rules! block {
             fn on_collision(&mut self,
                             _c: &mut Context,
                             _a: ActorData<ActorType>,
-                            _s: CollisionSide)
+                            _s: u8)
                             -> ActorMessage {
                 ActorMessage::None
             }
@@ -79,7 +80,7 @@ macro_rules! block {
             #[allow(unused_imports)]
             fn collides_with(&mut self,
                              other_actor: &ActorData<ActorType>)
-                             -> Option<CollisionSide> {
+                             -> Option<u8> {
                 self.rect.collides_with(other_actor.rect)
             }
 
@@ -106,7 +107,7 @@ macro_rules! block {
                     id: self.id,
                     state: 0 as u32,
                     damage: 0,
-                    checks_collision: false,
+                    collision_filter: $filter,
                     rect: self.rect.to_sdl().unwrap(),
                     bounding_box: Some(BoundingBox::Rectangle(self.rect.clone())),
                     actor_type: ActorType::Block,
@@ -124,6 +125,7 @@ block! {
     height: 80,
     sprites_in_row: 7,
     size: 40,
+    collision_filter: 0b1111,
 }
 
 block! {
@@ -134,6 +136,7 @@ block! {
     height: 80,
     sprites_in_row: 7,
     size: 40,
+    collision_filter: 0b1111,
 }
 
 block! {
@@ -144,6 +147,7 @@ block! {
     height: 80,
     sprites_in_row: 7,
     size: 40,
+    collision_filter: 0b1110,
 }
 
 block! {
@@ -154,4 +158,5 @@ block! {
     height: 80,
     sprites_in_row: 7,
     size: 40,
+    collision_filter: 0b1111,
 }

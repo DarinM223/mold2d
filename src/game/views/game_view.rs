@@ -144,7 +144,7 @@ impl View for GameView {
                 let actor = self.actors.temp_remove(key);
 
                 if let Some(mut actor) = actor {
-                    if actor.data().checks_collision == true {
+                    if actor.data().collision_filter != 0 {
                         // only check collisions for certain actors
                         let collided_actors = quadtree.retrieve(&actor.data().rect)
                                                       .into_iter()
@@ -152,6 +152,7 @@ impl View for GameView {
                                                       .collect::<Vec<_>>();
                         for other_actor in collided_actors {
                             if let Some(direction) = actor.collides_with(&other_actor) {
+                                let direction = direction & other_actor.collision_filter;
                                 let message = actor.on_collision(context, other_actor, direction);
                                 handle_message(&mut self.actors,
                                                &mut self.viewport,
