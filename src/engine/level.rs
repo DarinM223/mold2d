@@ -15,7 +15,7 @@ pub fn load_level<Type, Message>(path: &str,
                                  window: &Window)
                                  -> io::Result<(ActorManager<Type, Message>, Viewport)> {
     let mut center_point = (0, 0);
-    let mut manager = ActorManager::new(actor_for_token);
+    let mut manager = ActorManager::new(actor_for_token, window);
 
     let open_result = File::open(path);
 

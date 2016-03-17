@@ -97,28 +97,30 @@ impl View for GameView {
             // TODO(DarinM223): eventually avoid creating the quadtree every frame
             let window_rect = Rect::new_unwrap(0, 0, context.window.width, context.window.height);
             let viewport_clone = self.viewport.clone();
-            let mut quadtree = Quadtree::new(window_rect, &viewport_clone);
             let mut keys = Vec::with_capacity(self.actors.actors.len());
 
             for (key, actor) in &mut self.actors.actors {
-                let data = actor.data().clone();
-
-                if let Some(_) = self.viewport.constrain_to_viewport(&data.rect) {
+                if let Some(_) = self.viewport.constrain_to_viewport(&actor.data().rect) {
                     keys.push(key.clone());
-                    quadtree.insert(data);
                 }
             }
 
             for key in keys {
+                let collided_actors = self.actors
+                                          .retrieve_actors(key, &self.viewport)
+                                          .into_iter()
+                                          .map(|id| {
+                                              self.actors
+                                                  .get_mut(id)
+                                                  .map(|actor| actor.data().clone())
+                                                  .unwrap()
+                                          })
+                                          .collect::<Vec<_>>();
+
                 let actor = self.actors.temp_remove(key);
 
                 if let Some(mut actor) = actor {
                     if actor.data().collision_filter != 0 {
-                        // only check collisions for certain actors
-                        let collided_actors = quadtree.retrieve(&actor.data().rect)
-                                                      .into_iter()
-                                                      .map(|act| act.clone())
-                                                      .collect::<Vec<_>>();
                         for other_actor in collided_actors {
                             if let Some(direction) = actor.collides_with(&other_actor) {
                                 let direction = direction & other_actor.collision_filter;

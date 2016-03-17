@@ -93,6 +93,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     other: ActorData<ActorType>,
                     side: u8)
                     -> ActorMessage {
+        use engine::collision::*;
 
         let other_bbox = match other.bounding_box {
             Some(b) => b,
@@ -102,12 +103,14 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         let key = (self.curr_state, self.direction);
 
         if let Some(ref mut self_bbox) = self.anims.bbox_mut(&key) {
-            if side & collision::COLLISION_BOTTOM != 0 && other.actor_type == ActorType::Block {
+            let filter = other.collision_filter;
+
+            if side & COLLISION_BOTTOM != 0 && other.actor_type == ActorType::Block {
                 if self.curr_state == KoopaState::Jumping {
                     self.curr_state = KoopaState::Walking;
                 }
 
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_BOTTOM) {
+                while bbox_check(&self_bbox, &other_bbox, filter) == Some(COLLISION_BOTTOM) {
                     self.rect.y -= 1;
                     self_bbox.change_pos(&self.rect);
                 }
@@ -116,8 +119,8 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                 self_bbox.change_pos(&self.rect);
                 self.grounded = true;
             }
-            if side & collision::COLLISION_TOP != 0 && other.actor_type == ActorType::Enemy {
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_TOP) {
+            if side & COLLISION_TOP != 0 && other.actor_type == ActorType::Enemy {
+                while bbox_check(&self_bbox, &other_bbox, filter) == Some(COLLISION_TOP) {
                     self.rect.y += 1;
                     self_bbox.change_pos(&self.rect);
                 }

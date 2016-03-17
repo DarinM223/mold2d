@@ -6,7 +6,7 @@ use sdl2::render::Renderer;
 
 const PLAYER_WIDTH: u32 = 30;
 const PLAYER_HEIGHT: u32 = 60;
-const PLAYER_X_MAXSPEED: f64 = 15.0;
+const PLAYER_X_MAXSPEED: f64 = 12.0;
 const PLAYER_Y_MAXSPEED: f64 = 15.0;
 const PLAYER_ACCELERATION: f64 = 0.18;
 
@@ -110,24 +110,23 @@ impl Player {
 
 impl Actor<ActorType, ActorMessage> for Player {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        match *message {
-            ActorMessage::ActorAction(_, ref message) => {
-                match *message {
-                    ActorAction::DamageActor(_) => {
-                        match self.size {
-                            PlayerSize::Big |
-                            PlayerSize::Crouching => {
-                                self.rect.h /= 2;
-                                self.size = PlayerSize::Small;
+        if let ActorMessage::ActorAction(_, ref message) = *message {
+            match *message {
+                ActorAction::DamageActor(_) => {
+                    match self.size {
+                        PlayerSize::Big |
+                        PlayerSize::Crouching => {
+                            self.rect.h /= 2;
+                            self.size = PlayerSize::Small;
 
-                                ActorMessage::None
-                            }
-                            PlayerSize::Small => ActorMessage::PlayerDied,
+                            ActorMessage::None
                         }
+                        PlayerSize::Small => ActorMessage::PlayerDied,
                     }
                 }
             }
-            _ => ActorMessage::None,
+        } else {
+            ActorMessage::None
         }
     }
 
@@ -136,6 +135,8 @@ impl Actor<ActorType, ActorMessage> for Player {
                     other: ActorData<ActorType>,
                     side: u8)
                     -> ActorMessage {
+        use engine::collision::*;
+
         let other_bbox = match other.bounding_box {
             Some(b) => b,
             None => return ActorMessage::None,
@@ -144,20 +145,22 @@ impl Actor<ActorType, ActorMessage> for Player {
         let key = (self.size, self.curr_state, self.direction);
 
         if let Some(ref mut self_bbox) = self.anims.bbox_mut(&key) {
-            if side & collision::COLLISION_LEFT != 0 {
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_LEFT) {
+            let filter = other.collision_filter;
+
+            if side & COLLISION_LEFT != 0 {
+                while bbox_check(&self_bbox, &other_bbox, filter) == Some(COLLISION_LEFT) {
                     self.rect.x -= 1;
                     self_bbox.change_pos(&self.rect);
                 }
             }
-            if side & collision::COLLISION_RIGHT != 0 {
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_RIGHT) {
+            if side & COLLISION_RIGHT != 0 {
+                while bbox_check(&self_bbox, &other_bbox, filter) == Some(COLLISION_RIGHT) {
                     self.rect.x += 1;
                     self_bbox.change_pos(&self.rect);
                 }
             }
-            if side & collision::COLLISION_TOP != 0 {
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_TOP) {
+            if side & COLLISION_TOP != 0 {
+                while bbox_check(&self_bbox, &other_bbox, filter) == Some(COLLISION_TOP) {
                     self.rect.y += 1;
                     self_bbox.change_pos(&self.rect);
                 }
@@ -165,12 +168,12 @@ impl Actor<ActorType, ActorMessage> for Player {
                 self.curr_speed.y = 0.;
                 self.hit_ceiling = true;
             }
-            if side & collision::COLLISION_BOTTOM != 0 {
+            if side & COLLISION_BOTTOM != 0 {
                 if self.curr_state == PlayerState::Jumping {
                     self.curr_state = PlayerState::Idle;
                 }
 
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_BOTTOM) {
+                while bbox_check(&self_bbox, &other_bbox, filter) == Some(COLLISION_BOTTOM) {
                     self.rect.y -= 1;
                     self_bbox.change_pos(&self.rect);
                 }

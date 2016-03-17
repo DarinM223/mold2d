@@ -1,5 +1,6 @@
 use sdl2::rect::Rect;
 use sprite::SpriteRectangle;
+use view::ActorData;
 
 /// Checks if a rectangle contains another rectangle
 pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {
@@ -20,6 +21,11 @@ pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {
 pub fn center_point(rect: &Rect) -> (f64, f64) {
     ((rect.x() as f64) + 0.5 * (rect.width() as f64),
      (rect.y() as f64) + 0.5 * (rect.height() as f64))
+}
+
+/// Checks bounding box collision with a collision filter
+pub fn bbox_check(bbox: &BoundingBox, other_bbox: &BoundingBox, filter: u8) -> Option<u8> {
+    bbox.collides_with(other_bbox).map(|s| s & filter)
 }
 
 pub const COLLISION_LEFT: u8 = 0b1000;

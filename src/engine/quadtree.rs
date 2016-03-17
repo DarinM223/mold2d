@@ -1,32 +1,29 @@
+use actor_manager::ActorManager;
 use sdl2::rect::Rect;
 use view::ActorData;
-use viewport::Viewport;
 
 const MAX_OBJECTS: usize = 5;
 const MAX_LEVELS: i32 = 10;
 
 /// A quadtree for minimizing collision checks between actors
-pub struct Quadtree<'a, Type> {
+pub struct Quadtree {
     /// The level of the current tree, (0 is root)
     level: i32,
     /// The actors that the current tree holds
-    objects: Vec<ActorData<Type>>,
+    objects: Vec<i32>,
     /// An array of 4 subtrees to split into when parent is full
-    nodes: [Option<Box<Quadtree<'a, Type>>>; 4],
+    nodes: [Option<Box<Quadtree>>; 4],
     /// The bounds of the current tree
     bounds: Rect,
-    /// The viewport so that all points are adjusted to the view
-    viewport: &'a Viewport,
 }
 
-impl<'a, Type> Quadtree<'a, Type> {
-    pub fn new(rect: Rect, viewport: &'a Viewport) -> Quadtree<'a, Type> {
+impl Quadtree {
+    pub fn new(rect: Rect) -> Quadtree {
         Quadtree {
             level: 0,
             objects: Vec::with_capacity(MAX_OBJECTS),
             bounds: rect,
             nodes: [None, None, None, None],
-            viewport: viewport,
         }
     }
 
@@ -42,67 +39,74 @@ impl<'a, Type> Quadtree<'a, Type> {
                 objects: Vec::with_capacity(MAX_OBJECTS),
                 bounds: Rect::new_unwrap(x + width, y, width as u32, height as u32),
                 nodes: [None, None, None, None],
-                viewport: self.viewport,
             }));
             self.nodes[1] = Some(Box::new(Quadtree {
                 level: self.level + 1,
                 objects: Vec::with_capacity(MAX_OBJECTS),
                 bounds: Rect::new_unwrap(x, y, width as u32, height as u32),
                 nodes: [None, None, None, None],
-                viewport: self.viewport,
             }));
             self.nodes[2] = Some(Box::new(Quadtree {
                 level: self.level + 1,
                 objects: Vec::with_capacity(MAX_OBJECTS),
                 bounds: Rect::new_unwrap(x, y + height, width as u32, height as u32),
                 nodes: [None, None, None, None],
-                viewport: self.viewport,
             }));
             self.nodes[3] = Some(Box::new(Quadtree {
                 level: self.level + 1,
                 objects: Vec::with_capacity(MAX_OBJECTS),
                 bounds: Rect::new_unwrap(x + width, y + height, width as u32, height as u32),
                 nodes: [None, None, None, None],
-                viewport: self.viewport,
             }));
         }
     }
 
     /// Determine which node index the object belongs to
-    fn index(&self, rect: &Rect) -> Option<i32> {
-        if let Some(rect) = self.viewport.constrain_to_viewport(rect) {
-            let vert_mid = (self.bounds.x() as f64) + (self.bounds.width() as f64) / 2.;
-            let horiz_mid = (self.bounds.y() as f64) + (self.bounds.height() as f64) / 2.;
+    fn index_rect(&self, rect: &Rect) -> Option<i32> {
+        let vert_mid = (self.bounds.x() as f64) + (self.bounds.width() as f64) / 2.;
+        let horiz_mid = (self.bounds.y() as f64) + (self.bounds.height() as f64) / 2.;
 
-            let top_quad = (rect.y() as f64) < horiz_mid &&
-                           (rect.y() as f64) + (rect.height() as f64) < horiz_mid;
-            let bot_quad = (rect.y() as f64) > horiz_mid;
+        let top_quad = (rect.y() as f64) < horiz_mid &&
+                       (rect.y() as f64) + (rect.height() as f64) < horiz_mid;
+        let bot_quad = (rect.y() as f64) > horiz_mid;
 
-            if (rect.x() as f64) < vert_mid &&
-               (rect.x() as f64) + (rect.width() as f64) < vert_mid {
-                if top_quad {
-                    return Some(1);
-                } else if bot_quad {
-                    return Some(2);
-                }
-            } else if (rect.x() as f64) > vert_mid {
-                if top_quad {
-                    return Some(0);
-                } else if bot_quad {
-                    return Some(3);
-                }
+        if (rect.x() as f64) < vert_mid && (rect.x() as f64) + (rect.width() as f64) < vert_mid {
+            if top_quad {
+                return Some(1);
+            } else if bot_quad {
+                return Some(2);
+            }
+        } else if (rect.x() as f64) > vert_mid {
+            if top_quad {
+                return Some(0);
+            } else if bot_quad {
+                return Some(3);
             }
         }
 
         None
     }
 
+    /// Determine which node index the actor belongs to
+    fn index<Type, Message>(&self,
+                            actor: i32,
+                            actor_manager: &mut ActorManager<Type, Message>)
+                            -> Option<i32> {
+        if let Some(ref rect) = actor_manager.get_mut(actor).map(|actor| actor.data().rect) {
+            return self.index_rect(rect);
+        }
+
+        None
+    }
+
     /// Inserts an actor into the quadtree
-    pub fn insert(&mut self, actor: ActorData<Type>) {
+    pub fn insert<Type, Message>(&mut self,
+                                 actor: i32,
+                                 actor_manager: &mut ActorManager<Type, Message>) {
         if let Some(_) = self.nodes[0] {
-            if let Some(index) = self.index(&actor.rect) {
+            if let Some(index) = self.index(actor, actor_manager) {
                 if let Some(ref mut node) = self.nodes[index as usize] {
-                    node.insert(actor);
+                    node.insert(actor, actor_manager);
                 }
                 return;
             }
@@ -116,9 +120,9 @@ impl<'a, Type> Quadtree<'a, Type> {
             let mut leftover_parent = Vec::with_capacity(MAX_OBJECTS);
             while !self.objects.is_empty() {
                 let object = self.objects.pop().unwrap();
-                if let Some(index) = self.index(&object.rect) {
+                if let Some(index) = self.index(object, actor_manager) {
                     if let Some(ref mut node) = self.nodes[index as usize] {
-                        node.insert(object);
+                        node.insert(object, actor_manager);
                     }
                 } else {
                     leftover_parent.push(object);
@@ -126,9 +130,9 @@ impl<'a, Type> Quadtree<'a, Type> {
             }
 
             // Handle the overflowing actor also
-            if let Some(index) = self.index(&actor.rect) {
+            if let Some(index) = self.index(actor, actor_manager) {
                 if let Some(ref mut node) = self.nodes[index as usize] {
-                    node.insert(actor);
+                    node.insert(actor, actor_manager);
                 }
             } else {
                 leftover_parent.push(actor);
@@ -140,26 +144,26 @@ impl<'a, Type> Quadtree<'a, Type> {
         }
     }
 
-    /// Return all objects that could collide
-    pub fn retrieve(&mut self, rect: &Rect) -> Vec<&ActorData<Type>> {
+    /// Return all object indexes that could collide
+    pub fn retrieve(&mut self, id: i32, rect: &Rect) -> Vec<i32> {
         let mut retrieved_values = Vec::new();
-        if let Some(index) = self.index(rect) {
+        if let Some(index) = self.index_rect(rect) {
             if let Some(ref mut node) = self.nodes[index as usize] {
-                retrieved_values.extend(node.retrieve(rect).into_iter());
+                retrieved_values.extend(node.retrieve(id, rect).into_iter());
             }
         } else {
             // if current object is not in a quadrant add all of the children
             // since it could potentially collide with other objects in a quadrant
             for node in &mut self.nodes[..] {
                 if let Some(ref mut node) = *node {
-                    retrieved_values.extend(node.retrieve(rect).into_iter());
+                    retrieved_values.extend(node.retrieve(id, rect).into_iter());
                 }
             }
         }
 
         for object in &self.objects {
-            if object.rect != *rect {
-                retrieved_values.push(object);
+            if *object != id {
+                retrieved_values.push(*object);
             }
         }
 
