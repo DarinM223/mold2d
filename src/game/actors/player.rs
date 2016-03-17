@@ -1,11 +1,7 @@
 use actions::{ActorAction, ActorMessage, ActorType};
 use engine::collision;
-use engine::collision::{BoundingBox, Collision};
-use engine::context::Context;
-use engine::sprite::{Animation, AnimationManager, Direction, Renderable, SpriteRectangle};
-use engine::vector::Vector2D;
-use engine::view::{Actor, ActorData};
-use engine::viewport::Viewport;
+use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, Context,
+             Direction, Renderable, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const PLAYER_WIDTH: u32 = 30;

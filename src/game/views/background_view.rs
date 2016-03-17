@@ -1,5 +1,4 @@
-use engine::context::Context;
-use engine::view::{View, ViewAction};
+use engine::{Context, View, ViewAction};
 use sdl2::pixels::Color;
 
 /// Test view that should display a background

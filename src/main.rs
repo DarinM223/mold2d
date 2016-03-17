@@ -1,7 +1,7 @@
 extern crate engine;
 extern crate game;
 
-use engine::context::Window;
+use engine::Window;
 use engine::event_loop;
 use game::views::game_view::GameView;
 

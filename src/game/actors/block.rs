@@ -1,9 +1,6 @@
 use actions::{ActorMessage, ActorType};
-use engine::collision::{BoundingBox, Collision};
-use engine::context::Context;
-use engine::sprite::{Animation, AnimationData, Renderable, Sprite, SpriteRectangle};
-use engine::view::{Actor, ActorData};
-use engine::viewport::Viewport;
+use engine::{Actor, ActorData, Animation, AnimationData, BoundingBox, Collision, Context,
+             Renderable, Sprite, SpriteRectangle, Viewport};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
