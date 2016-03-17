@@ -34,7 +34,7 @@ impl<Type, Message> ActorManager<Type, Message> {
             actors: HashMap::new(),
             temporary: None,
             actor_gen: actor_gen,
-            quadtree: Some(Quadtree::new(Rect::new_unwrap(0, 0, window.width, window.height))),
+            quadtree: None,
         }
     }
 
@@ -61,19 +61,37 @@ impl<Type, Message> ActorManager<Type, Message> {
         self.actors.remove(&id);
     }
 
+    /// Builds the actor's quadtree given the viewport
+    pub fn build_quadtree(&mut self, viewport: &Viewport) {
+        let mut quadtree = Quadtree::new(Rect::new_unwrap(0,
+                                                          0,
+                                                          viewport.map_dimensions.0 as u32,
+                                                          viewport.map_dimensions.1 as u32));
+        let keys: Vec<i32> = self.actors.iter().map(|(id, _)| *id).collect();
+
+        for key in keys {
+            quadtree.insert(key, self);
+        }
+
+        self.quadtree = Some(quadtree);
+    }
+
     /// Retrieves actors close to the given actor
     pub fn retrieve_actors(&mut self, id: i32, viewport: &Viewport) -> Vec<i32> {
+        println!("Total actors: {}", self.actors.len());
         if let Some(mut quadtree) = self.quadtree.take() {
-            let result;
-            if let Some(ref mut actor) = self.get_mut(id) {
-                let (rx, ry) = viewport.relative_point((actor.data().rect.x(),
-                                                        actor.data().rect.y()));
-                let rect = Rect::new_unwrap(rx,
-                                            ry,
-                                            actor.data().rect.width(),
-                                            actor.data().rect.height());
-
-                result = quadtree.retrieve(id, &rect);
+            let result: Vec<i32>;
+            if let Some(mut actor) = self.temp_remove(id) {
+                result = quadtree.retrieve(id, &actor.data().rect)
+                                 .iter()
+                                 .filter(|id| {
+                                     let actor = self.actors.get_mut(id).unwrap();
+                                     viewport.constrain_to_viewport(&actor.data().rect) != None
+                                 })
+                                 .map(|id| *id)
+                                 .collect::<Vec<_>>();
+                self.temp_reinsert(id, actor);
+                println!("Retrieved: {} actors", result.len());
             } else {
                 result = vec![];
             }

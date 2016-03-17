@@ -58,6 +58,8 @@ pub fn load_level<Type, Message>(path: &str,
         let mut viewport = Viewport::new(window, (width, height));
         viewport.set_position(center_point);
 
+        manager.build_quadtree(&viewport);
+
         Ok((manager, viewport))
     } else {
         Err(io::Error::new(io::ErrorKind::InvalidData, "File could not be opened"))

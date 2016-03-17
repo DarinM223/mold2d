@@ -2,8 +2,8 @@ use actor_manager::ActorManager;
 use sdl2::rect::Rect;
 use view::ActorData;
 
-const MAX_OBJECTS: usize = 5;
-const MAX_LEVELS: i32 = 10;
+const MAX_OBJECTS: usize = 50;
+const MAX_LEVELS: i32 = 100;
 
 /// A quadtree for minimizing collision checks between actors
 pub struct Quadtree {
