@@ -1,33 +1,7 @@
+use sdl2::rect::Rect;
 use vector::Vector2D;
 
-/// Returns the point where two lines intersect
-/// if there is an intersection or None otherwise.
-/// p0 and p1 are the points of the first line and
-/// p2 and p3 are the points of the second line.
-/// http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/1968345#1968345
-pub fn get_intersection(p0: (f64, f64),
-                        p1: (f64, f64),
-                        p2: (f64, f64),
-                        p3: (f64, f64))
-                        -> Option<(f64, f64)> {
-
-    let s1 = (p1.0 - p0.0, p1.1 - p0.1);
-    let s2 = (p3.0 - p2.0, p3.1 - p2.1);
-
-    let s = (-s1.1 * (p0.0 - p2.0) + s1.0 * (p0.1 - p2.1)) / (-s2.0 * s1.1 + s1.0 * s2.1);
-    let t = (s2.0 * (p0.1 - p2.1) - s2.1 * (p0.0 - p2.0)) / (-s2.0 * s1.1 + s1.0 * s2.1);
-
-    if s >= 0. && s <= 1. && t >= 0. && t <= 1. {
-        // Collision detected
-        let x = p0.0 + (t * s1.0);
-        let y = p0.1 + (t * s1.1);
-        return Some((x, y));
-    } else {
-        None
-    }
-}
-
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Segment {
     /// The point that the segment starts out at
     point: (f64, f64),
@@ -37,8 +11,8 @@ pub struct Segment {
 
 impl Segment {
     /// Checks intersection for two segments.
-    /// If the two segments intersect it returns the distance of the end point
-    /// to the collided segment, otherwise it returns None
+    /// If the two segments intersect it returns the intersection point,
+    /// otherwise it returns None
     pub fn intersects(&self, other: &Segment) -> Option<(f64, f64)> {
         let p0 = self.point;
         let p1 = (self.point.0 + self.vector.x, self.point.1 + self.vector.y);
@@ -80,6 +54,33 @@ pub trait Polygon {
     fn sides(&self) -> Vec<Segment>;
 }
 
+impl Polygon for Rect {
+    fn sides(&self) -> Vec<Segment> {
+        let (f_x, f_y) = (self.x() as f64, self.y() as f64);
+        let (f_w, f_h) = (self.width() as f64, self.height() as f64);
+        let mut vec = Vec::with_capacity(4);
+
+        vec.push(Segment {
+            point: (f_x, f_y),
+            vector: Vector2D { x: 0., y: -f_h },
+        });
+        vec.push(Segment {
+            point: (f_x, f_y - f_h),
+            vector: Vector2D { x: f_w, y: 0. },
+        });
+        vec.push(Segment {
+            point: (f_x + f_w, f_y - f_h),
+            vector: Vector2D { x: 0., y: f_h },
+        });
+        vec.push(Segment {
+            point: (f_x + f_w, f_y),
+            vector: Vector2D { x: -f_w, y: 0. },
+        });
+
+        vec
+    }
+}
+
 /// Shortens a ray segment agains a polygon
 pub fn shorten_ray<P: Polygon>(ray: &Segment, poly: &P) -> Segment {
     poly.sides().iter().fold(ray.clone(), |ray, side| {
@@ -95,9 +96,37 @@ pub fn shorten_ray<P: Polygon>(ray: &Segment, poly: &P) -> Segment {
     })
 }
 
+/// Returns the point where two lines intersect
+/// if there is an intersection or None otherwise.
+/// p0 and p1 are the points of the first line and
+/// p2 and p3 are the points of the second line.
+/// http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/1968345#1968345
+fn get_intersection(p0: (f64, f64),
+                    p1: (f64, f64),
+                    p2: (f64, f64),
+                    p3: (f64, f64))
+                    -> Option<(f64, f64)> {
+
+    let s1 = (p1.0 - p0.0, p1.1 - p0.1);
+    let s2 = (p3.0 - p2.0, p3.1 - p2.1);
+
+    let s = (-s1.1 * (p0.0 - p2.0) + s1.0 * (p0.1 - p2.1)) / (-s2.0 * s1.1 + s1.0 * s2.1);
+    let t = (s2.0 * (p0.1 - p2.1) - s2.1 * (p0.0 - p2.0)) / (-s2.0 * s1.1 + s1.0 * s2.1);
+
+    if s >= 0. && s <= 1. && t >= 0. && t <= 1. {
+        // Collision detected
+        let x = p0.0 + (t * s1.0);
+        let y = p0.1 + (t * s1.1);
+        return Some((x, y));
+    } else {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sdl2::rect::Rect;
     use vector::Vector2D;
 
     fn assert_float(a: f64, b: f64) {
@@ -125,5 +154,36 @@ mod tests {
 
         assert_eq!(segment.point, shortened_segment.point);
         assert_float(shortened_segment.len(), segment.len() - 2.);
+    }
+
+    #[test]
+    fn test_intersect() {
+        let segment1 = Segment {
+            point: (1., 1.),
+            vector: Vector2D { x: 2., y: 2. },
+        };
+        let segment2 = Segment {
+            point: (0., 2.),
+            vector: Vector2D { x: 3., y: 0. },
+        };
+
+        let intersect_point = segment1.intersects(&segment2);
+        assert_eq!(intersect_point, Some((2., 2.)));
+    }
+
+    #[test]
+    fn test_shorten_ray() {
+        let rect = Rect::new_unwrap(2, 3, 2, 2);
+        let segment = Segment {
+            point: (0., 2.),
+            vector: Vector2D { x: 4., y: 0. },
+        };
+
+        let shortend_seg = shorten_ray(&segment, &rect);
+        assert_eq!(shortend_seg,
+                   Segment {
+                       point: (0., 2.),
+                       vector: Vector2D { x: 2., y: 0. },
+                   });
     }
 }
