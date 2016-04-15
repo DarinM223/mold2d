@@ -1,9 +1,6 @@
 //! A demo game to demonstrate mold2d
 
 #![feature(custom_attribute, plugin)]
-#![plugin(sorty)]
-#![warn(unsorted_declarations)]
-
 #[cfg_attr(feature="clippy", feature(plugin))]
 #[cfg_attr(feature="clippy", plugin(clippy))]
 

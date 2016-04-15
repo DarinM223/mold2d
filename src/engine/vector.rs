@@ -7,6 +7,21 @@ pub struct Vector2D {
     pub y: f64,
 }
 
+impl Vector2D {
+    /// Returns the length of a vector
+    pub fn len(&self) -> f64 {
+        (self.x * self.x + self.y * self.y).sqrt()
+    }
+
+    /// Returns a normalized vector
+    pub fn normalize(&self) -> Vector2D {
+        Vector2D {
+            x: self.x / self.len(),
+            y: self.y / self.len(),
+        }
+    }
+}
+
 impl Add<Vector2D> for Vector2D {
     type Output = Vector2D;
 

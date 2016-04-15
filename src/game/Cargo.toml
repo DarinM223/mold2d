@@ -16,6 +16,3 @@ clippy = { version = "*", optional = true }
 
 [dependencies.engine]
 path = "../engine"
-
-[dependencies.sorty]
-git = "https://github.com/Wafflespeanut/rust-sorty"

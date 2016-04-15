@@ -11,10 +11,7 @@
 //! A point system
 //! A main menu rendering system
 
-#![feature(custom_attribute, plugin)]
-#![plugin(sorty)]
-#![warn(unsorted_declarations)]
-
+#![feature(custom_attribute)]
 #[cfg_attr(feature="clippy", feature(plugin))]
 #[cfg_attr(feature="clippy", plugin(clippy))]
 
@@ -32,6 +29,7 @@ pub mod events;
 pub mod font;
 pub mod level;
 pub mod quadtree;
+pub mod raycast;
 pub mod score;
 pub mod sprite;
 pub mod vector;
