@@ -1,4 +1,5 @@
-use actions::{ActorMessage, ActorType, GameActorGenerator};
+use actions::{ActorAction, ActorMessage, ActorType, GameActorGenerator};
+use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_RIGHT, COLLISION_LEFT};
 use engine::font;
 use engine::level;
 use engine::{Actor, ActorManager, Collision, Context, Quadtree, View, ViewAction, Viewport};
@@ -122,11 +123,17 @@ impl View for GameView {
                         for other_actor in collided_actors {
                             if let Some(direction) = actor.collides_with(&other_actor) {
                                 let direction = direction & other_actor.collision_filter;
-                                let message = actor.on_collision(context, other_actor, direction);
+                                match direction {
+                                    COLLISION_TOP => {}
+                                    COLLISION_BOTTOM => {}
+                                    COLLISION_LEFT => {}
+                                    COLLISION_RIGHT => {}
+                                    _ => {}
+                                }
                                 handle_message(&mut self.actors,
                                                &mut self.viewport,
                                                context,
-                                               &message);
+                                               &ActorMessage::ActorAction(other_actor.id, ActorAction::Collision(other_actor.actor_type, direction)));
                             }
                         }
                     }

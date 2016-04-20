@@ -1,5 +1,5 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::collision;
+use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_LEFT, COLLISION_RIGHT};
 use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, Context,
              Direction, Renderable, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
@@ -83,52 +83,28 @@ impl Koopa {
 
 impl Actor<ActorType, ActorMessage> for Koopa {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        match *message {
-            _ => ActorMessage::None,
+        use actions::ActorAction::*;
+
+        if let ActorMessage::ActorAction(id, ref message) = *message {
+            match *message {
+                Collision(actor_type, side) if actor_type == ActorType::Block &&
+                                               side & COLLISION_BOTTOM != 0 => {
+                    if self.curr_state == KoopaState::Jumping {
+                        self.curr_state = KoopaState::Walking;
+                    }
+
+                    self.grounded = true;
+                    ActorMessage::None
+                }
+                Collision(actor_type, side) if actor_type == ActorType::Player &&
+                                               side & 0b1101 != 0 => {
+                    ActorMessage::ActorAction(id, ActorAction::DamageActor(0))
+                }
+                _ => ActorMessage::None,
+            }
+        } else {
+            ActorMessage::None
         }
-    }
-
-    fn on_collision(&mut self,
-                    _: &mut Context,
-                    other: ActorData<ActorType>,
-                    side: u8)
-                    -> ActorMessage {
-
-        let other_bbox = match other.bounding_box {
-            Some(b) => b,
-            None => return ActorMessage::None,
-        };
-
-        let key = (self.curr_state, self.direction);
-
-        if let Some(ref mut self_bbox) = self.anims.bbox_mut(&key) {
-            if side & collision::COLLISION_BOTTOM != 0 && other.actor_type == ActorType::Block {
-                if self.curr_state == KoopaState::Jumping {
-                    self.curr_state = KoopaState::Walking;
-                }
-
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_BOTTOM) {
-                    self.rect.y -= 1;
-                    self_bbox.change_pos(&self.rect);
-                }
-
-                self.rect.y += 1;
-                self_bbox.change_pos(&self.rect);
-                self.grounded = true;
-            }
-            if side & collision::COLLISION_TOP != 0 && other.actor_type == ActorType::Enemy {
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_TOP) {
-                    self.rect.y += 1;
-                    self_bbox.change_pos(&self.rect);
-                }
-            }
-            // if the player hits the koopa at any direction other than top
-            if side & 0b1101 != 0 && other.actor_type == ActorType::Player {
-                return ActorMessage::ActorAction(other.id, ActorAction::DamageActor(0));
-            }
-        }
-
-        ActorMessage::None
     }
 
     fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<u8> {

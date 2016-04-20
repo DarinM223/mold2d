@@ -1,4 +1,4 @@
-use actions::{ActorMessage, ActorType};
+use actions::{ActorAction, ActorMessage, ActorType};
 use engine::{Actor, ActorData, AnimatedSprite, Animation, AnimationData, BoundingBox, Collision,
              Context, Renderable, SpriteRectangle, Viewport};
 use sdl2::rect::Rect;
@@ -33,22 +33,17 @@ impl Coin {
 }
 
 impl Actor<ActorType, ActorMessage> for Coin {
-    fn handle_message(&mut self, _: &ActorMessage) -> ActorMessage {
-        ActorMessage::None
-    }
-
-    fn on_collision(&mut self,
-                    context: &mut Context,
-                    other: ActorData<ActorType>,
-                    _: u8)
-                    -> ActorMessage {
-        // Do nothing
-        if other.actor_type == ActorType::Player {
-            context.score.increment_score("GAME_SCORE", COIN_VALUE);
-            return ActorMessage::RemoveActor(self.id);
+    fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
+        if let ActorMessage::ActorAction(_, ref message) = *message {
+            match *message {
+                ActorAction::Collision(actor_type, _) if actor_type == ActorType::Player => {
+                    ActorMessage::UpdateScore(COIN_VALUE)
+                }
+                _ => ActorMessage::None,
+            }
+        } else {
+            ActorMessage::None
         }
-
-        ActorMessage::None
     }
 
     fn collides_with(&mut self, other_actor: &ActorData<ActorType>) -> Option<u8> {

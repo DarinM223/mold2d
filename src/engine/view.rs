@@ -36,13 +36,6 @@ pub trait Actor<Type, Message> {
     /// Handle a message sent by another actor
     fn handle_message(&mut self, message: &Message) -> Message;
 
-    /// Called when an actor collides with another actor
-    fn on_collision(&mut self,
-                    context: &mut Context,
-                    other_actor: ActorData<Type>,
-                    side: u8)
-                    -> Message;
-
     /// Returns the side of the collision if actor collides with another actor
     fn collides_with(&mut self, other_actor: &ActorData<Type>) -> Option<u8>;
 

@@ -8,6 +8,7 @@ use sdl2::render::Renderer;
 /// Actions for an actor to process
 pub enum ActorAction {
     DamageActor(i32),
+    Collision(ActorType, u8),
 }
 
 /// Actor messages
@@ -18,11 +19,12 @@ pub enum ActorMessage {
     ActorAction(i32, ActorAction),
     MultipleMessages(Vec<Box<ActorMessage>>),
     PlayerDied,
+    UpdateScore(i32),
     None,
 }
 
 /// Actor types
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum ActorType {
     Item,
     Block,

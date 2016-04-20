@@ -58,26 +58,25 @@ impl Polygon for Rect {
     fn sides(&self) -> Vec<Segment> {
         let (f_x, f_y) = (self.x() as f64, self.y() as f64);
         let (f_w, f_h) = (self.width() as f64, self.height() as f64);
-        let mut vec = Vec::with_capacity(4);
 
-        vec.push(Segment {
-            point: (f_x, f_y),
-            vector: Vector2D { x: 0., y: -f_h },
-        });
-        vec.push(Segment {
-            point: (f_x, f_y - f_h),
-            vector: Vector2D { x: f_w, y: 0. },
-        });
-        vec.push(Segment {
-            point: (f_x + f_w, f_y - f_h),
-            vector: Vector2D { x: 0., y: f_h },
-        });
-        vec.push(Segment {
-            point: (f_x + f_w, f_y),
-            vector: Vector2D { x: -f_w, y: 0. },
-        });
-
-        vec
+        vec![
+            Segment {
+                point: (f_x, f_y),
+                vector: Vector2D { x: 0., y: -f_h },
+            },
+            Segment {
+                point: (f_x, f_y - f_h),
+                vector: Vector2D { x: f_w, y: 0. },
+            },
+            Segment {
+                point: (f_x + f_w, f_y - f_h),
+                vector: Vector2D { x: 0., y: f_h },
+            },
+            Segment {
+                point: (f_x + f_w, f_y),
+                vector: Vector2D { x: -f_w, y: 0. },
+            },
+        ]
     }
 }
 

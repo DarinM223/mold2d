@@ -66,14 +66,6 @@ macro_rules! block {
                 ActorMessage::None
             }
 
-            fn on_collision(&mut self,
-                            _c: &mut Context,
-                            _a: ActorData<ActorType>,
-                            _s: u8)
-                            -> ActorMessage {
-                ActorMessage::None
-            }
-
             #[allow(unused_imports)]
             fn collides_with(&mut self,
                              other_actor: &ActorData<ActorType>)

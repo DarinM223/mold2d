@@ -1,5 +1,5 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::collision;
+use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_LEFT, COLLISION_RIGHT};
 use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, Context,
              Direction, Renderable, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
@@ -110,78 +110,34 @@ impl Player {
 
 impl Actor<ActorType, ActorMessage> for Player {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        match *message {
-            ActorMessage::ActorAction(_, ref message) => {
-                match *message {
-                    ActorAction::DamageActor(_) => {
-                        match self.size {
-                            PlayerSize::Big |
-                            PlayerSize::Crouching => {
-                                self.rect.h /= 2;
-                                self.size = PlayerSize::Small;
+        if let ActorMessage::ActorAction(_, ref message) = *message {
+            match *message {
+                ActorAction::DamageActor(_) => {
+                    match self.size {
+                        PlayerSize::Big |
+                        PlayerSize::Crouching => {
+                            self.rect.h /= 2;
+                            self.size = PlayerSize::Small;
 
-                                ActorMessage::None
-                            }
-                            PlayerSize::Small => ActorMessage::PlayerDied,
+                            ActorMessage::None
                         }
+                        PlayerSize::Small => ActorMessage::PlayerDied,
                     }
                 }
+                ActorAction::Collision(_, side) if side == COLLISION_TOP => {
+                    self.curr_speed.y = 0.;
+                    self.hit_ceiling = true;
+                    ActorMessage::None
+                }
+                ActorAction::Collision(_, side) if side == COLLISION_BOTTOM => {
+                    self.grounded = true;
+                    ActorMessage::None
+                }
+                _ => ActorMessage::None
             }
-            _ => ActorMessage::None,
+        } else {
+            ActorMessage::None
         }
-    }
-
-    fn on_collision(&mut self,
-                    _: &mut Context,
-                    other: ActorData<ActorType>,
-                    side: u8)
-                    -> ActorMessage {
-        let other_bbox = match other.bounding_box {
-            Some(b) => b,
-            None => return ActorMessage::None,
-        };
-
-        let key = (self.size, self.curr_state, self.direction);
-
-        if let Some(ref mut self_bbox) = self.anims.bbox_mut(&key) {
-            if side & collision::COLLISION_LEFT != 0 {
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_LEFT) {
-                    self.rect.x -= 1;
-                    self_bbox.change_pos(&self.rect);
-                }
-            }
-            if side & collision::COLLISION_RIGHT != 0 {
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_RIGHT) {
-                    self.rect.x += 1;
-                    self_bbox.change_pos(&self.rect);
-                }
-            }
-            if side & collision::COLLISION_TOP != 0 {
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_TOP) {
-                    self.rect.y += 1;
-                    self_bbox.change_pos(&self.rect);
-                }
-
-                self.curr_speed.y = 0.;
-                self.hit_ceiling = true;
-            }
-            if side & collision::COLLISION_BOTTOM != 0 {
-                if self.curr_state == PlayerState::Jumping {
-                    self.curr_state = PlayerState::Idle;
-                }
-
-                while self_bbox.collides_with(&other_bbox) == Some(collision::COLLISION_BOTTOM) {
-                    self.rect.y -= 1;
-                    self_bbox.change_pos(&self.rect);
-                }
-
-                self.rect.y += 1;
-                self_bbox.change_pos(&self.rect);
-                self.grounded = true;
-            }
-        }
-
-        ActorMessage::None
     }
 
     fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<u8> {
