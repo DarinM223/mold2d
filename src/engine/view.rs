@@ -29,6 +29,61 @@ pub struct ActorData<Type> {
     pub actor_type: Type,
 }
 
+/// Represents a change of position
+pub struct PositionChange {
+    pub x: i32,
+    pub y: i32,
+    pub w: u32,
+    pub h: u32,
+}
+
+impl PositionChange {
+    pub fn new() -> PositionChange {
+        PositionChange {
+            x: 0,
+            y: 0,
+            w: 0,
+            h: 0,
+        }
+    }
+
+    pub fn left(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x - amount,
+            y: self.y,
+            w: self.w,
+            h: self.h,
+        }
+    }
+
+    pub fn right(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x + amount,
+            y: self.y,
+            w: self.w,
+            h: self.h,
+        }
+    }
+
+    pub fn up(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x,
+            y: self.y + amount,
+            w: self.w,
+            h: self.h,
+        }
+    }
+
+    pub fn down(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x,
+            y: self.y - amount,
+            w: self.w,
+            h: self.h,
+        }
+    }
+}
+
 pub trait Actor<Type, Message> {
     /// Called every frame to render an actor
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64);
@@ -44,4 +99,7 @@ pub trait Actor<Type, Message> {
 
     /// Gets the actor data
     fn data(&mut self) -> ActorData<Type>;
+
+    /// Change position
+    fn change_pos(&mut self, change: &PositionChange);
 }

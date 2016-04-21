@@ -1,6 +1,6 @@
 use actions::{ActorMessage, ActorType};
 use engine::{Actor, ActorData, Animation, AnimationData, BoundingBox, Collision, Context,
-             Renderable, Sprite, SpriteRectangle, Viewport};
+             PositionChange, Renderable, Sprite, SpriteRectangle, Viewport};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
@@ -102,6 +102,8 @@ macro_rules! block {
                     actor_type: ActorType::Block,
                 }
             }
+
+            fn change_pos(&mut self, _: &PositionChange) {}
         }
     }
 }

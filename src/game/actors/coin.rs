@@ -1,6 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
 use engine::{Actor, ActorData, AnimatedSprite, Animation, AnimationData, BoundingBox, Collision,
-             Context, Renderable, SpriteRectangle, Viewport};
+             PositionChange, Context, Renderable, SpriteRectangle, Viewport};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
@@ -74,5 +74,9 @@ impl Actor<ActorType, ActorMessage> for Coin {
             bounding_box: Some(BoundingBox::Rectangle(self.rect.clone())),
             actor_type: ActorType::Item,
         }
+    }
+
+    fn change_pos(&mut self, change: &PositionChange) {
+        self.rect.apply_change(&change);
     }
 }

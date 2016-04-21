@@ -45,5 +45,5 @@ pub use score::Score;
 pub use sprite::{AnimatedSprite, Animation, AnimationData, AnimationManager, Direction,
                  Renderable, Sprite, SpriteRectangle};
 pub use vector::Vector2D;
-pub use view::{Actor, ActorData, View, ViewAction};
+pub use view::{Actor, ActorData, PositionChange, View, ViewAction};
 pub use viewport::Viewport;

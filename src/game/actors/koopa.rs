@@ -1,7 +1,7 @@
 use actions::{ActorAction, ActorMessage, ActorType};
 use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_LEFT, COLLISION_RIGHT};
 use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, Context,
-             Direction, Renderable, SpriteRectangle, Vector2D, Viewport};
+             Direction, PositionChange, Renderable, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const KOOPA_X_MAXSPEED: f64 = 10.0;
@@ -165,6 +165,14 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                               .bbox(&(self.curr_state, self.direction))
                               .map(|bb| bb.clone()),
             actor_type: ActorType::Enemy,
+        }
+    }
+
+    fn change_pos(&mut self, change: &PositionChange) {
+        self.rect.apply_change(&change);
+        let key = (self.curr_state, self.direction);
+        if let Some(ref mut bbox) = self.anims.bbox_mut(&key) {
+            bbox.apply_change(&change);
         }
     }
 }

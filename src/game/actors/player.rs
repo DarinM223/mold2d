@@ -1,7 +1,7 @@
 use actions::{ActorAction, ActorMessage, ActorType};
 use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_LEFT, COLLISION_RIGHT};
 use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, Context,
-             Direction, Renderable, SpriteRectangle, Vector2D, Viewport};
+             Direction, PositionChange, Renderable, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const PLAYER_WIDTH: u32 = 30;
@@ -133,7 +133,7 @@ impl Actor<ActorType, ActorMessage> for Player {
                     self.grounded = true;
                     ActorMessage::None
                 }
-                _ => ActorMessage::None
+                _ => ActorMessage::None,
             }
         } else {
             ActorMessage::None
@@ -227,7 +227,6 @@ impl Actor<ActorType, ActorMessage> for Player {
         // Update sprite animation
         let key = (self.size, self.curr_state, self.direction);
         self.anims.add_time(&key, elapsed);
-        self.anims.change_pos(&key, &self.rect);
 
         ActorMessage::SetViewport(self.rect.x, self.rect.y)
     }
@@ -248,6 +247,14 @@ impl Actor<ActorType, ActorMessage> for Player {
                               .bbox(&(self.size, self.curr_state, self.direction))
                               .map(|bb| bb.clone()),
             actor_type: ActorType::Player,
+        }
+    }
+
+    fn change_pos(&mut self, change: &PositionChange) {
+        self.rect.apply_change(&change);
+        let key = (self.size, self.curr_state, self.direction);
+        if let Some(ref mut bbox) = self.anims.bbox_mut(&key) {
+            bbox.apply_change(&change);
         }
     }
 }

@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::path::Path;
 use std::rc::Rc;
+use view::PositionChange;
 use viewport::Viewport;
 
 /// The direction that a sprite is facing
@@ -54,6 +55,13 @@ impl SpriteRectangle {
     /// Used for rendering SpriteRectangles in SDL
     pub fn to_sdl(&self) -> Option<Rect> {
         Rect::new(self.x, self.y, self.w, self.h).unwrap()
+    }
+
+    pub fn apply_change(&mut self, change: &PositionChange) {
+        self.x += change.x;
+        self.y += change.y;
+        self.w += change.w;
+        self.h += change.h;
     }
 }
 
@@ -343,13 +351,6 @@ impl<State> AnimationManager<State> where State: Clone + Eq + Hash
     pub fn add_time(&mut self, s: &State, elapsed: f64) {
         if let Some(animation) = self.anim_mut(s) {
             animation.add_time(elapsed);
-        }
-    }
-
-    /// Changes the bounding box of the current animation
-    pub fn change_pos(&mut self, s: &State, rect: &SpriteRectangle) {
-        if let Some(bounding_box) = self.bbox_mut(s) {
-            bounding_box.change_pos(rect);
         }
     }
 

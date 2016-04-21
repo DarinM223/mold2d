@@ -120,9 +120,9 @@ impl View for GameView {
                                                       .into_iter()
                                                       .map(|act| act.clone())
                                                       .collect::<Vec<_>>();
-                        for other_actor in collided_actors {
-                            if let Some(direction) = actor.collides_with(&other_actor) {
-                                let direction = direction & other_actor.collision_filter;
+                        for other in collided_actors {
+                            if let Some(direction) = actor.collides_with(&other) {
+                                let direction = direction & other.collision_filter;
                                 match direction {
                                     COLLISION_TOP => {}
                                     COLLISION_BOTTOM => {}
@@ -130,10 +130,14 @@ impl View for GameView {
                                     COLLISION_RIGHT => {}
                                     _ => {}
                                 }
+
+                                let collision = ActorAction::Collision(other.actor_type, direction);
+                                let message = ActorMessage::ActorAction(other.id, collision);
                                 handle_message(&mut self.actors,
                                                &mut self.viewport,
                                                context,
-                                               &ActorMessage::ActorAction(other_actor.id, ActorAction::Collision(other_actor.actor_type, direction)));
+                                               &message);
+
                             }
                         }
                     }

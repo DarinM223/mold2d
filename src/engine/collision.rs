@@ -1,5 +1,6 @@
 use sdl2::rect::Rect;
 use sprite::SpriteRectangle;
+use view::PositionChange;
 
 /// Checks if a rectangle contains another rectangle
 pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {
@@ -98,14 +99,11 @@ pub enum BoundingBox {
 }
 
 impl BoundingBox {
-    pub fn change_pos(&mut self, pos: &SpriteRectangle) {
+    pub fn apply_change(&mut self, change: &PositionChange) {
         match *self {
             BoundingBox::Rectangle(ref mut rect) => {
-                rect.x = pos.x;
-
-                let sprite_h = pos.h as i32;
-                let rect_h = rect.h as i32;
-                rect.y = pos.y + sprite_h - rect_h;
+                rect.x += change.x;
+                rect.y += change.y;
             }
         }
     }
