@@ -10,18 +10,19 @@ use views::background_view::BackgroundView;
 
 fn handle_message(actors: &mut ActorManager<ActorType, ActorMessage>,
                   viewport: &mut Viewport,
-                  c: &mut Context,
+                  context: &mut Context,
                   action: &ActorMessage) {
     use actions::ActorMessage::*;
 
     match *action {
-        AddActor(token, pos) => actors.add(token, pos, &mut c.renderer),
+        AddActor(token, pos) => actors.add(token, pos, &mut context.renderer),
         RemoveActor(id) => actors.remove(id),
         SetViewport(x, y) => viewport.set_position((x, y)),
+        UpdateScore(amount) => context.score.increment_score("GAME_SCORE", amount),
         ref action @ ActorAction(_, _) => {
             if let ActorAction(id, _) = *action {
                 let message = actors.get_mut(id).unwrap().handle_message(&action);
-                handle_message(actors, viewport, c, &message);
+                handle_message(actors, viewport, context, &message);
             }
         }
         // TODO(DarinM223): change this to check # of lives left and if
@@ -123,23 +124,33 @@ impl View for GameView {
                                                       .collect::<Vec<_>>();
                         for other in collided_actors {
                             if let Some(direction) = actor.collides_with(&other) {
-                                let direction = direction & other.collision_filter;
-                                match direction {
-                                    COLLISION_TOP => {
+                                // TODO(DarinM223): remove hack that fixes bug with block collision
+                                // detection
+                                if actor.data().actor_type != ActorType::Block {
+                                    while actor.collides_with(&other) == Some(direction) {
+                                        match direction {
+                                            COLLISION_TOP => {
+                                                actor.change_pos(&PositionChange::new().down(1));
+                                            }
+                                            COLLISION_BOTTOM => {
+                                                actor.change_pos(&PositionChange::new().up(1));
+                                            }
+                                            COLLISION_LEFT => {
+                                                actor.change_pos(&PositionChange::new().right(1));
+                                            }
+                                            COLLISION_RIGHT => {
+                                                actor.change_pos(&PositionChange::new().left(1));
+                                            }
+                                            _ => {}
+                                        }
+                                    }
+
+                                    if direction == COLLISION_BOTTOM {
                                         actor.change_pos(&PositionChange::new().down(1));
                                     }
-                                    COLLISION_BOTTOM => {
-                                        actor.change_pos(&PositionChange::new().up(1));
-                                    }
-                                    COLLISION_LEFT => {
-                                        actor.change_pos(&PositionChange::new().right(1));
-                                    }
-                                    COLLISION_RIGHT => {
-                                        actor.change_pos(&PositionChange::new().left(1));
-                                    }
-                                    _ => {}
                                 }
 
+                                let direction = direction & other.collision_filter;
                                 let collision = ActorAction::Collision(other.actor_type, direction);
                                 let message = ActorMessage::ActorAction(actor.data().id, collision);
                                 actor.handle_message(&message);

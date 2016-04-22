@@ -170,9 +170,6 @@ impl Actor<ActorType, ActorMessage> for Koopa {
 
     fn change_pos(&mut self, change: &PositionChange) {
         self.rect.apply_change(&change);
-        let key = (self.curr_state, self.direction);
-        if let Some(ref mut bbox) = self.anims.bbox_mut(&key) {
-            bbox.apply_change(&change);
-        }
+        self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
     }
 }
