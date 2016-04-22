@@ -37,7 +37,7 @@ pub mod view;
 pub mod viewport;
 
 pub use actor_manager::{ActorFromToken, ActorManager};
-pub use collision::{BoundingBox, Collision};
+pub use collision::{BoundingBox, Collision, CollisionSide};
 pub use context::{Context, Window};
 pub use events::Events;
 pub use quadtree::Quadtree;

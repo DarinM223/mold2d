@@ -1,7 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_LEFT, COLLISION_RIGHT};
-use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, Context,
-             Direction, PositionChange, Renderable, SpriteRectangle, Vector2D, Viewport};
+use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, CollisionSide,
+             Context, Direction, PositionChange, Renderable, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const KOOPA_X_MAXSPEED: f64 = 10.0;
@@ -88,7 +87,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         if let ActorMessage::ActorAction(id, ref message) = *message {
             match *message {
                 Collision(actor_type, side) if actor_type == ActorType::Block &&
-                                               side & COLLISION_BOTTOM != 0 => {
+                                               side & CollisionSide::Bottom != 0 => {
                     if self.curr_state == KoopaState::Jumping {
                         self.curr_state = KoopaState::Walking;
                     }
@@ -107,7 +106,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         }
     }
 
-    fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<u8> {
+    fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<CollisionSide> {
         let key = (self.curr_state, self.direction);
         self.anims.collides_with(&key, &other.bounding_box)
     }

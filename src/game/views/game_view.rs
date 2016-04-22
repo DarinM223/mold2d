@@ -1,9 +1,8 @@
 use actions::{ActorAction, ActorMessage, ActorType, GameActorGenerator};
-use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_RIGHT, COLLISION_LEFT};
 use engine::font;
 use engine::level;
-use engine::{Actor, ActorManager, Collision, Context, PositionChange, Quadtree, View, ViewAction,
-             Viewport};
+use engine::{Actor, ActorManager, Collision, CollisionSide, Context, PositionChange, Quadtree,
+             View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;
@@ -129,23 +128,22 @@ impl View for GameView {
                                 if actor.data().actor_type != ActorType::Block {
                                     while actor.collides_with(&other) == Some(direction) {
                                         match direction {
-                                            COLLISION_TOP => {
+                                            CollisionSide::Top => {
                                                 actor.change_pos(&PositionChange::new().down(1));
                                             }
-                                            COLLISION_BOTTOM => {
+                                            CollisionSide::Bottom => {
                                                 actor.change_pos(&PositionChange::new().up(1));
                                             }
-                                            COLLISION_LEFT => {
+                                            CollisionSide::Left => {
                                                 actor.change_pos(&PositionChange::new().right(1));
                                             }
-                                            COLLISION_RIGHT => {
+                                            CollisionSide::Right => {
                                                 actor.change_pos(&PositionChange::new().left(1));
                                             }
-                                            _ => {}
                                         }
                                     }
 
-                                    if direction == COLLISION_BOTTOM {
+                                    if direction == CollisionSide::Bottom {
                                         actor.change_pos(&PositionChange::new().down(1));
                                     }
                                 }

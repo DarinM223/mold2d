@@ -1,6 +1,6 @@
 use cache;
 use collision;
-use collision::{BoundingBox, Collision};
+use collision::{BoundingBox, Collision, CollisionSide};
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use sdl2_image::LoadTexture;
@@ -352,7 +352,10 @@ impl<State> AnimationManager<State> where State: Clone + Eq + Hash
 
     /// Checks if the animation at the state collides with another bounding box
     /// and returns the side of the collision if it happens
-    pub fn collides_with(&mut self, s: &State, other_bbox: &Option<BoundingBox>) -> Option<u8> {
+    pub fn collides_with(&mut self,
+                         s: &State,
+                         other_bbox: &Option<BoundingBox>)
+                         -> Option<CollisionSide> {
         if let Some(bounding_box) = self.bbox(s) {
             if let Some(ref bbox) = *other_bbox {
                 return bounding_box.collides_with(bbox);

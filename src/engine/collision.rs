@@ -1,5 +1,6 @@
 use sdl2::rect::Rect;
 use sprite::SpriteRectangle;
+use std::ops::{BitAnd, BitOr};
 use view::PositionChange;
 
 /// Checks if a rectangle contains another rectangle
@@ -23,18 +24,82 @@ pub fn center_point(rect: &Rect) -> (f64, f64) {
      (rect.y() as f64) + 0.5 * (rect.height() as f64))
 }
 
-pub const COLLISION_LEFT: u8 = 0b1000;
-pub const COLLISION_RIGHT: u8 = 0b0100;
-pub const COLLISION_TOP: u8 = 0b0010;
-pub const COLLISION_BOTTOM: u8 = 0b0001;
+#[repr(u8)]
+#[derive(Clone, Copy, PartialEq)]
+pub enum CollisionSide {
+    Left = 0b1000,
+    Right = 0b0100,
+    Top = 0b0010,
+    Bottom = 0b0001,
+}
+
+impl BitAnd<CollisionSide> for CollisionSide {
+    type Output = u8;
+
+    fn bitand(self, other: CollisionSide) -> u8 {
+        (self as u8) & (other as u8)
+    }
+}
+
+impl BitAnd<u8> for CollisionSide {
+    type Output = u8;
+
+    fn bitand(self, other: u8) -> u8 {
+        (self as u8) & other
+    }
+}
+
+impl BitAnd<CollisionSide> for u8 {
+    type Output = u8;
+
+    fn bitand(self, other: CollisionSide) -> u8 {
+        self & (other as u8)
+    }
+}
+
+impl BitOr<CollisionSide> for CollisionSide {
+    type Output = u8;
+
+    fn bitor(self, other: CollisionSide) -> u8 {
+        (self as u8) | (other as u8)
+    }
+}
+
+impl BitOr<u8> for CollisionSide {
+    type Output = u8;
+
+    fn bitor(self, other: u8) -> u8 {
+        (self as u8) | other
+    }
+}
+
+impl BitOr<CollisionSide> for u8 {
+    type Output = u8;
+
+    fn bitor(self, other: CollisionSide) -> u8 {
+        self | (other as u8)
+    }
+}
+
+impl PartialEq<u8> for CollisionSide {
+    fn eq(&self, other: &u8) -> bool {
+        (*self as u8) == *other
+    }
+}
+
+impl PartialEq<CollisionSide> for u8 {
+    fn eq(&self, other: &CollisionSide) -> bool {
+        *self == (*other as u8)
+    }
+}
 
 /// Checks collisions for different objects
 pub trait Collision<T> {
-    fn collides_with(&self, other: T) -> Option<u8>;
+    fn collides_with(&self, other: T) -> Option<CollisionSide>;
 }
 
 impl Collision<Rect> for Rect {
-    fn collides_with(&self, other: Rect) -> Option<u8> {
+    fn collides_with(&self, other: Rect) -> Option<CollisionSide> {
         let w = 0.5 * (self.width() + other.width()) as f64;
         let h = 0.5 * (self.height() + other.height()) as f64;
         let dx = center_point(self).0 - center_point(&other).0;
@@ -46,15 +111,15 @@ impl Collision<Rect> for Rect {
 
             if wy > hx {
                 if wy > -hx {
-                    return Some(COLLISION_TOP);
+                    return Some(CollisionSide::Top);
                 } else {
-                    return Some(COLLISION_LEFT);
+                    return Some(CollisionSide::Left);
                 }
             } else {
                 if wy > -hx {
-                    return Some(COLLISION_RIGHT);
+                    return Some(CollisionSide::Right);
                 } else {
-                    return Some(COLLISION_BOTTOM);
+                    return Some(CollisionSide::Bottom);
                 }
             }
         }
@@ -64,7 +129,7 @@ impl Collision<Rect> for Rect {
 }
 
 impl Collision<SpriteRectangle> for Rect {
-    fn collides_with(&self, other: SpriteRectangle) -> Option<u8> {
+    fn collides_with(&self, other: SpriteRectangle) -> Option<CollisionSide> {
         if let Some(rect) = other.to_sdl() {
             return self.collides_with(rect);
         }
@@ -74,7 +139,7 @@ impl Collision<SpriteRectangle> for Rect {
 }
 
 impl Collision<Rect> for SpriteRectangle {
-    fn collides_with(&self, other: Rect) -> Option<u8> {
+    fn collides_with(&self, other: Rect) -> Option<CollisionSide> {
         if let Some(rect) = self.to_sdl() {
             return rect.collides_with(other);
         }
@@ -84,7 +149,7 @@ impl Collision<Rect> for SpriteRectangle {
 }
 
 impl Collision<SpriteRectangle> for SpriteRectangle {
-    fn collides_with(&self, other: SpriteRectangle) -> Option<u8> {
+    fn collides_with(&self, other: SpriteRectangle) -> Option<CollisionSide> {
         if let Some(rect) = other.to_sdl() {
             return self.collides_with(rect);
         }
@@ -110,7 +175,7 @@ impl BoundingBox {
 }
 
 impl<'a> Collision<&'a BoundingBox> for BoundingBox {
-    fn collides_with(&self, other: &'a BoundingBox) -> Option<u8> {
+    fn collides_with(&self, other: &'a BoundingBox) -> Option<CollisionSide> {
         match (self, other) {
             (&BoundingBox::Rectangle(ref rect1),
              &BoundingBox::Rectangle(ref rect2)) => {

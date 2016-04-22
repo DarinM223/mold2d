@@ -1,4 +1,4 @@
-use collision::BoundingBox;
+use collision::{BoundingBox, CollisionSide};
 use context::Context;
 use sdl2::rect::Rect;
 use viewport::Viewport;
@@ -92,7 +92,7 @@ pub trait Actor<Type, Message> {
     fn handle_message(&mut self, message: &Message) -> Message;
 
     /// Returns the side of the collision if actor collides with another actor
-    fn collides_with(&mut self, other_actor: &ActorData<Type>) -> Option<u8>;
+    fn collides_with(&mut self, other_actor: &ActorData<Type>) -> Option<CollisionSide>;
 
     /// Called every frame to update an actor
     fn update(&mut self, context: &mut Context, elapsed: f64) -> Message;

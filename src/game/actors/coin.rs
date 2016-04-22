@@ -1,6 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
 use engine::{Actor, ActorData, AnimatedSprite, Animation, AnimationData, BoundingBox, Collision,
-             PositionChange, Context, Renderable, SpriteRectangle, Viewport};
+             CollisionSide, PositionChange, Context, Renderable, SpriteRectangle, Viewport};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
@@ -46,7 +46,7 @@ impl Actor<ActorType, ActorMessage> for Coin {
         }
     }
 
-    fn collides_with(&mut self, other_actor: &ActorData<ActorType>) -> Option<u8> {
+    fn collides_with(&mut self, other_actor: &ActorData<ActorType>) -> Option<CollisionSide> {
         self.rect.collides_with(other_actor.rect)
     }
 

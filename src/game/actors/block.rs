@@ -1,6 +1,6 @@
 use actions::{ActorMessage, ActorType};
-use engine::{Actor, ActorData, Animation, AnimationData, BoundingBox, Collision, Context,
-             PositionChange, Renderable, Sprite, SpriteRectangle, Viewport};
+use engine::{Actor, ActorData, Animation, AnimationData, BoundingBox, Collision, CollisionSide,
+             Context, PositionChange, Renderable, Sprite, SpriteRectangle, Viewport};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
@@ -69,7 +69,7 @@ macro_rules! block {
             #[allow(unused_imports)]
             fn collides_with(&mut self,
                              other_actor: &ActorData<ActorType>)
-                             -> Option<u8> {
+                             -> Option<CollisionSide> {
                 self.rect.collides_with(other_actor.rect)
             }
 

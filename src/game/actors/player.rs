@@ -1,7 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_LEFT, COLLISION_RIGHT};
-use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, Context,
-             Direction, PositionChange, Renderable, SpriteRectangle, Vector2D, Viewport};
+use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, CollisionSide,
+             Context, Direction, PositionChange, Renderable, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const PLAYER_WIDTH: u32 = 30;
@@ -124,12 +123,12 @@ impl Actor<ActorType, ActorMessage> for Player {
                         PlayerSize::Small => ActorMessage::PlayerDied,
                     }
                 }
-                ActorAction::Collision(_, side) if side == COLLISION_TOP => {
+                ActorAction::Collision(_, side) if side == CollisionSide::Top => {
                     self.curr_speed.y = 0.;
                     self.hit_ceiling = true;
                     ActorMessage::None
                 }
-                ActorAction::Collision(_, side) if side == COLLISION_BOTTOM => {
+                ActorAction::Collision(_, side) if side == CollisionSide::Bottom => {
                     if self.curr_state == PlayerState::Jumping {
                         self.curr_state = PlayerState::Idle;
                     }
@@ -144,7 +143,7 @@ impl Actor<ActorType, ActorMessage> for Player {
         }
     }
 
-    fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<u8> {
+    fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<CollisionSide> {
         let key = (self.size, self.curr_state, self.direction);
         self.anims.collides_with(&key, &other.bounding_box)
     }
