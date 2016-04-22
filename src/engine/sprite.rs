@@ -335,6 +335,21 @@ impl<State> AnimationManager<State> where State: Clone + Eq + Hash
         self.curr_bbox.as_mut()
     }
 
+    /// Maps a function that mutates a bounding box over all of the
+    /// bounding boxes in the animation
+    pub fn map_bbox_mut<F>(&mut self, f: F)
+        where F: Fn(&mut BoundingBox)
+    {
+        if let Some(ref mut bbox) = self.curr_bbox {
+            f(bbox);
+        }
+
+        for animation in self.animations.iter_mut() {
+            let bbox = &mut (animation.1).1;
+            f(bbox);
+        }
+    }
+
     /// Checks if the animation at the state collides with another bounding box
     /// and returns the side of the collision if it happens
     pub fn collides_with(&mut self, s: &State, other_bbox: &Option<BoundingBox>) -> Option<u8> {

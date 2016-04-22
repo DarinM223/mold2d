@@ -49,7 +49,7 @@ impl PositionChange {
 
     pub fn left(&self, amount: i32) -> PositionChange {
         PositionChange {
-            x: self.x - amount,
+            x: self.x + amount,
             y: self.y,
             w: self.w,
             h: self.h,
@@ -58,7 +58,7 @@ impl PositionChange {
 
     pub fn right(&self, amount: i32) -> PositionChange {
         PositionChange {
-            x: self.x + amount,
+            x: self.x - amount,
             y: self.y,
             w: self.w,
             h: self.h,
@@ -68,7 +68,7 @@ impl PositionChange {
     pub fn up(&self, amount: i32) -> PositionChange {
         PositionChange {
             x: self.x,
-            y: self.y + amount,
+            y: self.y - amount,
             w: self.w,
             h: self.h,
         }
@@ -77,7 +77,7 @@ impl PositionChange {
     pub fn down(&self, amount: i32) -> PositionChange {
         PositionChange {
             x: self.x,
-            y: self.y - amount,
+            y: self.y + amount,
             w: self.w,
             h: self.h,
         }

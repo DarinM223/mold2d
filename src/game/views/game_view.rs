@@ -2,7 +2,8 @@ use actions::{ActorAction, ActorMessage, ActorType, GameActorGenerator};
 use engine::collision::{COLLISION_TOP, COLLISION_BOTTOM, COLLISION_RIGHT, COLLISION_LEFT};
 use engine::font;
 use engine::level;
-use engine::{Actor, ActorManager, Collision, Context, Quadtree, View, ViewAction, Viewport};
+use engine::{Actor, ActorManager, Collision, Context, PositionChange, Quadtree, View, ViewAction,
+             Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;
@@ -124,20 +125,24 @@ impl View for GameView {
                             if let Some(direction) = actor.collides_with(&other) {
                                 let direction = direction & other.collision_filter;
                                 match direction {
-                                    COLLISION_TOP => {}
-                                    COLLISION_BOTTOM => {}
-                                    COLLISION_LEFT => {}
-                                    COLLISION_RIGHT => {}
+                                    COLLISION_TOP => {
+                                        actor.change_pos(&PositionChange::new().down(1));
+                                    }
+                                    COLLISION_BOTTOM => {
+                                        actor.change_pos(&PositionChange::new().up(1));
+                                    }
+                                    COLLISION_LEFT => {
+                                        actor.change_pos(&PositionChange::new().right(1));
+                                    }
+                                    COLLISION_RIGHT => {
+                                        actor.change_pos(&PositionChange::new().left(1));
+                                    }
                                     _ => {}
                                 }
 
                                 let collision = ActorAction::Collision(other.actor_type, direction);
-                                let message = ActorMessage::ActorAction(other.id, collision);
-                                handle_message(&mut self.actors,
-                                               &mut self.viewport,
-                                               context,
-                                               &message);
-
+                                let message = ActorMessage::ActorAction(actor.data().id, collision);
+                                actor.handle_message(&message);
                             }
                         }
                     }

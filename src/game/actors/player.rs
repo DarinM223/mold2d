@@ -130,6 +130,10 @@ impl Actor<ActorType, ActorMessage> for Player {
                     ActorMessage::None
                 }
                 ActorAction::Collision(_, side) if side == COLLISION_BOTTOM => {
+                    if self.curr_state == PlayerState::Jumping {
+                        self.curr_state = PlayerState::Idle;
+                    }
+
                     self.grounded = true;
                     ActorMessage::None
                 }
@@ -198,6 +202,8 @@ impl Actor<ActorType, ActorMessage> for Player {
         self.curr_speed = (PLAYER_ACCELERATION * target_speed) +
                           ((1.0 - PLAYER_ACCELERATION) * self.curr_speed);
 
+        let mut change = PositionChange::new().left(self.curr_speed.x as i32);
+
         // Don't allow jumping if player already collides with the ceiling
         if self.hit_ceiling {
             self.hit_ceiling = false;
@@ -207,11 +213,11 @@ impl Actor<ActorType, ActorMessage> for Player {
         }
 
         match self.curr_state {
-            PlayerState::Jumping => self.rect.y += self.curr_speed.y as i32,
+            PlayerState::Jumping => change = change.down(self.curr_speed.y as i32),
             PlayerState::Idle | PlayerState::Walking => {}
         }
 
-        self.rect.x += self.curr_speed.x as i32;
+        self.change_pos(&change);
 
         // If actor is no longer grounded, change it to jumping
         if !self.grounded &&
@@ -233,7 +239,7 @@ impl Actor<ActorType, ActorMessage> for Player {
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
         let key = (self.size, self.curr_state, self.direction);
-        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
+        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, true);
     }
 
     fn data(&mut self) -> ActorData<ActorType> {
@@ -252,9 +258,6 @@ impl Actor<ActorType, ActorMessage> for Player {
 
     fn change_pos(&mut self, change: &PositionChange) {
         self.rect.apply_change(&change);
-        let key = (self.size, self.curr_state, self.direction);
-        if let Some(ref mut bbox) = self.anims.bbox_mut(&key) {
-            bbox.apply_change(&change);
-        }
+        self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
     }
 }
