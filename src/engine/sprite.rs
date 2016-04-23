@@ -138,11 +138,11 @@ impl Renderable for Sprite {
 /// Represents an animated sprite with multiple frames
 #[derive(Clone)]
 pub struct AnimatedSprite {
-    /// frames that will be rendered
+    /// Frames that will be rendered
     frames: Vec<Sprite>,
-    /// time between frames
+    /// Time between frames
     frame_delay: f64,
-    /// total time sprite has been alive
+    /// Total time sprite has been alive
     current_time: f64,
 }
 

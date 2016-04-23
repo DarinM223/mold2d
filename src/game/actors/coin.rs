@@ -37,7 +37,11 @@ impl Actor<ActorType, ActorMessage> for Coin {
         if let ActorMessage::ActorAction(_, ref message) = *message {
             match *message {
                 ActorAction::Collision(actor_type, _) if actor_type == ActorType::Player => {
-                    ActorMessage::UpdateScore(COIN_VALUE)
+                    // Update score and remove coin
+                    ActorMessage::MultipleMessages(vec![
+                        Box::new(ActorMessage::UpdateScore(COIN_VALUE)),
+                        Box::new(ActorMessage::RemoveActor(self.data().id)),
+                    ])
                 }
                 _ => ActorMessage::None,
             }

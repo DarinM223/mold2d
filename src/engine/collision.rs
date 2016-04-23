@@ -33,6 +33,26 @@ pub enum CollisionSide {
     Bottom = 0b0001,
 }
 
+impl CollisionSide {
+    pub fn reverse(side: CollisionSide) -> u8 {
+        CollisionSide::reverse_u8(side as u8)
+    }
+
+    pub fn reverse_u8(side: u8) -> u8 {
+        let mut side = side;
+
+        if side & 0b0011 != 0b0011 && side & 0b0011 != 0b0000 {
+            side ^= 0b0011;
+        }
+
+        if side & 0b1100 != 0b1100 && side & 0b1100 != 0b0000 {
+            side ^= 0b1100;
+        }
+
+        side
+    }
+}
+
 impl BitAnd<CollisionSide> for CollisionSide {
     type Output = u8;
 
@@ -183,5 +203,28 @@ impl<'a> Collision<&'a BoundingBox> for BoundingBox {
                 rect1.collides_with(rect2.clone())
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_collision_reverse() {
+        let side = 0b1111;
+        assert_eq!(CollisionSide::reverse_u8(side), 0b1111);
+
+        let side = 0b1110;
+        assert_eq!(CollisionSide::reverse_u8(side), 0b1101);
+
+        let side = 0b0111;
+        assert_eq!(CollisionSide::reverse_u8(side), 0b1011);
+
+        let side = 0b0110;
+        assert_eq!(CollisionSide::reverse_u8(side), 0b1001);
+
+        let side = 0b0000;
+        assert_eq!(CollisionSide::reverse_u8(side), 0b0000);
     }
 }

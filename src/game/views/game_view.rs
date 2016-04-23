@@ -7,7 +7,8 @@ use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;
 
-fn handle_message(actors: &mut ActorManager<ActorType, ActorMessage>,
+fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
+                  actors: &mut ActorManager<ActorType, ActorMessage>,
                   viewport: &mut Viewport,
                   context: &mut Context,
                   action: &ActorMessage) {
@@ -18,10 +19,21 @@ fn handle_message(actors: &mut ActorManager<ActorType, ActorMessage>,
         RemoveActor(id) => actors.remove(id),
         SetViewport(x, y) => viewport.set_position((x, y)),
         UpdateScore(amount) => context.score.increment_score("GAME_SCORE", amount),
+        MultipleMessages(ref messages) => {
+            for message in messages {
+                handle_message(curr_actor, actors, viewport, context, message);
+            }
+        }
         ref action @ ActorAction(_, _) => {
             if let ActorAction(id, _) = *action {
-                let message = actors.get_mut(id).unwrap().handle_message(&action);
-                handle_message(actors, viewport, context, &message);
+                let message = if curr_actor.data().id == id {
+                    curr_actor.handle_message(&action)
+                } else if let Some(ref mut actor) = actors.get_mut(id) {
+                    actor.handle_message(&action)
+                } else {
+                    ActorMessage::None
+                };
+                handle_message(curr_actor, actors, viewport, context, &message);
             }
         }
         // TODO(DarinM223): change this to check # of lives left and if
@@ -113,11 +125,11 @@ impl View for GameView {
 
             for key in keys {
                 let actor = self.actors.temp_remove(key);
-
                 if let Some(mut actor) = actor {
-                    if actor.data().collision_filter != 0 {
+                    let data = actor.data();
+                    if data.collision_filter != 0 {
                         // only check collisions for certain actors
-                        let collided_actors = quadtree.retrieve(&actor.data().rect)
+                        let collided_actors = quadtree.retrieve(&data.rect)
                                                       .into_iter()
                                                       .map(|act| act.clone())
                                                       .collect::<Vec<_>>();
@@ -125,7 +137,7 @@ impl View for GameView {
                             if let Some(direction) = actor.collides_with(&other) {
                                 // TODO(DarinM223): remove hack that fixes bug with block collision
                                 // detection
-                                if actor.data().actor_type != ActorType::Block {
+                                if data.actor_type != ActorType::Block {
                                     while actor.collides_with(&other) == Some(direction) {
                                         match direction {
                                             CollisionSide::Top => {
@@ -150,15 +162,34 @@ impl View for GameView {
 
                                 let direction = direction & other.collision_filter;
                                 let collision = ActorAction::Collision(other.actor_type, direction);
-                                let message = ActorMessage::ActorAction(actor.data().id, collision);
-                                actor.handle_message(&message);
+                                let message = ActorMessage::ActorAction(data.id, collision);
+                                let response = actor.handle_message(&message);
+
+                                let rev_dir = CollisionSide::reverse_u8(direction);
+                                let other_coll = ActorAction::Collision(data.actor_type, rev_dir);
+                                let other_msg = ActorMessage::ActorAction(other.id, other_coll);
+
+                                handle_message(&mut actor,
+                                               &mut self.actors,
+                                               &mut self.viewport,
+                                               context,
+                                               &response);
+                                handle_message(&mut actor,
+                                               &mut self.actors,
+                                               &mut self.viewport,
+                                               context,
+                                               &other_msg);
                             }
                         }
                     }
 
                     // update the actor
                     let message = actor.update(context, elapsed);
-                    handle_message(&mut self.actors, &mut self.viewport, context, &message);
+                    handle_message(&mut actor,
+                                   &mut self.actors,
+                                   &mut self.viewport,
+                                   context,
+                                   &message);
                     self.actors.temp_reinsert(actor.data().id, actor);
                 }
             }
