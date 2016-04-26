@@ -60,8 +60,16 @@ impl SpriteRectangle {
     pub fn apply_change(&mut self, change: &PositionChange) {
         self.x += change.x;
         self.y += change.y;
-        self.w += change.w;
-        self.h += change.h;
+        if change.w < 0 {
+            self.w -= change.w.abs() as u32;
+        } else {
+            self.w += change.w as u32;
+        }
+        if change.h < 0 {
+            self.h -= change.h.abs() as u32;
+        } else {
+            self.w += change.w as u32;
+        }
     }
 }
 

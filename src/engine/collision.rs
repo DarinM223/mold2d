@@ -34,10 +34,12 @@ pub enum CollisionSide {
 }
 
 impl CollisionSide {
+    /// Reverses a collision side
     pub fn reverse(side: CollisionSide) -> u8 {
         CollisionSide::reverse_u8(side as u8)
     }
 
+    /// Reverses a collision side byte
     pub fn reverse_u8(side: u8) -> u8 {
         let mut side = side;
 
@@ -50,6 +52,10 @@ impl CollisionSide {
         }
 
         side
+    }
+
+    pub fn print(self) {
+        print_collision_side_u8(self as u8);
     }
 }
 
@@ -111,6 +117,28 @@ impl PartialEq<CollisionSide> for u8 {
     fn eq(&self, other: &CollisionSide) -> bool {
         *self == (*other as u8)
     }
+}
+
+/// Prints the collision side as a byte
+pub fn print_collision_side_u8(direction: u8) {
+    print!("Collisions: (");
+    let mut names = Vec::with_capacity(4);
+    if direction & CollisionSide::Left != 0 {
+        names.push("Left");
+    }
+    if direction & CollisionSide::Right != 0 {
+        names.push("Right");
+    }
+    if direction & CollisionSide::Top != 0 {
+        names.push("Top");
+    }
+    if direction & CollisionSide::Bottom != 0 {
+        names.push("Bottom");
+    }
+
+    let names_str = names.join(",");
+    print!("{}", names_str);
+    print!(")");
 }
 
 /// Checks collisions for different objects

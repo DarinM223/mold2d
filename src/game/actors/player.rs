@@ -66,7 +66,7 @@ impl Player {
         let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
                                                                 position.1,
                                                                 PLAYER_WIDTH,
-                                                                PLAYER_HEIGHT / 2 + 10));
+                                                                PLAYER_HEIGHT / 2));
 
         anims.add((Big, Idle, Left), banim.range(1, 2), bbox.clone());
         anims.add((Big, Idle, Right), banim.range(12, 13), bbox.clone());
@@ -115,7 +115,9 @@ impl Actor<ActorType, ActorMessage> for Player {
                     match self.size {
                         PlayerSize::Big |
                         PlayerSize::Crouching => {
-                            self.rect.h /= 2;
+                            let amount: i32 = self.rect.h as i32 / 2;
+                            let half_change = PositionChange::new().shrink_height_bot(amount);
+                            self.change_pos(&half_change);
                             self.size = PlayerSize::Small;
 
                             ActorMessage::None

@@ -30,11 +30,12 @@ pub struct ActorData<Type> {
 }
 
 /// Represents a change of position
+#[derive(Clone, Debug, PartialEq)]
 pub struct PositionChange {
     pub x: i32,
     pub y: i32,
-    pub w: u32,
-    pub h: u32,
+    pub w: i32,
+    pub h: i32,
 }
 
 impl PositionChange {
@@ -79,6 +80,78 @@ impl PositionChange {
             x: self.x,
             y: self.y + amount,
             w: self.w,
+            h: self.h,
+        }
+    }
+
+    pub fn shrink_height_top(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x,
+            y: self.y + amount,
+            w: self.w,
+            h: self.h - amount,
+        }
+    }
+
+    pub fn grow_height_top(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x,
+            y: self.y - amount,
+            w: self.w,
+            h: self.h + amount,
+        }
+    }
+
+    pub fn shrink_height_bot(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x,
+            y: self.y,
+            w: self.w,
+            h: self.h - amount,
+        }
+    }
+
+    pub fn grow_height_bot(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x,
+            y: self.y,
+            w: self.w,
+            h: self.h + amount,
+        }
+    }
+
+    pub fn shrink_width_left(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x - amount,
+            y: self.y,
+            w: self.w - amount,
+            h: self.h,
+        }
+    }
+
+    pub fn grow_width_left(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x + amount,
+            y: self.y,
+            w: self.w + amount,
+            h: self.h,
+        }
+    }
+
+    pub fn shrink_width_right(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x,
+            y: self.y,
+            w: self.w - amount,
+            h: self.h,
+        }
+    }
+
+    pub fn grow_width_right(&self, amount: i32) -> PositionChange {
+        PositionChange {
+            x: self.x,
+            y: self.y,
+            w: self.w + amount,
             h: self.h,
         }
     }

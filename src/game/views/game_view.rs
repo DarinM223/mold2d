@@ -1,4 +1,5 @@
 use actions::{ActorAction, ActorMessage, ActorType, GameActorGenerator};
+use engine::collision::print_collision_side_u8;
 use engine::font;
 use engine::level;
 use engine::{Actor, ActorManager, Collision, CollisionSide, Context, PositionChange, Quadtree,
@@ -161,13 +162,23 @@ impl View for GameView {
                                 }
 
                                 let direction = direction & other.collision_filter;
+                                let rev_dir = CollisionSide::reverse_u8(direction);
+
+                                if data.actor_type == ActorType::Player {
+                                    print!("(P): ");
+                                    print_collision_side_u8(direction);
+                                    println!("");
+                                    print!("(O): ");
+                                    print_collision_side_u8(rev_dir);
+                                    println!("");
+                                }
+
                                 let collision = ActorAction::Collision(other.actor_type, direction);
-                                let message = ActorMessage::ActorAction(data.id, collision);
+                                let message = ActorMessage::ActorAction(other.id, collision);
                                 let response = actor.handle_message(&message);
 
-                                let rev_dir = CollisionSide::reverse_u8(direction);
-                                let other_coll = ActorAction::Collision(data.actor_type, rev_dir);
-                                let other_msg = ActorMessage::ActorAction(other.id, other_coll);
+                                let other_coll = ActorAction::Collision(data.actor_type, direction);
+                                let other_msg = ActorMessage::ActorAction(data.id, other_coll);
 
                                 handle_message(&mut actor,
                                                &mut self.actors,
