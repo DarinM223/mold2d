@@ -112,9 +112,10 @@ impl Actor<ActorType, ActorMessage> for Koopa {
     }
 
     fn update(&mut self, _context: &mut Context, _elapsed: f64) -> ActorMessage {
-        let max_y_speed = match self.curr_state {
-            KoopaState::Jumping => KOOPA_Y_MAXSPEED,
-            KoopaState::Walking | KoopaState::ShellSitting | KoopaState::ShellMoving => 0.,
+        let max_y_speed = if self.curr_state == KoopaState::Jumping {
+            KOOPA_Y_MAXSPEED
+        } else {
+            0.
         };
 
         let target_speed = Vector2D {
@@ -125,18 +126,14 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         self.curr_speed = (KOOPA_ACCELERATION * target_speed) +
                           ((1.0 - KOOPA_ACCELERATION) * self.curr_speed);
 
-        match self.curr_state {
-            KoopaState::Jumping => self.rect.y += self.curr_speed.y as i32,
-            KoopaState::Walking | KoopaState::ShellSitting | KoopaState::ShellMoving => {}
-        };
+        if self.curr_state == KoopaState::Jumping {
+            self.rect.y += self.curr_speed.y as i32;
+        }
 
         self.rect.x += self.curr_speed.x as i32;
 
         // If actor is no longer grounded, change it to jumping
-        if !self.grounded &&
-           (self.curr_state == KoopaState::ShellSitting ||
-            self.curr_state == KoopaState::ShellMoving ||
-            self.curr_state == KoopaState::Walking) {
+        if !self.grounded && self.curr_state != KoopaState::Jumping {
             self.curr_state = KoopaState::Jumping;
         }
 

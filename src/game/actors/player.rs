@@ -5,6 +5,7 @@ use sdl2::render::Renderer;
 
 const PLAYER_WIDTH: u32 = 30;
 const PLAYER_HEIGHT: u32 = 60;
+const PLAYER_HALF_HEIGHT: u32 = PLAYER_HEIGHT / 2 + 1;
 const PLAYER_X_MAXSPEED: f64 = 15.0;
 const PLAYER_Y_MAXSPEED: f64 = 15.0;
 const PLAYER_ACCELERATION: f64 = 0.18;
@@ -29,7 +30,6 @@ pub struct Player {
     direction: Direction,
     size: PlayerSize,
     grounded: bool,
-    hit_ceiling: bool,
     curr_speed: Vector2D,
     rect: SpriteRectangle,
     anims: AnimationManager<(PlayerSize, PlayerState, Direction)>,
@@ -64,9 +64,10 @@ impl Player {
                                                                PLAYER_WIDTH,
                                                                PLAYER_HEIGHT));
         let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
-                                                                position.1,
+                                                                position.1 +
+                                                                PLAYER_HALF_HEIGHT as i32,
                                                                 PLAYER_WIDTH,
-                                                                PLAYER_HEIGHT / 2));
+                                                                PLAYER_HALF_HEIGHT));
 
         anims.add((Big, Idle, Left), banim.range(1, 2), bbox.clone());
         anims.add((Big, Idle, Right), banim.range(12, 13), bbox.clone());
@@ -99,7 +100,6 @@ impl Player {
             direction: Direction::Right,
             size: PlayerSize::Big,
             grounded: false,
-            hit_ceiling: false,
             curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, PLAYER_WIDTH, PLAYER_HEIGHT),
             anims: anims,
@@ -116,8 +116,8 @@ impl Actor<ActorType, ActorMessage> for Player {
                         PlayerSize::Big |
                         PlayerSize::Crouching => {
                             let amount: i32 = self.rect.h as i32 / 2;
-                            let half_change = PositionChange::new().shrink_height_bot(amount);
-                            self.change_pos(&half_change);
+                            let half_change = PositionChange::new().shrink_height_top(amount);
+                            self.rect.apply_change(&half_change);
                             self.size = PlayerSize::Small;
 
                             ActorMessage::None
@@ -127,7 +127,6 @@ impl Actor<ActorType, ActorMessage> for Player {
                 }
                 ActorAction::Collision(_, side) if side == CollisionSide::Top => {
                     self.curr_speed.y = 0.;
-                    self.hit_ceiling = true;
                     ActorMessage::None
                 }
                 ActorAction::Collision(_, side) if side == CollisionSide::Bottom => {
@@ -151,49 +150,48 @@ impl Actor<ActorType, ActorMessage> for Player {
     }
 
     fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorMessage {
-        let max_y_speed = match self.curr_state {
-            PlayerState::Jumping => PLAYER_Y_MAXSPEED,
-            PlayerState::Idle | PlayerState::Walking => 0.0,
-        };
-
         if context.events.event_called("DOWN") {
-            if self.size == PlayerSize::Big &&
-               (self.curr_state == PlayerState::Walking || self.curr_state == PlayerState::Idle) {
+            if self.size == PlayerSize::Big && self.curr_state != PlayerState::Jumping {
                 self.size = PlayerSize::Crouching;
             }
-        } else if self.size == PlayerSize::Crouching && !self.hit_ceiling {
+        } else if self.size == PlayerSize::Crouching {
+            // TODO(DarinM223): check if big player can fit by raycasting
             self.size = PlayerSize::Big;
         }
 
-        let max_x_speed;
-        if context.events.event_called("RIGHT") {
+        // Jump if space bar is pressed
+        if context.events.event_called_once("SPACE") && self.curr_state != PlayerState::Jumping {
+            self.curr_speed.y = -70.0;
+            self.curr_state = PlayerState::Jumping;
+        }
+
+        let max_x_speed = if context.events.event_called("RIGHT") {
             if self.curr_state == PlayerState::Idle {
                 self.curr_state = PlayerState::Walking;
             }
             self.direction = Direction::Right;
-            max_x_speed = PLAYER_X_MAXSPEED;
+
+            PLAYER_X_MAXSPEED
         } else if context.events.event_called("LEFT") {
             if self.curr_state == PlayerState::Idle {
                 self.curr_state = PlayerState::Walking;
             }
             self.direction = Direction::Left;
-            max_x_speed = -PLAYER_X_MAXSPEED;
+
+            -PLAYER_X_MAXSPEED
         } else {
             if self.curr_state == PlayerState::Walking {
                 self.curr_state = PlayerState::Idle;
             }
-            max_x_speed = 0.0;
-        }
 
-        if context.events.event_called_once("SPACE") && !self.hit_ceiling {
-            match self.curr_state {
-                PlayerState::Jumping => {}
-                PlayerState::Idle | PlayerState::Walking => {
-                    self.curr_speed.y = -70.0;
-                    self.curr_state = PlayerState::Jumping;
-                }
-            }
-        }
+            0.0
+        };
+
+        let max_y_speed = if self.curr_state == PlayerState::Jumping {
+            PLAYER_Y_MAXSPEED
+        } else {
+            0.
+        };
 
         let target_speed = Vector2D {
             x: max_x_speed,
@@ -203,30 +201,19 @@ impl Actor<ActorType, ActorMessage> for Player {
         self.curr_speed = (PLAYER_ACCELERATION * target_speed) +
                           ((1.0 - PLAYER_ACCELERATION) * self.curr_speed);
 
+        // Apply position change
         let mut change = PositionChange::new().left(self.curr_speed.x as i32);
-
-        // Don't allow jumping if player already collides with the ceiling
-        if self.hit_ceiling {
-            self.hit_ceiling = false;
-            if self.curr_speed.y < 0. {
-                self.curr_speed.y = 0.;
-            }
+        if self.curr_state == PlayerState::Jumping {
+            change = change.down(self.curr_speed.y as i32);
         }
-
-        match self.curr_state {
-            PlayerState::Jumping => change = change.down(self.curr_speed.y as i32),
-            PlayerState::Idle | PlayerState::Walking => {}
-        }
-
         self.change_pos(&change);
 
-        // If actor is no longer grounded, change it to jumping
-        if !self.grounded &&
-           (self.curr_state == PlayerState::Idle || self.curr_state == PlayerState::Walking) {
+        // If not grounded, change to jumping
+        if !self.grounded && self.curr_state != PlayerState::Jumping {
             self.curr_state = PlayerState::Jumping;
         }
 
-        // Reset grounded to check if there is a bottom collision again
+        // Reset grounded collision
         if self.grounded {
             self.grounded = false;
         }
