@@ -171,14 +171,14 @@ impl Actor<ActorType, ActorMessage> for Player {
             }
             self.direction = Direction::Right;
 
-            PLAYER_X_MAXSPEED
+            -PLAYER_X_MAXSPEED
         } else if context.events.event_called("LEFT") {
             if self.curr_state == PlayerState::Idle {
                 self.curr_state = PlayerState::Walking;
             }
             self.direction = Direction::Left;
 
-            -PLAYER_X_MAXSPEED
+            PLAYER_X_MAXSPEED
         } else {
             if self.curr_state == PlayerState::Walking {
                 self.curr_state = PlayerState::Idle;

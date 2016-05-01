@@ -25,7 +25,7 @@ pub fn center_point(rect: &Rect) -> (f64, f64) {
 }
 
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CollisionSide {
     Left = 0b1000,
     Right = 0b0100,
@@ -161,11 +161,11 @@ impl Collision<Rect> for Rect {
                 if wy > -hx {
                     return Some(CollisionSide::Top);
                 } else {
-                    return Some(CollisionSide::Left);
+                    return Some(CollisionSide::Right);
                 }
             } else {
                 if wy > -hx {
-                    return Some(CollisionSide::Right);
+                    return Some(CollisionSide::Left);
                 } else {
                     return Some(CollisionSide::Bottom);
                 }
@@ -237,6 +237,7 @@ impl<'a> Collision<&'a BoundingBox> for BoundingBox {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sdl2::rect::Rect;
 
     #[test]
     fn test_collision_reverse() {
@@ -254,5 +255,26 @@ mod tests {
 
         let side = 0b0000;
         assert_eq!(CollisionSide::reverse_u8(side), 0b0000);
+    }
+
+    #[test]
+    fn test_left_right_rect_collision() {
+        let left_rect = Rect::new_unwrap(-10, 0, 20, 20);
+        let right_rect = Rect::new_unwrap(0, 0, 20, 20);
+
+        assert_eq!(left_rect.collides_with(right_rect),
+                   Some(CollisionSide::Right));
+        assert_eq!(right_rect.collides_with(left_rect),
+                   Some(CollisionSide::Left));
+    }
+
+    #[test]
+    fn test_up_down_rect_collision() {
+        let up_rect = Rect::new_unwrap(0, -20, 20, 20);
+        let down_rect = Rect::new_unwrap(0, 0, 20, 20);
+
+        assert_eq!(up_rect.collides_with(down_rect),
+                   Some(CollisionSide::Bottom));
+        assert_eq!(down_rect.collides_with(up_rect), Some(CollisionSide::Top));
     }
 }
