@@ -76,8 +76,8 @@ macro_rules! block {
             fn update(&mut self,
                       _context: &mut Context,
                       _elapsed: f64)
-                      -> ActorMessage {
-                ActorMessage::None
+                      -> PositionChange {
+                PositionChange::new()
             }
 
             #[allow(unused_imports)]

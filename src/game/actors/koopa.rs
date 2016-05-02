@@ -111,7 +111,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         self.anims.collides_with(&key, &other.bounding_box)
     }
 
-    fn update(&mut self, _context: &mut Context, _elapsed: f64) -> ActorMessage {
+    fn update(&mut self, _context: &mut Context, _elapsed: f64) -> PositionChange {
         let max_y_speed = if self.curr_state == KoopaState::Jumping {
             KOOPA_Y_MAXSPEED
         } else {
@@ -126,11 +126,10 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         self.curr_speed = (KOOPA_ACCELERATION * target_speed) +
                           ((1.0 - KOOPA_ACCELERATION) * self.curr_speed);
 
+        let mut change = PositionChange::new().left(self.curr_speed.x as i32);
         if self.curr_state == KoopaState::Jumping {
-            self.rect.y += self.curr_speed.y as i32;
+            change = change.down(self.curr_speed.y as i32);
         }
-
-        self.rect.x += self.curr_speed.x as i32;
 
         // If actor is no longer grounded, change it to jumping
         if !self.grounded && self.curr_state != KoopaState::Jumping {
@@ -142,7 +141,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
             self.grounded = false;
         }
 
-        ActorMessage::None
+        change
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {

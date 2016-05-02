@@ -4,9 +4,9 @@ use vector::Vector2D;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Segment {
     /// The point that the segment starts out at
-    point: (f64, f64),
+    pub point: (f64, f64),
     /// The magnitude and the direction of the segment
-    vector: Vector2D,
+    pub vector: Vector2D,
 }
 
 impl Segment {

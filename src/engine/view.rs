@@ -1,6 +1,7 @@
 use collision::{BoundingBox, CollisionSide};
 use context::Context;
 use sdl2::rect::Rect;
+use vector::Vector2D;
 use viewport::Viewport;
 
 /// Actions that the view would want the event loop to do
@@ -43,6 +44,15 @@ impl PositionChange {
         PositionChange {
             x: 0,
             y: 0,
+            w: 0,
+            h: 0,
+        }
+    }
+
+    pub fn from_vector(v: &Vector2D) -> PositionChange {
+        PositionChange {
+            x: v.x as i32,
+            y: v.y as i32,
             w: 0,
             h: 0,
         }
@@ -155,6 +165,22 @@ impl PositionChange {
             h: self.h,
         }
     }
+
+    pub fn chain(&self, change: &PositionChange) -> PositionChange {
+        PositionChange {
+            x: self.x + change.x,
+            y: self.y + change.y,
+            w: self.w + change.w,
+            h: self.h + change.h,
+        }
+    }
+
+    pub fn to_vector(&self) -> Vector2D {
+        Vector2D {
+            x: self.x as f64,
+            y: self.y as f64,
+        }
+    }
 }
 
 pub trait Actor<Type, Message> {
@@ -168,7 +194,7 @@ pub trait Actor<Type, Message> {
     fn collides_with(&mut self, other_actor: &ActorData<Type>) -> Option<CollisionSide>;
 
     /// Called every frame to update an actor
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> Message;
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> PositionChange;
 
     /// Gets the actor data
     fn data(&mut self) -> ActorData<Type>;

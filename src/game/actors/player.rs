@@ -149,7 +149,7 @@ impl Actor<ActorType, ActorMessage> for Player {
         self.anims.collides_with(&key, &other.bounding_box)
     }
 
-    fn update(&mut self, context: &mut Context, elapsed: f64) -> ActorMessage {
+    fn update(&mut self, context: &mut Context, elapsed: f64) -> PositionChange {
         if context.events.event_called("DOWN") {
             if self.size == PlayerSize::Big && self.curr_state != PlayerState::Jumping {
                 self.size = PlayerSize::Crouching;
@@ -206,7 +206,6 @@ impl Actor<ActorType, ActorMessage> for Player {
         if self.curr_state == PlayerState::Jumping {
             change = change.down(self.curr_speed.y as i32);
         }
-        self.change_pos(&change);
 
         // If not grounded, change to jumping
         if !self.grounded && self.curr_state != PlayerState::Jumping {
@@ -222,7 +221,7 @@ impl Actor<ActorType, ActorMessage> for Player {
         let key = (self.size, self.curr_state, self.direction);
         self.anims.add_time(&key, elapsed);
 
-        ActorMessage::SetViewport(self.rect.x, self.rect.y)
+        change
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {

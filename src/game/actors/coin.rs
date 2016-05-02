@@ -54,10 +54,10 @@ impl Actor<ActorType, ActorMessage> for Coin {
         self.rect.collides_with(other_actor.rect)
     }
 
-    fn update(&mut self, _context: &mut Context, elapsed: f64) -> ActorMessage {
+    fn update(&mut self, _context: &mut Context, elapsed: f64) -> PositionChange {
         // Update sprite animation
         self.animation.add_time(elapsed);
-        ActorMessage::None
+        PositionChange::new()
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {

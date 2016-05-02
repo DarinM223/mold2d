@@ -2,8 +2,9 @@ use actions::{ActorAction, ActorMessage, ActorType, GameActorGenerator};
 use engine::collision::print_collision_side_u8;
 use engine::font;
 use engine::level;
-use engine::{Actor, ActorManager, Collision, CollisionSide, Context, PositionChange, Quadtree,
-             View, ViewAction, Viewport};
+use engine::raycast::shorten_ray;
+use engine::{Actor, ActorManager, Collision, CollisionSide, Context, Polygon, PositionChange,
+             Quadtree, Segment, Vector2D, View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;
@@ -128,6 +129,14 @@ impl View for GameView {
                 let actor = self.actors.temp_remove(key);
                 if let Some(mut actor) = actor {
                     let data = actor.data();
+
+                    // update the actor
+                    let position_change = actor.update(context, elapsed);
+                    let mut segment = Segment {
+                        point: (data.rect.x() as f64, data.rect.y() as f64),
+                        vector: position_change.to_vector(),
+                    };
+
                     if data.collision_filter != 0 {
                         // only check collisions for certain actors
                         let collided_actors = quadtree.retrieve(&data.rect)
@@ -135,9 +144,16 @@ impl View for GameView {
                                                       .map(|act| act.clone())
                                                       .collect::<Vec<_>>();
                         for other in collided_actors {
-                            if let Some(direction) = actor.collides_with(&other) {
+                            let shortened_ray = shorten_ray(&segment, &other.rect);
+                            if shortened_ray != segment {
+                                // TODO(DarinM223): send collision message
+                                segment = shortened_ray;
+                            } else if let Some(direction) = actor.collides_with(&other) {
                                 // TODO(DarinM223): remove hack that fixes bug with block collision
                                 // detection
+                                if data.actor_type == ActorType::Player {
+                                    println!("Unwanted collision!");
+                                }
                                 if data.actor_type != ActorType::Block {
                                     while actor.collides_with(&other) == Some(direction) {
                                         match direction {
@@ -164,20 +180,11 @@ impl View for GameView {
                                 let direction = direction & other.collision_filter;
                                 let rev_dir = CollisionSide::reverse_u8(direction);
 
-                                if data.actor_type == ActorType::Player {
-                                    print!("(P): ");
-                                    print_collision_side_u8(direction);
-                                    println!("");
-                                    print!("(O): ");
-                                    print_collision_side_u8(rev_dir);
-                                    println!("");
-                                }
-
                                 let collision = ActorAction::Collision(other.actor_type, direction);
                                 let message = ActorMessage::ActorAction(other.id, collision);
                                 let response = actor.handle_message(&message);
 
-                                let other_coll = ActorAction::Collision(data.actor_type, direction);
+                                let other_coll = ActorAction::Collision(data.actor_type, rev_dir);
                                 let other_msg = ActorMessage::ActorAction(data.id, other_coll);
 
                                 handle_message(&mut actor,
@@ -194,13 +201,10 @@ impl View for GameView {
                         }
                     }
 
-                    // update the actor
-                    let message = actor.update(context, elapsed);
-                    handle_message(&mut actor,
-                                   &mut self.actors,
-                                   &mut self.viewport,
-                                   context,
-                                   &message);
+                    // apply shortened position change
+                    let change = PositionChange::from_vector(&segment.vector);
+                    actor.change_pos(&change);
+
                     self.actors.temp_reinsert(actor.data().id, actor);
                 }
             }
