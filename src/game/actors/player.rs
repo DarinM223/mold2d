@@ -1,6 +1,9 @@
 use actions::{ActorAction, ActorMessage, ActorType};
 use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, CollisionSide,
-             Context, Direction, PositionChange, Renderable, SpriteRectangle, Vector2D, Viewport};
+             Context, Direction, PositionChange, Renderable, Segment, SpriteRectangle, Vector2D,
+             Viewport};
+use sdl2::pixels::Color;
+use sdl2::rect::{Point, Rect};
 use sdl2::render::Renderer;
 
 const PLAYER_WIDTH: u32 = 30;
@@ -33,6 +36,9 @@ pub struct Player {
     curr_speed: Vector2D,
     rect: SpriteRectangle,
     anims: AnimationManager<(PlayerSize, PlayerState, Direction)>,
+    /// vector debugging parameters
+    debug: bool,
+    prev_segment: Option<Segment>,
 }
 
 impl Player {
@@ -103,6 +109,8 @@ impl Player {
             curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, PLAYER_WIDTH, PLAYER_HEIGHT),
             anims: anims,
+            debug: true,
+            prev_segment: None,
         }
     }
 }
@@ -221,12 +229,30 @@ impl Actor<ActorType, ActorMessage> for Player {
         let key = (self.size, self.curr_state, self.direction);
         self.anims.add_time(&key, elapsed);
 
+        self.prev_segment = Some(Segment {
+            point: (self.data().rect.x() as f64, self.data().rect.y() as f64),
+            vector: change.to_vector(),
+        });
+
         change
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
+        // renders position change in debug mode
+        if self.debug {
+            let data = self.data();
+            if let Some(ref mut segment) = self.prev_segment {
+                let (rx, ry) = viewport.relative_point((data.rect.x(), data.rect.y()));
+                let p1 = Point::new(rx as i32, ry as i32);
+                let p2 = Point::new(rx + (segment.vector.x as i32),
+                                    ry + (segment.vector.y as i32));
+                context.renderer.set_draw_color(Color::RGB(0, 0, 0));
+                context.renderer.draw_line(p1, p2);
+            }
+        }
+
         let key = (self.size, self.curr_state, self.direction);
-        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, true);
+        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
     }
 
     fn data(&mut self) -> ActorData<ActorType> {

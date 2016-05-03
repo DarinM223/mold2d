@@ -19,7 +19,6 @@ fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
     match *action {
         AddActor(token, pos) => actors.add(token, pos, &mut context.renderer),
         RemoveActor(id) => actors.remove(id),
-        SetViewport(x, y) => viewport.set_position((x, y)),
         UpdateScore(amount) => context.score.increment_score("GAME_SCORE", amount),
         MultipleMessages(ref messages) => {
             for message in messages {
@@ -129,6 +128,9 @@ impl View for GameView {
                 let actor = self.actors.temp_remove(key);
                 if let Some(mut actor) = actor {
                     let data = actor.data();
+                    if data.actor_type == ActorType::Player {
+                        self.viewport.set_position((data.rect.x(), data.rect.y()));
+                    }
 
                     // update the actor
                     let position_change = actor.update(context, elapsed);
@@ -204,7 +206,6 @@ impl View for GameView {
                     // apply shortened position change
                     let change = PositionChange::from_vector(&segment.vector);
                     actor.change_pos(&change);
-
                     self.actors.temp_reinsert(actor.data().id, actor);
                 }
             }
