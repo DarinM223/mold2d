@@ -1,5 +1,10 @@
-use sdl2::rect::Rect;
+use collision::CollisionSide;
+use sdl2::pixels::Color;
+use sdl2::rect::{Point, Rect};
+use sdl2::render::Renderer;
+use sprite::SpriteRectangle;
 use vector::Vector2D;
+use viewport::Viewport;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Segment {
@@ -47,11 +52,26 @@ impl Segment {
     pub fn len(&self) -> f64 {
         self.vector.len()
     }
+
+    pub fn render(&self,
+                  rect: &SpriteRectangle,
+                  color: Color,
+                  viewport: &mut Viewport,
+                  renderer: &mut Renderer) {
+        let (rx, ry) = viewport.relative_point((rect.x, rect.y));
+        let p1 = Point::new(rx as i32, ry as i32);
+        let p2 = Point::new(rx + (self.vector.x as i32), ry + (self.vector.y as i32));
+        renderer.set_draw_color(color);
+        renderer.draw_line(p1, p2);
+    }
 }
 
 pub trait Polygon {
     /// Returns the sides in a polygon shape as a dynamic array of segments
     fn sides(&self) -> Vec<Segment>;
+
+    /// Given a side number of the polygon, returns the side of the collision
+    fn collision_from_side(&self, id: usize) -> Option<CollisionSide>;
 }
 
 impl Polygon for Rect {
@@ -62,37 +82,50 @@ impl Polygon for Rect {
         vec![
             Segment {
                 point: (f_x, f_y),
-                vector: Vector2D { x: 0., y: -f_h },
+                vector: Vector2D { x: 0., y: f_h },
             },
             Segment {
                 point: (f_x, f_y - f_h),
                 vector: Vector2D { x: f_w, y: 0. },
             },
             Segment {
-                point: (f_x + f_w, f_y - f_h),
-                vector: Vector2D { x: 0., y: f_h },
+                point: (f_x, f_y + f_h),
+                vector: Vector2D { x: 0., y: -f_h },
             },
             Segment {
-                point: (f_x + f_w, f_y),
+                point: (f_x - f_w, f_y),
                 vector: Vector2D { x: -f_w, y: 0. },
             },
         ]
     }
+
+    fn collision_from_side(&self, id: usize) -> Option<CollisionSide> {
+        match id {
+            0 => Some(CollisionSide::Left),
+            1 => Some(CollisionSide::Bottom),
+            2 => Some(CollisionSide::Right),
+            3 => Some(CollisionSide::Top),
+            _ => None,
+        }
+    }
 }
 
 /// Shortens a ray segment agains a polygon
-pub fn shorten_ray<P: Polygon>(ray: &Segment, poly: &P) -> Segment {
-    poly.sides().iter().fold(ray.clone(), |ray, side| {
+pub fn shorten_ray<P: Polygon>(ray: &mut Segment, poly: &P) -> Option<CollisionSide> {
+    let mut coll_side = None;
+
+    for (id, side) in poly.sides().iter().enumerate() {
         if let Some((int_x, int_y)) = ray.intersects(side) {
             // Shorten the ray by the distance between the intersection point
             // and the endpoint of the ray
             let (end_x, end_y) = (ray.point.0 + ray.vector.x, ray.point.1 + ray.vector.y);
             let distance = ((end_x - int_x).powi(2) + (end_y - int_y).powi(2)).sqrt();
-            ray.shorten(distance)
-        } else {
-            ray
+            coll_side = poly.collision_from_side(id);
+            *ray = ray.shorten(distance);
         }
-    })
+    }
+
+    coll_side
 }
 
 /// Returns the point where two lines intersect
@@ -144,6 +177,20 @@ mod tests {
     }
 
     #[test]
+    fn test_rect_sides() {
+        let rect = Rect::new_unwrap(0, 0, 20, 20);
+        let sides = rect.sides();
+
+        assert_eq!(sides,
+                   vec![
+            Segment { point: (0., 0.), vector:  Vector2D { x: 0., y: 20. } },
+            Segment { point: (0., 20.), vector: Vector2D { x: 20., y: 0. } },
+            Segment { point: (20., 20.), vector: Vector2D { x: 0., y: -20. } },
+            Segment { point: (20., 0.), vector: Vector2D { x: -20., y: 0. } },
+        ]);
+    }
+
+    #[test]
     fn test_shorten() {
         let segment = Segment {
             point: (1., 1.),
@@ -173,16 +220,16 @@ mod tests {
     #[test]
     fn test_shorten_ray() {
         let rect = Rect::new_unwrap(2, 3, 2, 2);
-        let segment = Segment {
+        let mut segment = Segment {
             point: (0., 2.),
-            vector: Vector2D { x: 4., y: 0. },
+            vector: Vector2D { x: 4., y: -1. },
         };
 
-        let shortend_seg = shorten_ray(&segment, &rect);
-        assert_eq!(shortend_seg,
+        let side = shorten_ray(&mut segment, &rect);
+        assert_eq!(segment,
                    Segment {
                        point: (0., 2.),
-                       vector: Vector2D { x: 2., y: 0. },
+                       vector: Vector2D { x: 2., y: -1. },
                    });
     }
 }

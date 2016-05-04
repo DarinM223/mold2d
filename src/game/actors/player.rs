@@ -1,7 +1,7 @@
 use actions::{ActorAction, ActorMessage, ActorType};
 use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, CollisionSide,
-             Context, Direction, PositionChange, Renderable, Segment, SpriteRectangle, Vector2D,
-             Viewport};
+             Context, Direction, Polygon, PositionChange, Renderable, Segment, SpriteRectangle,
+             Vector2D, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::Renderer;
@@ -241,13 +241,15 @@ impl Actor<ActorType, ActorMessage> for Player {
         // renders position change in debug mode
         if self.debug {
             let data = self.data();
+            let rect = SpriteRectangle::from_rect(data.rect);
             if let Some(ref mut segment) = self.prev_segment {
-                let (rx, ry) = viewport.relative_point((data.rect.x(), data.rect.y()));
-                let p1 = Point::new(rx as i32, ry as i32);
-                let p2 = Point::new(rx + (segment.vector.x as i32),
-                                    ry + (segment.vector.y as i32));
-                context.renderer.set_draw_color(Color::RGB(0, 0, 0));
-                context.renderer.draw_line(p1, p2);
+                segment.render(&rect, Color::RGB(0, 0, 0), viewport, &mut context.renderer);
+            }
+            for side in data.rect.sides() {
+                side.render(&rect,
+                            Color::RGB(0, 255, 0),
+                            viewport,
+                            &mut context.renderer);
             }
         }
 

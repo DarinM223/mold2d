@@ -10,6 +10,10 @@
 //! Loads level maps from text files
 //! A point system
 //! A main menu rendering system
+//!
+//! Notes: The coordinate system is so that up is a negative change in the
+//! y axis, down is a positive change in the y axis, left is a negative
+//! change in the x axis, and right is a positive change in the x axis.
 
 #![feature(custom_attribute)]
 #[cfg_attr(feature="clippy", feature(plugin))]

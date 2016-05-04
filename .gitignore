@@ -1,4 +1,6 @@
 target
+.vscode
 Cargo.lock
 *.bk
 *.swo
+*.db

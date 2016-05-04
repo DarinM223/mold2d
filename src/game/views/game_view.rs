@@ -146,10 +146,9 @@ impl View for GameView {
                                                       .map(|act| act.clone())
                                                       .collect::<Vec<_>>();
                         for other in collided_actors {
-                            let shortened_ray = shorten_ray(&segment, &other.rect);
-                            if shortened_ray != segment {
+                            let collision_side = shorten_ray(&mut segment, &other.rect);
+                            if let Some(direction) = collision_side {
                                 // TODO(DarinM223): send collision message
-                                segment = shortened_ray;
                             } else if let Some(direction) = actor.collides_with(&other) {
                                 // TODO(DarinM223): remove hack that fixes bug with block collision
                                 // detection
