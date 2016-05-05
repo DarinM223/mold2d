@@ -3,7 +3,6 @@ use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collisi
              Context, Direction, Polygon, PositionChange, Renderable, Segment, SpriteRectangle,
              Vector2D, Viewport};
 use sdl2::pixels::Color;
-use sdl2::rect::{Point, Rect};
 use sdl2::render::Renderer;
 
 const PLAYER_WIDTH: u32 = 30;

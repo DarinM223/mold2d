@@ -1,10 +1,9 @@
 use actions::{ActorAction, ActorMessage, ActorType, GameActorGenerator};
-use engine::collision::print_collision_side_u8;
 use engine::font;
 use engine::level;
 use engine::raycast::shorten_ray;
-use engine::{Actor, ActorManager, Collision, CollisionSide, Context, Polygon, PositionChange,
-             Quadtree, Segment, Vector2D, View, ViewAction, Viewport};
+use engine::{Actor, ActorData, ActorManager, Collision, CollisionSide, Context, PositionChange,
+             Quadtree, Segment, View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;
@@ -42,6 +41,53 @@ fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
         PlayerDied => println!("Oh no! The player died!"),
         _ => {}
     }
+}
+
+pub fn handle_collision(actor: &mut Box<Actor<ActorType, ActorMessage>>,
+                        other: &ActorData<ActorType>,
+                        direction: CollisionSide,
+                        actors: &mut ActorManager<ActorType, ActorMessage>,
+                        viewport: &mut Viewport,
+                        context: &mut Context) {
+
+    let data = actor.data();
+    // TODO(DarinM223): remove hack that fixes bug with block collision
+    // detection
+    if data.actor_type != ActorType::Block {
+        while actor.collides_with(other) == Some(direction) {
+            match direction {
+                CollisionSide::Top => {
+                    actor.change_pos(&PositionChange::new().down(1));
+                }
+                CollisionSide::Bottom => {
+                    actor.change_pos(&PositionChange::new().up(1));
+                }
+                CollisionSide::Left => {
+                    actor.change_pos(&PositionChange::new().right(1));
+                }
+                CollisionSide::Right => {
+                    actor.change_pos(&PositionChange::new().left(1));
+                }
+            }
+        }
+
+        if direction == CollisionSide::Bottom {
+            actor.change_pos(&PositionChange::new().down(1));
+        }
+    }
+
+    let direction = direction & other.collision_filter;
+    let rev_dir = CollisionSide::reverse_u8(direction);
+
+    let collision = ActorAction::Collision(other.actor_type, direction);
+    let message = ActorMessage::ActorAction(other.id, collision);
+    let response = actor.handle_message(&message);
+
+    let other_coll = ActorAction::Collision(data.actor_type, rev_dir);
+    let other_msg = ActorMessage::ActorAction(data.id, other_coll);
+
+    handle_message(actor, actors, viewport, context, &response);
+    handle_message(actor, actors, viewport, context, &other_msg);
 }
 
 /// The main game view used for
@@ -148,56 +194,19 @@ impl View for GameView {
                         for other in collided_actors {
                             let collision_side = shorten_ray(&mut segment, &other.rect);
                             if let Some(direction) = collision_side {
-                                // TODO(DarinM223): send collision message
+                                handle_collision(&mut actor,
+                                                 &other,
+                                                 direction,
+                                                 &mut self.actors,
+                                                 &mut self.viewport,
+                                                 context);
                             } else if let Some(direction) = actor.collides_with(&other) {
-                                // TODO(DarinM223): remove hack that fixes bug with block collision
-                                // detection
-                                if data.actor_type == ActorType::Player {
-                                    println!("Unwanted collision!");
-                                }
-                                if data.actor_type != ActorType::Block {
-                                    while actor.collides_with(&other) == Some(direction) {
-                                        match direction {
-                                            CollisionSide::Top => {
-                                                actor.change_pos(&PositionChange::new().down(1));
-                                            }
-                                            CollisionSide::Bottom => {
-                                                actor.change_pos(&PositionChange::new().up(1));
-                                            }
-                                            CollisionSide::Left => {
-                                                actor.change_pos(&PositionChange::new().right(1));
-                                            }
-                                            CollisionSide::Right => {
-                                                actor.change_pos(&PositionChange::new().left(1));
-                                            }
-                                        }
-                                    }
-
-                                    if direction == CollisionSide::Bottom {
-                                        actor.change_pos(&PositionChange::new().down(1));
-                                    }
-                                }
-
-                                let direction = direction & other.collision_filter;
-                                let rev_dir = CollisionSide::reverse_u8(direction);
-
-                                let collision = ActorAction::Collision(other.actor_type, direction);
-                                let message = ActorMessage::ActorAction(other.id, collision);
-                                let response = actor.handle_message(&message);
-
-                                let other_coll = ActorAction::Collision(data.actor_type, rev_dir);
-                                let other_msg = ActorMessage::ActorAction(data.id, other_coll);
-
-                                handle_message(&mut actor,
-                                               &mut self.actors,
-                                               &mut self.viewport,
-                                               context,
-                                               &response);
-                                handle_message(&mut actor,
-                                               &mut self.actors,
-                                               &mut self.viewport,
-                                               context,
-                                               &other_msg);
+                                handle_collision(&mut actor,
+                                                 &other,
+                                                 direction,
+                                                 &mut self.actors,
+                                                 &mut self.viewport,
+                                                 context);
                             }
                         }
                     }
