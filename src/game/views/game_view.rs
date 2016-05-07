@@ -174,9 +174,6 @@ impl View for GameView {
                 let actor = self.actors.temp_remove(key);
                 if let Some(mut actor) = actor {
                     let data = actor.data();
-                    if data.actor_type == ActorType::Player {
-                        self.viewport.set_position((data.rect.x(), data.rect.y()));
-                    }
 
                     // update the actor
                     let position_change = actor.update(context, elapsed);
@@ -215,6 +212,10 @@ impl View for GameView {
                     let change = PositionChange::from_vector(&segment.vector);
                     actor.change_pos(&change);
                     self.actors.temp_reinsert(actor.data().id, actor);
+
+                    if data.actor_type == ActorType::Player {
+                        self.viewport.set_position((data.rect.x(), data.rect.y()));
+                    }
                 }
             }
         }

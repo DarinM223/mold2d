@@ -2,7 +2,6 @@ use collision::CollisionSide;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::Renderer;
-use sprite::SpriteRectangle;
 use vector::Vector2D;
 use viewport::Viewport;
 
@@ -22,8 +21,7 @@ impl Segment {
         let p0 = self.point;
         let p1 = (self.point.0 + self.vector.x, self.point.1 + self.vector.y);
         let p2 = other.point;
-        let p3 = (other.point.0 + other.vector.x,
-                  other.point.1 + other.vector.y);
+        let p3 = (other.point.0 + other.vector.x, other.point.1 + other.vector.y);
 
         get_intersection(p0, p1, p2, p3)
     }
@@ -53,12 +51,8 @@ impl Segment {
         self.vector.len()
     }
 
-    pub fn render(&self,
-                  rect: &SpriteRectangle,
-                  color: Color,
-                  viewport: &mut Viewport,
-                  renderer: &mut Renderer) {
-        let (rx, ry) = viewport.relative_point((rect.x, rect.y));
+    pub fn render(&self, color: Color, viewport: &mut Viewport, renderer: &mut Renderer) {
+        let (rx, ry) = viewport.relative_point((self.point.0 as i32, self.point.1 as i32));
         let p1 = Point::new(rx as i32, ry as i32);
         let p2 = Point::new(rx + (self.vector.x as i32), ry + (self.vector.y as i32));
         renderer.set_draw_color(color);
@@ -85,15 +79,15 @@ impl Polygon for Rect {
                 vector: Vector2D { x: 0., y: f_h },
             },
             Segment {
-                point: (f_x, f_y - f_h),
+                point: (f_x, f_y + f_h),
                 vector: Vector2D { x: f_w, y: 0. },
             },
             Segment {
-                point: (f_x, f_y + f_h),
+                point: (f_x + f_w, f_y + f_h),
                 vector: Vector2D { x: 0., y: -f_h },
             },
             Segment {
-                point: (f_x - f_w, f_y),
+                point: (f_x + f_w, f_y),
                 vector: Vector2D { x: -f_w, y: 0. },
             },
         ]

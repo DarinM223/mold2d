@@ -263,7 +263,8 @@ pub struct AnimationManager<State> {
     curr_anim: Option<AnimatedSprite>,
 }
 
-impl<State> AnimationManager<State> where State: Clone + Eq + Hash
+impl<State> AnimationManager<State>
+    where State: Clone + Eq + Hash
 {
     pub fn new(fps: f64) -> AnimationManager<State> {
         AnimationManager {

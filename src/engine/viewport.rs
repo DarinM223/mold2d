@@ -67,8 +67,7 @@ impl Viewport {
         let rect_points = [(rect.x(), rect.y()),
                            (rect.x() + (rect.width() as i32), rect.y()),
                            (rect.x(), rect.y() + (rect.height() as i32)),
-                           (rect.x() + (rect.width() as i32),
-                            rect.y() + (rect.height() as i32))];
+                           (rect.x() + (rect.width() as i32), rect.y() + (rect.height() as i32))];
 
         let mut in_viewport = false;
         for point in rect_points.iter() {

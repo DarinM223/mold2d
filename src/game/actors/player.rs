@@ -120,8 +120,7 @@ impl Actor<ActorType, ActorMessage> for Player {
             match *message {
                 ActorAction::DamageActor(_) => {
                     match self.size {
-                        PlayerSize::Big |
-                        PlayerSize::Crouching => {
+                        PlayerSize::Big | PlayerSize::Crouching => {
                             let amount: i32 = self.rect.h as i32 / 2;
                             let half_change = PositionChange::new().shrink_height_top(amount);
                             self.rect.apply_change(&half_change);
@@ -240,15 +239,11 @@ impl Actor<ActorType, ActorMessage> for Player {
         // renders position change in debug mode
         if self.debug {
             let data = self.data();
-            let rect = SpriteRectangle::from_rect(data.rect);
             if let Some(ref mut segment) = self.prev_segment {
-                segment.render(&rect, Color::RGB(0, 0, 0), viewport, &mut context.renderer);
+                segment.render(Color::RGB(0, 0, 0), viewport, &mut context.renderer);
             }
             for side in data.rect.sides() {
-                side.render(&rect,
-                            Color::RGB(0, 255, 0),
-                            viewport,
-                            &mut context.renderer);
+                side.render(Color::RGB(0, 255, 0), viewport, &mut context.renderer);
             }
         }
 

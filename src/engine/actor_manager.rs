@@ -14,8 +14,8 @@ pub trait ActorFromToken<Type, Message> {
 
 /// Manages all the actors for the game by hashing actors by id
 pub struct ActorManager<Type, Message> {
-    next_id: i32,
     pub actors: HashMap<i32, Box<Actor<Type, Message>>>,
+    next_id: i32,
     temporary: Option<i32>,
     actor_gen: Box<ActorFromToken<Type, Message>>,
 }
