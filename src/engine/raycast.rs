@@ -151,8 +151,9 @@ fn get_intersection(p0: (f64, f64),
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use collision::CollisionSide;
     use sdl2::rect::Rect;
+    use super::*;
     use vector::Vector2D;
 
     fn assert_float(a: f64, b: f64) {
@@ -212,18 +213,48 @@ mod tests {
     }
 
     #[test]
-    fn test_shorten_ray() {
+    fn test_shorten_ray_left() {
         let rect = Rect::new_unwrap(2, 3, 2, 2);
         let mut segment = Segment {
+            point: (0., 3.),
+            vector: Vector2D { x: 4., y: 0. },
+        };
+
+        let side = shorten_ray(&mut segment, &rect);
+        assert_eq!(side, Some(CollisionSide::Left));
+        assert_eq!(segment,
+                   Segment {
+                       point: (0., 3.),
+                       vector: Vector2D { x: 2., y: 0. },
+                   });
+
+        let mut segment = Segment {
             point: (0., 2.),
-            vector: Vector2D { x: 4., y: -1. },
+            vector: Vector2D { x: 4., y: 0. },
         };
 
         let side = shorten_ray(&mut segment, &rect);
         assert_eq!(segment,
                    Segment {
                        point: (0., 2.),
-                       vector: Vector2D { x: 2., y: -1. },
+                       vector: Vector2D { x: 4., y: 0. },
+                   });
+    }
+
+    #[test]
+    fn test_shorten_ray_top() {
+        let rect = Rect::new_unwrap(2, 3, 2, 2);
+        let mut segment = Segment {
+            point: (3., 0.),
+            vector: Vector2D { x: 0., y: 4. },
+        };
+
+        let side = shorten_ray(&mut segment, &rect);
+        assert_eq!(side, Some(CollisionSide::Top));
+        assert_eq!(segment,
+                   Segment {
+                       point: (3., 0.),
+                       vector: Vector2D { x: 0., y: 3. },
                    });
     }
 }

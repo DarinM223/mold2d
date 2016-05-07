@@ -131,10 +131,7 @@ impl Actor<ActorType, ActorMessage> for Player {
                         PlayerSize::Small => ActorMessage::PlayerDied,
                     }
                 }
-                ActorAction::Collision(_, side) if side == CollisionSide::Top => {
-                    self.curr_speed.y = 0.;
-                    ActorMessage::None
-                }
+                ActorAction::Collision(_, side) if side == CollisionSide::Top => ActorMessage::None,
                 ActorAction::Collision(_, side) if side == CollisionSide::Bottom => {
                     if self.curr_state == PlayerState::Jumping {
                         self.curr_state = PlayerState::Idle;
