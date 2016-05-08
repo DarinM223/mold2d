@@ -108,7 +108,7 @@ impl Player {
             curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, PLAYER_WIDTH, PLAYER_HEIGHT),
             anims: anims,
-            debug: true,
+            debug: false,
             prev_segment: None,
         }
     }
@@ -116,7 +116,7 @@ impl Player {
 
 impl Actor<ActorType, ActorMessage> for Player {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        if let ActorMessage::ActorAction(_, ref message) = *message {
+        if let ActorMessage::ActorAction(_, _, ref message) = *message {
             match *message {
                 ActorAction::DamageActor(_) => {
                     match self.size {

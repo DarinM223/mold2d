@@ -106,20 +106,18 @@ impl Polygon for Rect {
 
 /// Shortens a ray segment agains a polygon
 pub fn shorten_ray<P: Polygon>(ray: &mut Segment, poly: &P) -> Option<CollisionSide> {
-    let mut coll_side = None;
-
     for (id, side) in poly.sides().iter().enumerate() {
         if let Some((int_x, int_y)) = ray.intersects(side) {
             // Shorten the ray by the distance between the intersection point
             // and the endpoint of the ray
             let (end_x, end_y) = (ray.point.0 + ray.vector.x, ray.point.1 + ray.vector.y);
             let distance = ((end_x - int_x).powi(2) + (end_y - int_y).powi(2)).sqrt();
-            coll_side = poly.collision_from_side(id);
+            let coll_side = poly.collision_from_side(id);
             *ray = ray.shorten(distance);
+            return coll_side;
         }
     }
-
-    coll_side
+    None
 }
 
 /// Returns the point where two lines intersect

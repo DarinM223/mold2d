@@ -84,7 +84,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         use actions::ActorAction::*;
 
-        if let ActorMessage::ActorAction(id, ref message) = *message {
+        if let ActorMessage::ActorAction(other_id, _, ref message) = *message {
             match *message {
                 Collision(actor_type, side) if actor_type == ActorType::Block &&
                                                side & CollisionSide::Bottom != 0 => {
@@ -97,7 +97,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                 }
                 Collision(actor_type, side) if actor_type == ActorType::Player &&
                                                side & 0b1101 != 0 => {
-                    ActorMessage::ActorAction(id, ActorAction::DamageActor(0))
+                    ActorMessage::ActorAction(self.id, other_id, ActorAction::DamageActor(0))
                 }
                 _ => ActorMessage::None,
             }

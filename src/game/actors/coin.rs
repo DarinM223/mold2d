@@ -34,7 +34,7 @@ impl Coin {
 
 impl Actor<ActorType, ActorMessage> for Coin {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        if let ActorMessage::ActorAction(_, ref message) = *message {
+        if let ActorMessage::ActorAction(_, _, ref message) = *message {
             match *message {
                 ActorAction::Collision(actor_type, _) if actor_type == ActorType::Player => {
                     // Update score and remove coin

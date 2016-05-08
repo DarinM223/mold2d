@@ -24,6 +24,7 @@ impl Events {
     }
 
     /// Polls for events and stores them inside a HashSet
+    #[inline]
     pub fn poll(&mut self) {
         for event in self.pump.poll_iter() {
             match event {

@@ -32,6 +32,7 @@ impl<'a> FrameTimer<'a> {
 
     /// Call this function every frame to limit the frames to a
     /// certain FPS
+    #[inline]
     pub fn on_frame(&mut self) -> FrameAction {
         let now = self.timer.ticks();
         let time_change = now - self.before;

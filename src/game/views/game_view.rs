@@ -1,13 +1,13 @@
 use actions::{ActorAction, ActorMessage, ActorType, GameActorGenerator};
 use engine::font;
 use engine::level;
-use engine::raycast::shorten_ray;
 use engine::{Actor, ActorData, ActorManager, Collision, CollisionSide, Context, PositionChange,
-             Quadtree, Segment, View, ViewAction, Viewport};
+             Quadtree, View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;
 
+#[inline]
 fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
                   actors: &mut ActorManager<ActorType, ActorMessage>,
                   viewport: &mut Viewport,
@@ -24,8 +24,8 @@ fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
                 handle_message(curr_actor, actors, viewport, context, message);
             }
         }
-        ref action @ ActorAction(_, _) => {
-            if let ActorAction(id, _) = *action {
+        ref action @ ActorAction(..) => {
+            if let ActorAction(_, id, _) = *action {
                 let message = if curr_actor.data().id == id {
                     curr_actor.handle_message(&action)
                 } else if let Some(ref mut actor) = actors.get_mut(id) {
@@ -43,13 +43,13 @@ fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
     }
 }
 
+#[inline]
 pub fn handle_collision(actor: &mut Box<Actor<ActorType, ActorMessage>>,
                         other: &ActorData<ActorType>,
                         direction: CollisionSide,
                         actors: &mut ActorManager<ActorType, ActorMessage>,
                         viewport: &mut Viewport,
                         context: &mut Context) {
-
     let data = actor.data();
     // TODO(DarinM223): remove hack that fixes bug with block collision
     // detection
@@ -80,11 +80,11 @@ pub fn handle_collision(actor: &mut Box<Actor<ActorType, ActorMessage>>,
     let rev_dir = CollisionSide::reverse_u8(direction);
 
     let collision = ActorAction::Collision(other.actor_type, direction);
-    let message = ActorMessage::ActorAction(other.id, collision);
+    let message = ActorMessage::ActorAction(other.id, data.id, collision);
     let response = actor.handle_message(&message);
 
     let other_coll = ActorAction::Collision(data.actor_type, rev_dir);
-    let other_msg = ActorMessage::ActorAction(data.id, other_coll);
+    let other_msg = ActorMessage::ActorAction(data.id, other.id, other_coll);
 
     handle_message(actor, actors, viewport, context, &response);
     handle_message(actor, actors, viewport, context, &other_msg);
@@ -120,6 +120,7 @@ impl GameView {
 }
 
 impl View for GameView {
+    #[inline]
     fn render(&mut self, context: &mut Context, elapsed: f64) {
         // start off with a black screen
         context.renderer.set_draw_color(Color::RGB(135, 206, 250));
@@ -145,6 +146,7 @@ impl View for GameView {
         }
     }
 
+    #[inline]
     fn update(&mut self, context: &mut Context, elapsed: f64) -> Option<ViewAction> {
         if context.events.event_called("QUIT") || context.events.event_called("ESC") {
             return Some(ViewAction::Quit);
@@ -155,7 +157,6 @@ impl View for GameView {
         }
 
         {
-            // TODO(DarinM223): eventually avoid creating the quadtree every frame
             let window_rect = Rect::new_unwrap(0, 0, context.window.width, context.window.height);
             let viewport_clone = self.viewport.clone();
             let mut quadtree = Quadtree::new(window_rect, &viewport_clone);
@@ -177,27 +178,16 @@ impl View for GameView {
 
                     // update the actor
                     let position_change = actor.update(context, elapsed);
-                    let mut segment = Segment {
-                        point: (data.rect.x() as f64, data.rect.y() as f64),
-                        vector: position_change.to_vector(),
-                    };
+                    actor.change_pos(&position_change);
 
                     if data.collision_filter != 0 {
-                        // only check collisions for certain actors
-                        let collided_actors = quadtree.retrieve(&data.rect)
-                                                      .into_iter()
-                                                      .map(|act| act.clone())
-                                                      .collect::<Vec<_>>();
-                        for other in collided_actors {
-                            let collision_side = shorten_ray(&mut segment, &other.rect);
-                            if let Some(direction) = collision_side {
-                                handle_collision(&mut actor,
-                                                 &other,
-                                                 direction,
-                                                 &mut self.actors,
-                                                 &mut self.viewport,
-                                                 context);
-                            } else if let Some(direction) = actor.collides_with(&other) {
+                        // only check collisions for nearby actors
+                        let nearby_actors = quadtree.retrieve(&data.rect)
+                                                    .into_iter()
+                                                    .map(|act| act.clone())
+                                                    .collect::<Vec<_>>();
+                        for other in nearby_actors {
+                            if let Some(direction) = actor.collides_with(&other) {
                                 handle_collision(&mut actor,
                                                  &other,
                                                  direction,
@@ -208,9 +198,6 @@ impl View for GameView {
                         }
                     }
 
-                    // apply shortened position change
-                    let change = PositionChange::from_vector(&segment.vector);
-                    actor.change_pos(&change);
                     self.actors.temp_reinsert(actor.data().id, actor);
 
                     if data.actor_type == ActorType::Player {

@@ -6,17 +6,19 @@ use engine::{Actor, ActorFromToken};
 use sdl2::render::Renderer;
 
 /// Actions for an actor to process
+#[derive(Clone, Debug, PartialEq)]
 pub enum ActorAction {
     DamageActor(i32),
     Collision(ActorType, u8),
 }
 
 /// Actor messages
+#[derive(Clone, Debug, PartialEq)]
 pub enum ActorMessage {
     AddActor(char, (i32, i32)),
     RemoveActor(i32),
     SetViewport(i32, i32),
-    ActorAction(i32, ActorAction),
+    ActorAction(i32, i32, ActorAction),
     MultipleMessages(Vec<Box<ActorMessage>>),
     PlayerDied,
     UpdateScore(i32),
@@ -24,7 +26,7 @@ pub enum ActorMessage {
 }
 
 /// Actor types
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ActorType {
     Item,
     Block,

@@ -32,11 +32,10 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
     let mut curr_view = init_view(&mut game_context);
 
     loop {
-        let elapsed;
-        match frame_timer.on_frame() {
+        let elapsed = match frame_timer.on_frame() {
             FrameAction::Delay => continue,
-            FrameAction::Continue(elpsed) => elapsed = elpsed,
-        }
+            FrameAction::Continue(elapsed) => elapsed,
+        };
 
         game_context.events.poll();
 
