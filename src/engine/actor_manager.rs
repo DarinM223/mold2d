@@ -2,26 +2,19 @@ use sdl2::render::Renderer;
 use std::collections::HashMap;
 use view::Actor;
 
-pub trait ActorFromToken<Type, Message> {
-    /// Returns an actor given a token
-    fn actor_from_token(&self,
-                        token: char,
-                        id: i32,
-                        position: (i32, i32),
-                        renderer: &mut Renderer)
-                        -> Box<Actor<Type, Message>>;
-}
+pub type ActorFromToken<Type, Message> = Box<Fn(char, i32, (i32, i32), &mut Renderer)
+                                                -> Box<Actor<Type, Message>>>;
 
 /// Manages all the actors for the game by hashing actors by id
 pub struct ActorManager<Type, Message> {
     pub actors: HashMap<i32, Box<Actor<Type, Message>>>,
     next_id: i32,
     temporary: Option<i32>,
-    actor_gen: Box<ActorFromToken<Type, Message>>,
+    actor_gen: ActorFromToken<Type, Message>,
 }
 
 impl<Type, Message> ActorManager<Type, Message> {
-    pub fn new(actor_gen: Box<ActorFromToken<Type, Message>>) -> ActorManager<Type, Message> {
+    pub fn new(actor_gen: ActorFromToken<Type, Message>) -> ActorManager<Type, Message> {
         ActorManager {
             next_id: 0,
             actors: HashMap::new(),
@@ -32,7 +25,7 @@ impl<Type, Message> ActorManager<Type, Message> {
 
     /// Add a new actor into the manager
     pub fn add(&mut self, token: char, position: (i32, i32), renderer: &mut Renderer) {
-        let actor = self.actor_gen.actor_from_token(token, self.next_id, position, renderer);
+        let actor = (self.actor_gen)(token, self.next_id, position, renderer);
         self.actors.insert(self.next_id, actor);
         self.next_id += 1;
     }

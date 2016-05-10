@@ -1,7 +1,18 @@
+use actor_manager::ActorManager;
+use context::Context;
 use sdl2::rect::Rect;
 use sprite::SpriteRectangle;
 use std::ops::{BitAnd, BitOr};
-use view::PositionChange;
+use view::{Actor, ActorData, PositionChange};
+use viewport::Viewport;
+
+/// Game view collision handler
+pub type CollisionHandler<Type, Message> = Box<Fn(&mut Box<Actor<Type, Message>>,
+                                                  &ActorData<Type>,
+                                                  CollisionSide,
+                                                  &mut ActorManager<Type, Message>,
+                                                  &mut Viewport,
+                                                  &mut Context)>;
 
 /// Checks if a rectangle contains another rectangle
 pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {

@@ -10,7 +10,7 @@ pub const GRID_SIZE: i32 = 40;
 
 /// Loads a new level and returns an ActorManager with the loaded actors
 pub fn load_level<Type, Message>(path: &str,
-                                 actor_for_token: Box<ActorFromToken<Type, Message>>,
+                                 actor_for_token: ActorFromToken<Type, Message>,
                                  renderer: &mut Renderer,
                                  window: &Window)
                                  -> io::Result<(ActorManager<Type, Message>, Viewport)> {

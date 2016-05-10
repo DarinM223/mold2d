@@ -1,94 +1,12 @@
-use actions::{ActorAction, ActorMessage, ActorType, GameActorGenerator};
+use actions::{ActorMessage, ActorType};
+use actions::{actor_from_token, handle_collision};
+use engine::collision::CollisionHandler;
 use engine::font;
 use engine::level;
-use engine::{Actor, ActorData, ActorManager, Collision, CollisionSide, Context, PositionChange,
-             Quadtree, View, ViewAction, Viewport};
+use engine::{Actor, ActorManager, Collision, Context, Quadtree, View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;
-
-#[inline]
-fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
-                  actors: &mut ActorManager<ActorType, ActorMessage>,
-                  viewport: &mut Viewport,
-                  context: &mut Context,
-                  action: &ActorMessage) {
-    use actions::ActorMessage::*;
-
-    match *action {
-        AddActor(token, pos) => actors.add(token, pos, &mut context.renderer),
-        RemoveActor(id) => actors.remove(id),
-        UpdateScore(amount) => context.score.increment_score("GAME_SCORE", amount),
-        MultipleMessages(ref messages) => {
-            for message in messages {
-                handle_message(curr_actor, actors, viewport, context, message);
-            }
-        }
-        ref action @ ActorAction(..) => {
-            if let ActorAction(_, id, _) = *action {
-                let message = if curr_actor.data().id == id {
-                    curr_actor.handle_message(&action)
-                } else if let Some(ref mut actor) = actors.get_mut(id) {
-                    actor.handle_message(&action)
-                } else {
-                    ActorMessage::None
-                };
-                handle_message(curr_actor, actors, viewport, context, &message);
-            }
-        }
-        // TODO(DarinM223): change this to check # of lives left and if
-        // it is 0, display the game over screen, otherwise display the level screen again
-        PlayerDied => println!("Oh no! The player died!"),
-        _ => {}
-    }
-}
-
-#[inline]
-pub fn handle_collision(actor: &mut Box<Actor<ActorType, ActorMessage>>,
-                        other: &ActorData<ActorType>,
-                        direction: CollisionSide,
-                        actors: &mut ActorManager<ActorType, ActorMessage>,
-                        viewport: &mut Viewport,
-                        context: &mut Context) {
-    let data = actor.data();
-    // TODO(DarinM223): remove hack that fixes bug with block collision
-    // detection
-    if data.actor_type != ActorType::Block {
-        while actor.collides_with(other) == Some(direction) {
-            match direction {
-                CollisionSide::Top => {
-                    actor.change_pos(&PositionChange::new().down(1));
-                }
-                CollisionSide::Bottom => {
-                    actor.change_pos(&PositionChange::new().up(1));
-                }
-                CollisionSide::Left => {
-                    actor.change_pos(&PositionChange::new().right(1));
-                }
-                CollisionSide::Right => {
-                    actor.change_pos(&PositionChange::new().left(1));
-                }
-            }
-        }
-
-        if direction == CollisionSide::Bottom {
-            actor.change_pos(&PositionChange::new().down(1));
-        }
-    }
-
-    let direction = direction & other.collision_filter;
-    let rev_dir = CollisionSide::reverse_u8(direction);
-
-    let collision = ActorAction::Collision(other.actor_type, direction);
-    let message = ActorMessage::ActorAction(other.id, data.id, collision);
-    let response = actor.handle_message(&message);
-
-    let other_coll = ActorAction::Collision(data.actor_type, rev_dir);
-    let other_msg = ActorMessage::ActorAction(data.id, other.id, other_coll);
-
-    handle_message(actor, actors, viewport, context, &response);
-    handle_message(actor, actors, viewport, context, &other_msg);
-}
 
 /// The main game view used for
 /// the actual gameplay
@@ -96,13 +14,13 @@ pub struct GameView {
     actors: ActorManager<ActorType, ActorMessage>,
     viewport: Viewport,
     level_path: String,
+    collision_handler: CollisionHandler<ActorType, ActorMessage>,
 }
 
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
-        let actor_generator = Box::new(GameActorGenerator);
         let level_result = level::load_level(path,
-                                             actor_generator,
+                                             Box::new(actor_from_token),
                                              &mut context.renderer,
                                              &context.window);
         let (actors, viewport) = level_result.unwrap();
@@ -115,6 +33,7 @@ impl GameView {
             actors: actors,
             viewport: viewport,
             level_path: path.to_owned(),
+            collision_handler: Box::new(handle_collision),
         }
     }
 }
@@ -188,12 +107,12 @@ impl View for GameView {
                                                     .collect::<Vec<_>>();
                         for other in nearby_actors {
                             if let Some(direction) = actor.collides_with(&other) {
-                                handle_collision(&mut actor,
-                                                 &other,
-                                                 direction,
-                                                 &mut self.actors,
-                                                 &mut self.viewport,
-                                                 context);
+                                (self.collision_handler)(&mut actor,
+                                                         &other,
+                                                         direction,
+                                                         &mut self.actors,
+                                                         &mut self.viewport,
+                                                         context);
                             }
                         }
                     }
