@@ -84,8 +84,8 @@ impl Actor<ActorType, ActorMessage> for Koopa {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         use actions::ActorAction::*;
 
-        if let ActorMessage::ActorAction(other_id, _, ref message) = *message {
-            match *message {
+        if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
+            match *action {
                 Collision(actor_type, side) if actor_type == ActorType::Block &&
                                                side & CollisionSide::Bottom != 0 => {
                     if self.curr_state == KoopaState::Jumping {
@@ -97,7 +97,12 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                 }
                 Collision(actor_type, side) if actor_type == ActorType::Player &&
                                                side & 0b1101 != 0 => {
-                    ActorMessage::ActorAction(self.id, other_id, ActorAction::DamageActor(0))
+                    // Send damage message to original sender
+                    ActorMessage::ActorAction {
+                        send_id: self.id,
+                        recv_id: send_id,
+                        action: ActorAction::DamageActor(0),
+                    }
                 }
                 _ => ActorMessage::None,
             }
@@ -154,6 +159,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
             id: self.id,
             state: self.curr_state as u32,
             damage: 5,
+            resolves_collisions: true,
             collision_filter: 0b1111,
             rect: self.rect.to_sdl().unwrap(),
             bounding_box: self.anims

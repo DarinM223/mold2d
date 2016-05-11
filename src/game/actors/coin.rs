@@ -34,8 +34,8 @@ impl Coin {
 
 impl Actor<ActorType, ActorMessage> for Coin {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        if let ActorMessage::ActorAction(_, _, ref message) = *message {
-            match *message {
+        if let ActorMessage::ActorAction { ref action, .. } = *message {
+            match *action {
                 ActorAction::Collision(actor_type, _) if actor_type == ActorType::Player => {
                     // Update score and remove coin
                     ActorMessage::MultipleMessages(vec![
@@ -74,6 +74,7 @@ impl Actor<ActorType, ActorMessage> for Coin {
             state: 0,
             damage: 0,
             collision_filter: 0b1111,
+            resolves_collisions: false,
             rect: self.rect.to_sdl().unwrap(),
             bounding_box: Some(BoundingBox::Rectangle(self.rect.clone())),
             actor_type: ActorType::Item,

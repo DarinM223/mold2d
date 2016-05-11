@@ -96,6 +96,7 @@ macro_rules! block {
                     id: self.id,
                     state: 0 as u32,
                     damage: 0,
+                    resolves_collisions: false,
                     collision_filter: $filter,
                     rect: self.rect.to_sdl().unwrap(),
                     bounding_box: Some(BoundingBox::Rectangle(self.rect.clone())),

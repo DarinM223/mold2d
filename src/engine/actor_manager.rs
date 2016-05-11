@@ -2,6 +2,7 @@ use sdl2::render::Renderer;
 use std::collections::HashMap;
 use view::Actor;
 
+/// Handler for creating an actor from a token character
 pub type ActorFromToken<Type, Message> = Box<Fn(char, i32, (i32, i32), &mut Renderer)
                                                 -> Box<Actor<Type, Message>>>;
 

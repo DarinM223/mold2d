@@ -116,8 +116,8 @@ impl Player {
 
 impl Actor<ActorType, ActorMessage> for Player {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        if let ActorMessage::ActorAction(_, _, ref message) = *message {
-            match *message {
+        if let ActorMessage::ActorAction { ref action, .. } = *message {
+            match *action {
                 ActorAction::DamageActor(_) => {
                     match self.size {
                         PlayerSize::Big | PlayerSize::Crouching => {
@@ -253,6 +253,7 @@ impl Actor<ActorType, ActorMessage> for Player {
             id: self.id,
             state: self.curr_state as u32,
             damage: 0,
+            resolves_collisions: true,
             collision_filter: 0b1111,
             rect: self.rect.to_sdl().unwrap(),
             bounding_box: self.anims

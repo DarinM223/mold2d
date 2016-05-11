@@ -3,16 +3,57 @@ use context::Context;
 use sdl2::rect::Rect;
 use sprite::SpriteRectangle;
 use std::ops::{BitAnd, BitOr};
-use view::{Actor, ActorData, PositionChange};
+use view::{Actor, ActorData, MessageHandler, PositionChange};
 use viewport::Viewport;
 
-/// Game view collision handler
-pub type CollisionHandler<Type, Message> = Box<Fn(&mut Box<Actor<Type, Message>>,
-                                                  &ActorData<Type>,
-                                                  CollisionSide,
-                                                  &mut ActorManager<Type, Message>,
-                                                  &mut Viewport,
-                                                  &mut Context)>;
+/// Handler for creating a collision message from an actor's data and the collision side
+pub type CreateCollisionMsg<Type, Message> = Box<Fn(&ActorData<Type>, &ActorData<Type>, u8)
+                                                    -> Message>;
+
+/// Moves actor away from collided actor and sends collision messages to
+/// both of the collided actors
+#[inline]
+pub fn handle_collision<Type, Message>(actor: &mut Box<Actor<Type, Message>>,
+                                       other: &ActorData<Type>,
+                                       direction: CollisionSide,
+                                       handler: MessageHandler<Type, Message>,
+                                       create_collision_message: CreateCollisionMsg<Type, Message>,
+                                       actors: &mut ActorManager<Type, Message>,
+                                       viewport: &mut Viewport,
+                                       context: &mut Context) {
+    let data = actor.data();
+    if data.resolves_collisions {
+        while actor.collides_with(other) == Some(direction) {
+            match direction {
+                CollisionSide::Top => {
+                    actor.change_pos(&PositionChange::new().down(1));
+                }
+                CollisionSide::Bottom => {
+                    actor.change_pos(&PositionChange::new().up(1));
+                }
+                CollisionSide::Left => {
+                    actor.change_pos(&PositionChange::new().right(1));
+                }
+                CollisionSide::Right => {
+                    actor.change_pos(&PositionChange::new().left(1));
+                }
+            }
+        }
+
+        if direction == CollisionSide::Bottom {
+            actor.change_pos(&PositionChange::new().down(1));
+        }
+    }
+
+    let direction = direction & other.collision_filter;
+    let rev_dir = CollisionSide::reverse_u8(direction);
+
+    let response = create_collision_message(&other, &data, direction);
+    let other_msg = create_collision_message(&data, &other, rev_dir);
+
+    (handler)(actor, actors, viewport, context, &response);
+    (handler)(actor, actors, viewport, context, &other_msg);
+}
 
 /// Checks if a rectangle contains another rectangle
 pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {

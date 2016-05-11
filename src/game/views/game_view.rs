@@ -1,6 +1,6 @@
 use actions::{ActorMessage, ActorType};
-use actions::{actor_from_token, handle_collision};
-use engine::collision::CollisionHandler;
+use actions::{actor_from_token, create_collision_message, handle_message};
+use engine::collision::handle_collision;
 use engine::font;
 use engine::level;
 use engine::{Actor, ActorManager, Collision, Context, Quadtree, View, ViewAction, Viewport};
@@ -14,7 +14,6 @@ pub struct GameView {
     actors: ActorManager<ActorType, ActorMessage>,
     viewport: Viewport,
     level_path: String,
-    collision_handler: CollisionHandler<ActorType, ActorMessage>,
 }
 
 impl GameView {
@@ -33,7 +32,6 @@ impl GameView {
             actors: actors,
             viewport: viewport,
             level_path: path.to_owned(),
-            collision_handler: Box::new(handle_collision),
         }
     }
 }
@@ -99,7 +97,7 @@ impl View for GameView {
                     let position_change = actor.update(context, elapsed);
                     actor.change_pos(&position_change);
 
-                    if data.collision_filter != 0 {
+                    if data.collision_filter != 0 && data.actor_type != ActorType::Block {
                         // only check collisions for nearby actors
                         let nearby_actors = quadtree.retrieve(&data.rect)
                                                     .into_iter()
@@ -107,12 +105,14 @@ impl View for GameView {
                                                     .collect::<Vec<_>>();
                         for other in nearby_actors {
                             if let Some(direction) = actor.collides_with(&other) {
-                                (self.collision_handler)(&mut actor,
-                                                         &other,
-                                                         direction,
-                                                         &mut self.actors,
-                                                         &mut self.viewport,
-                                                         context);
+                                handle_collision(&mut actor,
+                                                 &other,
+                                                 direction,
+                                                 Box::new(handle_message),
+                                                 Box::new(create_collision_message),
+                                                 &mut self.actors,
+                                                 &mut self.viewport,
+                                                 context);
                             }
                         }
                     }

@@ -1,8 +1,16 @@
+use actor_manager::ActorManager;
 use collision::{BoundingBox, CollisionSide};
 use context::Context;
 use sdl2::rect::Rect;
 use vector::Vector2D;
 use viewport::Viewport;
+
+/// Handler for a view to deal with actor messages
+pub type MessageHandler<Type, Message> = Box<Fn(&mut Box<Actor<Type, Message>>,
+                                                &mut ActorManager<Type, Message>,
+                                                &mut Viewport,
+                                                &mut Context,
+                                                &Message)>;
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {
@@ -21,12 +29,23 @@ pub trait View {
 /// The data contained in an actor
 #[derive(Clone, PartialEq)]
 pub struct ActorData<Type> {
+    /// The id of the actor given by the actor manager
     pub id: i32,
+    /// The current state of the actor as a number
     pub state: u32,
+    /// The damage that the actor has taken so far
     pub damage: i32,
+    /// A byte that contains the sides that
+    /// other actors can collide into
     pub collision_filter: u8,
+    /// If true, on collision the actor would be
+    /// moved away from the collision
+    pub resolves_collisions: bool,
+    /// The sprite rectangle
     pub rect: Rect,
+    /// The current bounding box for the actor
     pub bounding_box: Option<BoundingBox>,
+    /// The type of the actor
     pub actor_type: Type,
 }
 
