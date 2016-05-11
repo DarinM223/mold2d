@@ -49,6 +49,6 @@ pub use raycast::{Polygon, Segment};
 pub use score::Score;
 pub use sprite::{AnimatedSprite, Animation, AnimationData, AnimationManager, Direction,
                  Renderable, Sprite, SpriteRectangle};
-pub use vector::Vector2D;
-pub use view::{Actor, ActorData, MessageHandler, PositionChange, View, ViewAction};
+pub use vector::{PositionChange, Vector2D};
+pub use view::{Actor, ActorData, MessageHandler, View, ViewAction};
 pub use viewport::Viewport;

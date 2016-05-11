@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::path::Path;
 use std::rc::Rc;
-use view::PositionChange;
+use vector::PositionChange;
 use viewport::Viewport;
 
 /// The direction that a sprite is facing

@@ -3,7 +3,8 @@ use context::Context;
 use sdl2::rect::Rect;
 use sprite::SpriteRectangle;
 use std::ops::{BitAnd, BitOr};
-use view::{Actor, ActorData, MessageHandler, PositionChange};
+use vector::PositionChange;
+use view::{Actor, ActorData, MessageHandler};
 use viewport::Viewport;
 
 /// Handler for creating a collision message from an actor's data and the collision side
