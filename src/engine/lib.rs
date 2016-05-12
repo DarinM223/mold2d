@@ -25,6 +25,8 @@ extern crate sdl2_image;
 extern crate sdl2_ttf;
 
 pub mod actor_manager;
+#[macro_use]
+pub mod block;
 pub mod cache;
 pub mod collision;
 pub mod context;
