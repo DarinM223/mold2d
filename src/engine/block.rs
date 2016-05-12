@@ -19,9 +19,9 @@
 /// ## Example:
 /// ```
 /// block! {
-///     Type: ActorType,
-///     Message: ActorMessage:
-///     Blocks: {
+///     actor_type: ActorType,
+///     actor_message: ActorMessage,
+///     blocks: {
 ///         block {
 ///             name: GrassBlock, // the name of the block
 ///             path: "assets/spritesheet.png", // the path of the spritesheet
@@ -30,6 +30,10 @@
 ///             height: 5, // height of block
 ///             sprites_in_row: 10, // number of blocks in the spritesheet in a row
 ///             size: 20, // size of the rendered block
+///         }
+///
+///         block {
+///             ....
 ///         }
 ///     }
 /// }
@@ -56,9 +60,9 @@ macro_rules! block {
     ) => {
         $(
             pub struct $name {
-                id: i32,
                 pub rect: ::engine::SpriteRectangle,
                 pub sprite: ::engine::Sprite,
+                id: i32,
             }
 
             impl $name {
@@ -66,27 +70,27 @@ macro_rules! block {
                            position: (i32, i32),
                            renderer: &mut ::sdl2::render::Renderer,
                            _fps: f64)
-                    -> $name {
-                        let anim_data = ::engine::AnimationData {
-                            width: $width,
-                            height: $height,
-                            sprites_in_row: $sprites_in_row,
-                            path: $path,
-                        };
+                           -> $name {
+                    let anim_data = ::engine::AnimationData {
+                        width: $width,
+                        height: $height,
+                        sprites_in_row: $sprites_in_row,
+                        path: $path,
+                    };
 
-                        let anim = ::engine::Animation::new(anim_data, renderer);
-                        let mut sprite_anims = anim.range($index, $index + 1);
-                        let sprite = sprite_anims.pop().unwrap();
+                    let anim = ::engine::Animation::new(anim_data, renderer);
+                    let mut sprite_anims = anim.range($index, $index + 1);
+                    let sprite = sprite_anims.pop().unwrap();
 
-                        $name {
-                            id: id,
-                            rect: ::engine::SpriteRectangle::new(position.0,
-                                                       position.1,
-                                                       $size,
-                                                       $size),
-                                                       sprite: sprite,
-                        }
+                    $name {
+                        id: id,
+                        rect: ::engine::SpriteRectangle::new(position.0,
+                                                             position.1,
+                                                             $size,
+                                                             $size),
+                        sprite: sprite,
                     }
+                }
             }
 
             impl ::engine::Actor<$actor_type, $actor_message> for $name {
@@ -97,17 +101,17 @@ macro_rules! block {
                 #[allow(unused_imports)]
                 fn collides_with(&mut self,
                                  other_actor: &::engine::ActorData<$actor_type>)
-                    -> Option<::engine::CollisionSide> {
-                        use ::engine::Collision;
-                        self.rect.collides_with(other_actor.rect)
-                    }
+                                 -> Option<::engine::CollisionSide> {
+                    use ::engine::Collision;
+                    self.rect.collides_with(other_actor.rect)
+                }
 
                 fn update(&mut self,
                           _context: &mut ::engine::Context,
                           _elapsed: f64)
-                    -> ::engine::PositionChange {
-                        ::engine::PositionChange::new()
-                    }
+                          -> ::engine::PositionChange {
+                    ::engine::PositionChange::new()
+                }
 
                 #[allow(unused_imports)]
                 fn render(&mut self,
