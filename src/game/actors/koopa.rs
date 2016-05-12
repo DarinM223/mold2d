@@ -11,8 +11,12 @@ const KOOPA_ACCELERATION: f64 = 0.18;
 pub enum KoopaState {
     Jumping,
     Walking,
-    ShellSitting,
-    ShellMoving,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+pub enum KoopaSize {
+    Upright,
+    Shell,
 }
 
 pub const KOOPA_WIDTH: u32 = 30;
@@ -21,17 +25,19 @@ pub const KOOPA_HEIGHT: u32 = 60;
 pub struct Koopa {
     id: i32,
     curr_state: KoopaState,
+    size: KoopaSize,
     direction: Direction,
     grounded: bool,
     curr_speed: Vector2D,
     rect: SpriteRectangle,
-    anims: AnimationManager<(KoopaState, Direction)>,
+    anims: AnimationManager<(KoopaState, KoopaSize, Direction)>,
 }
 
 impl Koopa {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Koopa {
         use engine::sprite::AnimationData;
         use engine::sprite::Direction::*;
+        use self::KoopaSize::*;
         use self::KoopaState::*;
 
         let mut anims = AnimationManager::new(fps);
@@ -58,19 +64,22 @@ impl Koopa {
         let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
                                                                 position.1,
                                                                 KOOPA_WIDTH,
-                                                                KOOPA_WIDTH / 2));
+                                                                KOOPA_HEIGHT / 2));
 
-        anims.add((Jumping, Left), banim.range(0, 1), bbox.clone());
-        anims.add((Jumping, Right), banim.range(3, 4), bbox.clone());
-        anims.add((Walking, Left), banim.range(0, 2), bbox.clone());
-        anims.add((Walking, Right), banim.range(2, 4), bbox.clone());
-        anims.add((ShellSitting, Left), sanim.range(0, 1), cbbox.clone());
-        anims.add((ShellSitting, Right), sanim.range(4, 5), cbbox.clone());
-        anims.add((ShellMoving, Left), sanim.range(1, 4), cbbox.clone());
+        anims.add((Jumping, Upright, Left), banim.range(0, 1), bbox.clone());
+        anims.add((Jumping, Upright, Right), banim.range(3, 4), bbox.clone());
+        anims.add((Walking, Upright, Left), banim.range(0, 2), bbox.clone());
+        anims.add((Walking, Upright, Right), banim.range(2, 4), bbox.clone());
+
+        anims.add((Jumping, Shell, Left), sanim.range(0, 1), cbbox.clone());
+        anims.add((Jumping, Shell, Right), sanim.range(4, 5), cbbox.clone());
+        anims.add((Walking, Shell, Left), sanim.range(0, 1), cbbox.clone());
+        anims.add((Walking, Shell, Right), sanim.range(4, 5), cbbox.clone());
 
         Koopa {
             id: id,
             curr_state: KoopaState::Walking,
+            size: KoopaSize::Upright,
             direction: Direction::Left,
             grounded: false,
             curr_speed: Vector2D { x: 0., y: 0. },
@@ -96,6 +105,18 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     ActorMessage::None
                 }
                 Collision(actor_type, side) if actor_type == ActorType::Player &&
+                                               side & CollisionSide::Top != 0 => {
+                    // Turn to shell if upright
+                    if self.size != KoopaSize::Shell {
+                        let amount: i32 = self.rect.h as i32 / 2;
+                        let half_change = PositionChange::new().shrink_height_bot(amount);
+                        self.rect.apply_change(&half_change);
+                        self.size = KoopaSize::Shell;
+                    }
+
+                    ActorMessage::None
+                }
+                Collision(actor_type, side) if actor_type == ActorType::Player &&
                                                side & 0b1101 != 0 => {
                     // Send damage message to original sender
                     ActorMessage::ActorAction {
@@ -112,7 +133,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
     }
 
     fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<CollisionSide> {
-        let key = (self.curr_state, self.direction);
+        let key = (self.curr_state, self.size, self.direction);
         self.anims.collides_with(&key, &other.bounding_box)
     }
 
@@ -150,7 +171,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
     }
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
-        let key = (self.curr_state, self.direction);
+        let key = (self.curr_state, self.size, self.direction);
         self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
     }
 
@@ -163,7 +184,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
             collision_filter: 0b1111,
             rect: self.rect.to_sdl().unwrap(),
             bounding_box: self.anims
-                              .bbox(&(self.curr_state, self.direction))
+                              .bbox(&(self.curr_state, self.size, self.direction))
                               .map(|bb| bb.clone()),
             actor_type: ActorType::Enemy,
         }
