@@ -131,6 +131,11 @@ impl Actor<ActorType, ActorMessage> for Player {
                         PlayerSize::Small => ActorMessage::PlayerDied,
                     }
                 }
+                ActorAction::ChangePosition(ref change) => {
+                    self.rect.apply_change(change);
+                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
+                    ActorMessage::None
+                }
                 ActorAction::Collision(_, side) if side == CollisionSide::Top => ActorMessage::None,
                 ActorAction::Collision(_, side) if side == CollisionSide::Bottom => {
                     if self.curr_state == PlayerState::Jumping {
@@ -261,10 +266,5 @@ impl Actor<ActorType, ActorMessage> for Player {
                               .map(|bb| bb.clone()),
             actor_type: ActorType::Player,
         }
-    }
-
-    fn change_pos(&mut self, change: &PositionChange) {
-        self.rect.apply_change(&change);
-        self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
     }
 }

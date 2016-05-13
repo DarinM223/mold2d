@@ -4,12 +4,8 @@ use sdl2::rect::Rect;
 use sprite::SpriteRectangle;
 use std::ops::{BitAnd, BitOr};
 use vector::PositionChange;
-use view::{Actor, ActorData, MessageHandler};
+use view::{Actor, ActorData, CreateMessageHandler, MessageHandler, MessageType};
 use viewport::Viewport;
-
-/// Handler for creating a collision message from an actor's data and the collision side
-pub type CreateCollisionMsg<Type, Message> = Box<Fn(&ActorData<Type>, &ActorData<Type>, u8)
-                                                    -> Message>;
 
 /// Moves actor away from collided actor and sends collision messages to
 /// both of the collided actors
@@ -18,39 +14,36 @@ pub fn handle_collision<Type, Message>(actor: &mut Box<Actor<Type, Message>>,
                                        other: &ActorData<Type>,
                                        direction: CollisionSide,
                                        handler: MessageHandler<Type, Message>,
-                                       create_collision_message: CreateCollisionMsg<Type, Message>,
+                                       create_msg: CreateMessageHandler<Type, Message>,
                                        actors: &mut ActorManager<Type, Message>,
                                        viewport: &mut Viewport,
-                                       context: &mut Context) {
+                                       context: &mut Context)
+    where Type: Clone
+{
     let data = actor.data();
     if data.resolves_collisions {
         while actor.collides_with(other) == Some(direction) {
-            match direction {
-                CollisionSide::Top => {
-                    actor.change_pos(&PositionChange::new().down(1));
-                }
-                CollisionSide::Bottom => {
-                    actor.change_pos(&PositionChange::new().up(1));
-                }
-                CollisionSide::Left => {
-                    actor.change_pos(&PositionChange::new().right(1));
-                }
-                CollisionSide::Right => {
-                    actor.change_pos(&PositionChange::new().left(1));
-                }
-            }
+            let change = match direction {
+                CollisionSide::Top => PositionChange::new().down(1),
+                CollisionSide::Bottom => PositionChange::new().up(1),
+                CollisionSide::Left => PositionChange::new().right(1),
+                CollisionSide::Right => PositionChange::new().left(1),
+            };
+
+            actor.handle_message(&create_msg(MessageType::ChangePosition(change)));
         }
 
         if direction == CollisionSide::Bottom {
-            actor.change_pos(&PositionChange::new().down(1));
+            let down_change = PositionChange::new().down(1);
+            actor.handle_message(&create_msg(MessageType::ChangePosition(down_change)));
         }
     }
 
     let direction = direction & other.collision_filter;
     let rev_dir = CollisionSide::reverse_u8(direction);
 
-    let response = create_collision_message(&other, &data, direction);
-    let other_msg = create_collision_message(&data, &other, rev_dir);
+    let response = create_msg(MessageType::Collision(other.clone(), data.clone(), direction));
+    let other_msg = create_msg(MessageType::Collision(data.clone(), other.clone(), rev_dir));
 
     (handler)(actor, actors, viewport, context, &response);
     (handler)(actor, actors, viewport, context, &other_msg);

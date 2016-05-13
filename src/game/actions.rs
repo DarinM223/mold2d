@@ -2,13 +2,14 @@ use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
 use actors::coin::Coin;
 use actors::koopa::Koopa;
 use actors::player::Player;
-use engine::{Actor, ActorData, ActorManager, Viewport, Context};
+use engine::{Actor, ActorManager, MessageType, PositionChange, Viewport, Context};
 use sdl2::render::Renderer;
 
 /// Actions for an actor to process
 #[derive(Clone, Debug, PartialEq)]
 pub enum ActorAction {
     DamageActor(i32),
+    ChangePosition(PositionChange),
     Collision(ActorType, u8),
 }
 
@@ -93,13 +94,21 @@ pub fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
 }
 
 #[inline]
-pub fn create_collision_message(sending_actor: &ActorData<ActorType>,
-                                receiving_actor: &ActorData<ActorType>,
-                                side: u8)
-                                -> ActorMessage {
-    return ActorMessage::ActorAction {
-        send_id: sending_actor.id,
-        recv_id: receiving_actor.id,
-        action: ActorAction::Collision(sending_actor.actor_type, side),
-    };
+pub fn create_msg(message: MessageType<ActorType>) -> ActorMessage {
+    match message {
+        MessageType::Collision(sender, receiver, direction) => {
+            ActorMessage::ActorAction {
+                send_id: sender.id,
+                recv_id: receiver.id,
+                action: ActorAction::Collision(sender.actor_type, direction),
+            }
+        }
+        MessageType::ChangePosition(change) => {
+            ActorMessage::ActorAction {
+                send_id: -1,
+                recv_id: -1,
+                action: ActorAction::ChangePosition(change),
+            }
+        }
+    }
 }

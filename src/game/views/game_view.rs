@@ -1,5 +1,5 @@
-use actions::{ActorMessage, ActorType};
-use actions::{actor_from_token, create_collision_message, handle_message};
+use actions::{ActorAction, ActorMessage, ActorType};
+use actions::{actor_from_token, create_msg, handle_message};
 use engine::collision::handle_collision;
 use engine::font;
 use engine::level;
@@ -94,8 +94,12 @@ impl View for GameView {
                     let data = actor.data();
 
                     // update the actor
-                    let position_change = actor.update(context, elapsed);
-                    actor.change_pos(&position_change);
+                    let pos_change = actor.update(context, elapsed);
+                    actor.handle_message(&ActorMessage::ActorAction {
+                        send_id: data.id,
+                        recv_id: data.id,
+                        action: ActorAction::ChangePosition(pos_change),
+                    });
 
                     if data.collision_filter != 0 && data.actor_type != ActorType::Block {
                         // only check collisions for nearby actors
@@ -109,7 +113,7 @@ impl View for GameView {
                                                  &other,
                                                  direction,
                                                  Box::new(handle_message),
-                                                 Box::new(create_collision_message),
+                                                 Box::new(create_msg),
                                                  &mut self.actors,
                                                  &mut self.viewport,
                                                  context);

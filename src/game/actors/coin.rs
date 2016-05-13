@@ -80,8 +80,4 @@ impl Actor<ActorType, ActorMessage> for Coin {
             actor_type: ActorType::Item,
         }
     }
-
-    fn change_pos(&mut self, change: &PositionChange) {
-        self.rect.apply_change(&change);
-    }
 }

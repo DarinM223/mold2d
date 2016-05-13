@@ -95,6 +95,11 @@ impl Actor<ActorType, ActorMessage> for Koopa {
 
         if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
             match *action {
+                ChangePosition(ref change) => {
+                    self.rect.apply_change(change);
+                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
+                    ActorMessage::None
+                }
                 Collision(actor_type, side) if actor_type == ActorType::Block &&
                                                side & CollisionSide::Bottom != 0 => {
                     if self.curr_state == KoopaState::Jumping {
@@ -188,10 +193,5 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                               .map(|bb| bb.clone()),
             actor_type: ActorType::Enemy,
         }
-    }
-
-    fn change_pos(&mut self, change: &PositionChange) {
-        self.rect.apply_change(&change);
-        self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
     }
 }

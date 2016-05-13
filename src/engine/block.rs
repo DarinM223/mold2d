@@ -137,8 +137,6 @@ macro_rules! block {
                         actor_type: $actor_type::Block,
                     }
                 }
-
-                fn change_pos(&mut self, _: &::engine::PositionChange) {}
             }
         )*
     }
