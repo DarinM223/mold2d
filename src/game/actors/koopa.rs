@@ -189,8 +189,8 @@ impl Actor<ActorType, ActorMessage> for Koopa {
             collision_filter: 0b1111,
             rect: self.rect.to_sdl().unwrap(),
             bounding_box: self.anims
-                              .bbox(&(self.curr_state, self.size, self.direction))
-                              .map(|bb| bb.clone()),
+                .bbox(&(self.curr_state, self.size, self.direction))
+                .map(|bb| bb.clone()),
             actor_type: ActorType::Enemy,
         }
     }

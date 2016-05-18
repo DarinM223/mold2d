@@ -58,7 +58,7 @@ impl View for GameView {
                                                 "assets/belligerent.ttf",
                                                 32,
                                                 Color::RGB(0, 255, 0))
-                                  .unwrap();
+                .unwrap();
             font::render_text(&mut context.renderer, font_sprite, (100, 100));
         }
     }
@@ -104,9 +104,9 @@ impl View for GameView {
                     if data.collision_filter != 0 && data.actor_type != ActorType::Block {
                         // only check collisions for nearby actors
                         let nearby_actors = quadtree.retrieve(&data.rect)
-                                                    .into_iter()
-                                                    .map(|act| act.clone())
-                                                    .collect::<Vec<_>>();
+                            .into_iter()
+                            .map(|act| act.clone())
+                            .collect::<Vec<_>>();
                         for other in nearby_actors {
                             if let Some(direction) = actor.collides_with(&other) {
                                 handle_collision(&mut actor,

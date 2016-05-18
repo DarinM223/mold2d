@@ -262,8 +262,8 @@ impl Actor<ActorType, ActorMessage> for Player {
             collision_filter: 0b1111,
             rect: self.rect.to_sdl().unwrap(),
             bounding_box: self.anims
-                              .bbox(&(self.size, self.curr_state, self.direction))
-                              .map(|bb| bb.clone()),
+                .bbox(&(self.size, self.curr_state, self.direction))
+                .map(|bb| bb.clone()),
             actor_type: ActorType::Player,
         }
     }

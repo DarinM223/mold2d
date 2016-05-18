@@ -31,8 +31,8 @@ impl KeyboardMappings {
     pub fn new(mappings: &str) -> KeyboardMappings {
         let mapping_str = mappings.to_owned();
         let token_stream: Vec<_> = mapping_str.split(|x| (x == ' ') || (x == '\n'))
-                                              .filter(|s| !s.trim().is_empty())
-                                              .collect();
+            .filter(|s| !s.trim().is_empty())
+            .collect();
 
         let mut keyboard_mappings = KeyboardMappings { key_map: HashMap::new() };
         let mut state = MappingState::Keycode;

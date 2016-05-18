@@ -18,9 +18,9 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
     let _ttf_context = sdl2_ttf::init();
 
     let sdl_window = try!(video.window(window.title, window.width, window.height)
-                               .position_centered()
-                               .opengl()
-                               .build());
+        .position_centered()
+        .opengl()
+        .build());
     let sdl_renderer = try!(sdl_window.renderer().accelerated().build());
 
     let mut game_context = Context::new(window,
