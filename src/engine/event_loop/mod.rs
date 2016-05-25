@@ -6,7 +6,7 @@ use sdl2;
 use sdl2::SdlResult;
 use sdl2_ttf;
 use self::frame_timer::{FrameAction, FrameTimer};
-use view::{Actor, View, ViewAction};
+use view::{View, ViewAction};
 
 /// Initializes SDL and creates the window and event loop
 pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>

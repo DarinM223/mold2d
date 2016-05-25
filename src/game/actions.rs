@@ -2,7 +2,7 @@ use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
 use actors::coin::Coin;
 use actors::koopa::Koopa;
 use actors::player::Player;
-use engine::{Actor, ActorManager, MessageType, PositionChange, Viewport, Context};
+use engine::{Actor, ActorManager, CollisionSide, MessageType, PositionChange, Viewport, Context};
 use sdl2::render::Renderer;
 
 /// Actions for an actor to process
@@ -10,7 +10,7 @@ use sdl2::render::Renderer;
 pub enum ActorAction {
     DamageActor(i32),
     ChangePosition(PositionChange),
-    Collision(ActorType, u8),
+    Collision(ActorType, CollisionSide),
 }
 
 /// Actor messages
@@ -100,7 +100,7 @@ pub fn create_msg(message: MessageType<ActorType>) -> ActorMessage {
             ActorMessage::ActorAction {
                 send_id: sender.id,
                 recv_id: receiver.id,
-                action: ActorAction::Collision(sender.actor_type, direction),
+                action: ActorAction::Collision(sender.actor_type, CollisionSide::from(direction)),
             }
         }
         MessageType::ChangePosition(change) => {

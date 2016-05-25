@@ -2,6 +2,7 @@ use actor_manager::ActorManager;
 use context::Context;
 use sdl2::rect::Rect;
 use sprite::SpriteRectangle;
+use std::mem;
 use std::ops::{BitAnd, BitOr};
 use vector::PositionChange;
 use view::{Actor, ActorData, CreateMessageHandler, MessageHandler, MessageType};
@@ -42,11 +43,12 @@ pub fn handle_collision<Type, Message>(actor: &mut Box<Actor<Type, Message>>,
     let direction = direction & other.collision_filter;
     let rev_dir = CollisionSide::reverse_u8(direction);
 
-    let response = create_msg(MessageType::Collision(other.clone(), data.clone(), direction));
-    let other_msg = create_msg(MessageType::Collision(data.clone(), other.clone(), rev_dir));
-
-    (handler)(actor, actors, viewport, context, &response);
-    (handler)(actor, actors, viewport, context, &other_msg);
+    if direction != 0 {
+        let response = create_msg(MessageType::Collision(other.clone(), data.clone(), direction));
+        (handler)(actor, actors, viewport, context, &response);
+        let other_msg = create_msg(MessageType::Collision(data.clone(), other.clone(), rev_dir));
+        (handler)(actor, actors, viewport, context, &other_msg);
+    }
 }
 
 /// Checks if a rectangle contains another rectangle
@@ -162,6 +164,14 @@ impl PartialEq<u8> for CollisionSide {
 impl PartialEq<CollisionSide> for u8 {
     fn eq(&self, other: &CollisionSide) -> bool {
         *self == (*other as u8)
+    }
+}
+
+impl From<u8> for CollisionSide {
+    fn from(side: u8) -> CollisionSide {
+        assert!(side == CollisionSide::Left || side == CollisionSide::Right ||
+                side == CollisionSide::Bottom || side == CollisionSide::Top);
+        unsafe { mem::transmute(side) }
     }
 }
 

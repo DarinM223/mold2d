@@ -1,6 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, CollisionSide,
-             Context, Direction, PositionChange, Renderable, SpriteRectangle, Vector2D, Viewport};
+use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, CollisionSide, Context,
+             Direction, PositionChange, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const KOOPA_X_MAXSPEED: f64 = 10.0;
@@ -100,8 +100,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
-                Collision(actor_type, side) if actor_type == ActorType::Block &&
-                                               side & CollisionSide::Bottom != 0 => {
+                Collision(ActorType::Block, CollisionSide::Bottom) => {
                     if self.curr_state == KoopaState::Jumping {
                         self.curr_state = KoopaState::Walking;
                     }
@@ -109,8 +108,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     self.grounded = true;
                     ActorMessage::None
                 }
-                Collision(actor_type, side) if actor_type == ActorType::Player &&
-                                               side & CollisionSide::Top != 0 => {
+                Collision(ActorType::Player, CollisionSide::Top) => {
                     // Turn to shell if upright
                     if self.size != KoopaSize::Shell {
                         let amount: i32 = self.rect.h as i32 / 2;
@@ -121,8 +119,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
 
                     ActorMessage::None
                 }
-                Collision(actor_type, side) if actor_type == ActorType::Player &&
-                                               side & 0b1101 != 0 => {
+                Collision(ActorType::Player, side) if side & 0b1101 != 0 => {
                     // Send damage message to original sender
                     ActorMessage::ActorAction {
                         send_id: self.id,

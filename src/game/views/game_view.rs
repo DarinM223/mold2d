@@ -3,7 +3,7 @@ use actions::{actor_from_token, create_msg, handle_message};
 use engine::collision::handle_collision;
 use engine::font;
 use engine::level;
-use engine::{Actor, ActorManager, Collision, Context, Quadtree, View, ViewAction, Viewport};
+use engine::{ActorManager, Context, Quadtree, View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;

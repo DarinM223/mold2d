@@ -1,7 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, Collision, CollisionSide,
-             Context, Direction, Polygon, PositionChange, Renderable, Segment, SpriteRectangle,
-             Vector2D, Viewport};
+use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, CollisionSide, Context,
+             Direction, Polygon, PositionChange, Segment, SpriteRectangle, Vector2D, Viewport};
 use sdl2::pixels::Color;
 use sdl2::render::Renderer;
 
@@ -136,8 +135,12 @@ impl Actor<ActorType, ActorMessage> for Player {
                     self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
-                ActorAction::Collision(_, side) if side == CollisionSide::Top => ActorMessage::None,
-                ActorAction::Collision(_, side) if side == CollisionSide::Bottom => {
+                ActorAction::Collision(_, CollisionSide::Top) => ActorMessage::None,
+                ActorAction::Collision(ActorType::Enemy, CollisionSide::Bottom) => {
+                    self.curr_speed.y = -70.0;
+                    ActorMessage::None
+                }
+                ActorAction::Collision(ActorType::Block, CollisionSide::Bottom) => {
                     if self.curr_state == PlayerState::Jumping {
                         self.curr_state = PlayerState::Idle;
                     }
