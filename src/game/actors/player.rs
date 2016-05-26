@@ -10,6 +10,7 @@ const PLAYER_HALF_HEIGHT: u32 = PLAYER_HEIGHT / 2 + 1;
 const PLAYER_X_MAXSPEED: f64 = 15.0;
 const PLAYER_Y_MAXSPEED: f64 = 15.0;
 const PLAYER_ACCELERATION: f64 = 0.18;
+const PLAYER_JUMP_VELOCITY: f64 = 70.0;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum PlayerState {
@@ -115,8 +116,13 @@ impl Player {
 
 impl Actor<ActorType, ActorMessage> for Player {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        if let ActorMessage::ActorAction { ref action, .. } = *message {
+        if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
             match *action {
+                ActorAction::ChangePosition(ref change) => {
+                    self.rect.apply_change(change);
+                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
+                    ActorMessage::None
+                }
                 ActorAction::DamageActor(_) => {
                     match self.size {
                         PlayerSize::Big | PlayerSize::Crouching => {
@@ -130,15 +136,31 @@ impl Actor<ActorType, ActorMessage> for Player {
                         PlayerSize::Small => ActorMessage::PlayerDied,
                     }
                 }
-                ActorAction::ChangePosition(ref change) => {
-                    self.rect.apply_change(change);
-                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
+                ActorAction::Bounce(can_bounce) => {
+                    if can_bounce {
+                        if self.curr_state != PlayerState::Jumping {
+                            self.curr_state = PlayerState::Jumping;
+                        }
+
+                        self.grounded = false;
+                        self.curr_speed.y = -PLAYER_JUMP_VELOCITY;
+                    } else {
+                        if self.curr_state == PlayerState::Jumping {
+                            self.curr_state = PlayerState::Idle;
+                        }
+
+                        self.grounded = true;
+                    }
                     ActorMessage::None
                 }
                 ActorAction::Collision(_, CollisionSide::Top) => ActorMessage::None,
                 ActorAction::Collision(ActorType::Enemy, CollisionSide::Bottom) => {
-                    self.curr_speed.y = -70.0;
-                    ActorMessage::None
+                    // Ask actor if it can bounce on it
+                    ActorMessage::ActorAction {
+                        send_id: self.id,
+                        recv_id: send_id,
+                        action: ActorAction::CanBounce,
+                    }
                 }
                 ActorAction::Collision(ActorType::Block, CollisionSide::Bottom) => {
                     if self.curr_state == PlayerState::Jumping {
@@ -172,7 +194,7 @@ impl Actor<ActorType, ActorMessage> for Player {
 
         // Jump if space bar is pressed
         if context.events.event_called_once("SPACE") && self.curr_state != PlayerState::Jumping {
-            self.curr_speed.y = -70.0;
+            self.curr_speed.y = -PLAYER_JUMP_VELOCITY;
             self.curr_state = PlayerState::Jumping;
         }
 

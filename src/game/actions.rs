@@ -8,9 +8,18 @@ use sdl2::render::Renderer;
 /// Actions for an actor to process
 #[derive(Clone, Debug, PartialEq)]
 pub enum ActorAction {
+    /// A message that applies damage to an actor
     DamageActor(i32),
+    /// A message that moves an actor when received
     ChangePosition(PositionChange),
+    /// A message sent by an acter when it collides
+    /// into another actor
     Collision(ActorType, CollisionSide),
+    /// Ask message sent by an actor to ask another
+    /// actor if it can bounce on it
+    CanBounce,
+    /// Response from asked actor to question
+    Bounce(bool),
 }
 
 /// Actor messages

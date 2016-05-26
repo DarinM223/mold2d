@@ -17,18 +17,15 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> SdlResult<()>
     let mut timer = try!(sdl_context.timer());
     let _ttf_context = sdl2_ttf::init();
 
+    let mut frame_timer = FrameTimer::new(&mut timer, true);
     let sdl_window = try!(video.window(window.title, window.width, window.height)
         .position_centered()
         .opengl()
         .build());
     let sdl_renderer = try!(sdl_window.renderer().accelerated().build());
-
     let mut game_context = Context::new(window,
                                         Events::new(try!(sdl_context.event_pump()), ""),
                                         sdl_renderer);
-
-    let mut frame_timer = FrameTimer::new(&mut timer, true);
-
     let mut curr_view = init_view(&mut game_context);
 
     loop {

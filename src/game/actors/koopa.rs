@@ -6,6 +6,7 @@ use sdl2::render::Renderer;
 const KOOPA_X_MAXSPEED: f64 = 10.0;
 const KOOPA_Y_MAXSPEED: f64 = 15.0;
 const KOOPA_ACCELERATION: f64 = 0.18;
+const KOOPA_SHELL_INVINCIBLE_FRAMES: i32 = 10;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum KoopaState {
@@ -31,6 +32,7 @@ pub struct Koopa {
     curr_speed: Vector2D,
     rect: SpriteRectangle,
     anims: AnimationManager<(KoopaState, KoopaSize, Direction)>,
+    invincibility_frames: i32,
 }
 
 impl Koopa {
@@ -85,6 +87,7 @@ impl Koopa {
             curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, KOOPA_WIDTH, KOOPA_HEIGHT),
             anims: anims,
+            invincibility_frames: 0,
         }
     }
 }
@@ -100,6 +103,16 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
+                DamageActor(_) => ActorMessage::RemoveActor(self.id),
+                CanBounce => {
+                    // Respond with yes if size is upright
+                    ActorMessage::ActorAction {
+                        send_id: self.id,
+                        recv_id: send_id,
+                        action: ActorAction::Bounce(self.size == KoopaSize::Upright ||
+                                                    self.curr_speed.x == 0.),
+                    }
+                }
                 Collision(ActorType::Block, CollisionSide::Bottom) => {
                     if self.curr_state == KoopaState::Jumping {
                         self.curr_state = KoopaState::Walking;
@@ -109,22 +122,49 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     ActorMessage::None
                 }
                 Collision(ActorType::Player, CollisionSide::Top) => {
-                    // Turn to shell if upright
+                    // Turn to shell if upright, otherwise kick shell
                     if self.size != KoopaSize::Shell {
                         let amount: i32 = self.rect.h as i32 / 2;
                         let half_change = PositionChange::new().shrink_height_bot(amount);
                         self.rect.apply_change(&half_change);
                         self.size = KoopaSize::Shell;
+                        self.invincibility_frames = KOOPA_SHELL_INVINCIBLE_FRAMES;
+                    } else if self.invincibility_frames == 0 {
+                        // prevent kicking instantly after
+                        if self.curr_speed.x == 0. {
+                            self.curr_speed.x = -10.0;
+                        } else {
+                            self.curr_speed.x = 0.;
+                        }
+                        self.invincibility_frames = KOOPA_SHELL_INVINCIBLE_FRAMES;
                     }
 
                     ActorMessage::None
                 }
-                Collision(ActorType::Player, side) if side & 0b1101 != 0 => {
-                    // Send damage message to original sender
-                    ActorMessage::ActorAction {
+                Collision(actor_type, side) if side & 0b1101 != 0 => {
+                    let damage_message = ActorMessage::ActorAction {
                         send_id: self.id,
                         recv_id: send_id,
                         action: ActorAction::DamageActor(0),
+                    };
+                    if self.curr_speed.x != 0. {
+                        match actor_type {
+                            ActorType::Enemy | ActorType::Player => damage_message,
+                            ActorType::Block => {
+                                self.curr_speed.x = -self.curr_speed.x;
+                                ActorMessage::None
+                            }
+                            _ => ActorMessage::None,
+                        }
+                    } else {
+                        match actor_type {
+                            ActorType::Player => damage_message,
+                            ActorType::Enemy | ActorType::Block => {
+                                self.curr_speed.x = -self.curr_speed.x;
+                                ActorMessage::None
+                            }
+                            _ => ActorMessage::None,
+                        }
                     }
                 }
                 _ => ActorMessage::None,
@@ -151,8 +191,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
             y: max_y_speed,
         };
 
-        self.curr_speed = (KOOPA_ACCELERATION * target_speed) +
-                          ((1.0 - KOOPA_ACCELERATION) * self.curr_speed);
+        self.curr_speed = (KOOPA_ACCELERATION * target_speed) + self.curr_speed;
 
         let mut change = PositionChange::new().left(self.curr_speed.x as i32);
         if self.curr_state == KoopaState::Jumping {
@@ -167,6 +206,11 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         // Reset grounded to check if there is a bottom collision again
         if self.grounded {
             self.grounded = false;
+        }
+
+        // Decrement invincibility frames
+        if self.invincibility_frames > 0 {
+            self.invincibility_frames -= 1;
         }
 
         change
