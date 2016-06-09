@@ -36,7 +36,16 @@ impl Actor<ActorType, ActorMessage> for Coin {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         if let ActorMessage::ActorAction { ref action, .. } = *message {
             match *action {
+                // Action when player collides into item
                 ActorAction::Collision(ActorType::Player, _) => {
+                    // Update score and remove coin
+                    ActorMessage::MultipleMessages(vec![
+                        Box::new(ActorMessage::UpdateScore(COIN_VALUE)),
+                        Box::new(ActorMessage::RemoveActor(self.data().id)),
+                    ])
+                }
+                // Action when an enemy is thrown or kicked into item
+                ActorAction::DamageActor(_) => {
                     // Update score and remove coin
                     ActorMessage::MultipleMessages(vec![
                         Box::new(ActorMessage::UpdateScore(COIN_VALUE)),

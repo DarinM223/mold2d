@@ -24,9 +24,7 @@ pub fn load_level<Type, Message>(path: &str,
 
         let mut x = 0;
         let mut y = 0;
-
         let mut width = 0;
-
         let mut has_player = false;
 
         for line in reader.lines() {

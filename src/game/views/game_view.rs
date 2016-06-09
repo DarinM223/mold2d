@@ -1,6 +1,5 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use actions::{actor_from_token, create_msg, handle_message};
-use engine::collision::handle_collision;
+use actions::{actor_from_token, handle_collision, handle_message};
 use engine::font;
 use engine::level;
 use engine::{ActorManager, Context, Quadtree, View, ViewAction, Viewport};
@@ -113,7 +112,6 @@ impl View for GameView {
                                                  &other,
                                                  direction,
                                                  Box::new(handle_message),
-                                                 Box::new(create_msg),
                                                  &mut self.actors,
                                                  &mut self.viewport,
                                                  context);

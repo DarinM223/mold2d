@@ -150,11 +150,18 @@ impl Actor<ActorType, ActorMessage> for Koopa {
                     if self.curr_speed.x != 0. {
                         match actor_type {
                             ActorType::Enemy | ActorType::Player => damage_message,
+                            ActorType::Item => {
+                                // Attempt to pick up item if kicked
+                                ActorMessage::ActorAction {
+                                    send_id: self.id,
+                                    recv_id: send_id,
+                                    action: ActorAction::DamageActor(0),
+                                }
+                            }
                             ActorType::Block => {
                                 self.curr_speed.x = -self.curr_speed.x;
                                 ActorMessage::None
                             }
-                            _ => ActorMessage::None,
                         }
                     } else {
                         match actor_type {

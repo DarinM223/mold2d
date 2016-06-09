@@ -12,18 +12,6 @@ pub type MessageHandler<Type, Message> = Box<Fn(&mut Box<Actor<Type, Message>>,
                                                 &mut Context,
                                                 &Message)>;
 
-/// Message types required by the engine
-/// to be implemented by CreateMessageHandler
-pub enum MessageType<Type> {
-    Collision(ActorData<Type>, ActorData<Type>, u8),
-    ChangePosition(PositionChange),
-}
-
-/// Handler for creating a message for a message type
-/// that is used by the engine
-/// like a collision message or a position changed message
-pub type CreateMessageHandler<Type, Message> = Box<Fn(MessageType<Type>) -> Message>;
-
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {
     Quit,

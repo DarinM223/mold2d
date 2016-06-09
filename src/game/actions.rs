@@ -2,7 +2,8 @@ use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
 use actors::coin::Coin;
 use actors::koopa::Koopa;
 use actors::player::Player;
-use engine::{Actor, ActorManager, CollisionSide, MessageType, PositionChange, Viewport, Context};
+use engine::{Actor, ActorData, ActorManager, CollisionSide, MessageHandler, PositionChange,
+             Viewport, Context};
 use sdl2::render::Renderer;
 
 /// Actions for an actor to process
@@ -102,22 +103,59 @@ pub fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
     }
 }
 
+/// Moves actor away from collided actor and sends collision messages to
+/// both of the collided actors
 #[inline]
-pub fn create_msg(message: MessageType<ActorType>) -> ActorMessage {
-    match message {
-        MessageType::Collision(sender, receiver, direction) => {
-            ActorMessage::ActorAction {
-                send_id: sender.id,
-                recv_id: receiver.id,
-                action: ActorAction::Collision(sender.actor_type, CollisionSide::from(direction)),
-            }
-        }
-        MessageType::ChangePosition(change) => {
-            ActorMessage::ActorAction {
+pub fn handle_collision(actor: &mut Box<Actor<ActorType, ActorMessage>>,
+                        other: &ActorData<ActorType>,
+                        direction: CollisionSide,
+                        handler: MessageHandler<ActorType, ActorMessage>,
+                        actors: &mut ActorManager<ActorType, ActorMessage>,
+                        viewport: &mut Viewport,
+                        context: &mut Context) {
+    let data = actor.data();
+    if data.resolves_collisions {
+        while actor.collides_with(other) == Some(direction) {
+            let change = match direction {
+                CollisionSide::Top => PositionChange::new().down(1),
+                CollisionSide::Bottom => PositionChange::new().up(1),
+                CollisionSide::Left => PositionChange::new().right(1),
+                CollisionSide::Right => PositionChange::new().left(1),
+            };
+
+            actor.handle_message(&ActorMessage::ActorAction {
                 send_id: -1,
                 recv_id: -1,
                 action: ActorAction::ChangePosition(change),
-            }
+            });
         }
+
+        if direction == CollisionSide::Bottom {
+            let down_change = PositionChange::new().down(1);
+            actor.handle_message(&ActorMessage::ActorAction {
+                send_id: -1,
+                recv_id: -1,
+                action: ActorAction::ChangePosition(down_change),
+            });
+        }
+    }
+
+    let direction = direction & other.collision_filter;
+    let rev_dir = CollisionSide::reverse_u8(direction);
+
+    if direction != 0 {
+        let response = ActorMessage::ActorAction {
+            send_id: other.id,
+            recv_id: data.id,
+            action: ActorAction::Collision(other.actor_type, CollisionSide::from(direction)),
+        };
+        let other_msg = ActorMessage::ActorAction {
+            send_id: data.id,
+            recv_id: other.id,
+            action: ActorAction::Collision(data.actor_type, CollisionSide::from(rev_dir)),
+        };
+
+        (handler)(actor, actors, viewport, context, &response);
+        (handler)(actor, actors, viewport, context, &other_msg);
     }
 }
