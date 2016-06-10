@@ -60,8 +60,8 @@ macro_rules! block {
     ) => {
         $(
             pub struct $name {
-                pub rect: ::engine::SpriteRectangle,
-                pub sprite: ::engine::Sprite,
+                pub rect: ::mold2d::SpriteRectangle,
+                pub sprite: ::mold2d::Sprite,
                 id: i32,
             }
 
@@ -71,20 +71,20 @@ macro_rules! block {
                            renderer: &mut ::sdl2::render::Renderer,
                            _fps: f64)
                            -> $name {
-                    let anim_data = ::engine::SpritesheetConfig {
+                    let anim_data = ::mold2d::SpritesheetConfig {
                         width: $width,
                         height: $height,
                         sprites_in_row: $sprites_in_row,
                         path: $path,
                     };
 
-                    let anim = ::engine::Spritesheet::new(anim_data, renderer);
+                    let anim = ::mold2d::Spritesheet::new(anim_data, renderer);
                     let mut sprite_anims = anim.range($index, $index + 1);
                     let sprite = sprite_anims.pop().unwrap();
 
                     $name {
                         id: id,
-                        rect: ::engine::SpriteRectangle::new(position.0,
+                        rect: ::mold2d::SpriteRectangle::new(position.0,
                                                              position.1,
                                                              $size,
                                                              $size),
@@ -93,47 +93,47 @@ macro_rules! block {
                 }
             }
 
-            impl ::engine::Actor<$actor_type, $actor_message> for $name {
+            impl ::mold2d::Actor<$actor_type, $actor_message> for $name {
                 fn handle_message(&mut self, _: &$actor_message) -> $actor_message {
                     $actor_message::None
                 }
 
                 #[allow(unused_imports)]
                 fn collides_with(&mut self,
-                                 other_actor: &::engine::ActorData<$actor_type>)
-                                 -> Option<::engine::CollisionSide> {
-                    use ::engine::Collision;
+                                 other_actor: &::mold2d::ActorData<$actor_type>)
+                                 -> Option<::mold2d::CollisionSide> {
+                    use ::mold2d::Collision;
                     self.rect.collides_with(other_actor.rect)
                 }
 
                 fn update(&mut self,
-                          _context: &mut ::engine::Context,
+                          _context: &mut ::mold2d::Context,
                           _elapsed: f64)
-                          -> ::engine::PositionChange {
-                    ::engine::PositionChange::new()
+                          -> ::mold2d::PositionChange {
+                    ::mold2d::PositionChange::new()
                 }
 
                 #[allow(unused_imports)]
                 fn render(&mut self,
-                          context: &mut ::engine::Context,
-                          viewport: &mut ::engine::Viewport,
+                          context: &mut ::mold2d::Context,
+                          viewport: &mut ::mold2d::Viewport,
                           _elapsed: f64) {
-                    use ::engine::Renderable;
+                    use ::mold2d::Renderable;
                     let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
                     let rect = ::sdl2::rect::Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
 
                     self.sprite.render(&mut context.renderer, rect);
                 }
 
-                fn data(&mut self) -> ::engine::ActorData<$actor_type> {
-                    ::engine::ActorData {
+                fn data(&mut self) -> ::mold2d::ActorData<$actor_type> {
+                    ::mold2d::ActorData {
                         id: self.id,
                         state: 0 as u32,
                         damage: 0,
                         resolves_collisions: false,
                         collision_filter: $filter,
                         rect: self.rect.to_sdl().unwrap(),
-                        bounding_box: Some(::engine::BoundingBox::Rectangle(self.rect.clone())),
+                        bounding_box: Some(::mold2d::BoundingBox::Rectangle(self.rect.clone())),
                         actor_type: $actor_type::Block,
                     }
                 }

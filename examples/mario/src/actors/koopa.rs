@@ -1,6 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::{Actor, ActorData, Animations, BoundingBox, CollisionSide, Context, Direction,
-             PositionChange, Spritesheet, SpriteRectangle, Vector2D, Viewport};
+use mold2d::{Actor, ActorData, Animations, BoundingBox, CollisionSide, Context, Direction,
+             PositionChange, Spritesheet, SpritesheetConfig, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const KOOPA_X_MAXSPEED: f64 = 10.0;
@@ -37,8 +37,7 @@ pub struct Koopa {
 
 impl Koopa {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Koopa {
-        use engine::sprite::SpritesheetConfig;
-        use engine::sprite::Direction::*;
+        use mold2d::sprite::Direction::*;
         use self::KoopaSize::*;
         use self::KoopaState::*;
 

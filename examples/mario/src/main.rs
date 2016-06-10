@@ -1,9 +1,19 @@
-extern crate engine;
-extern crate game;
+#![feature(custom_attribute, plugin)]
+#[cfg_attr(feature="clippy", feature(plugin))]
+#[cfg_attr(feature="clippy", plugin(clippy))]
+#[macro_use(block)]
+extern crate mold2d;
+extern crate sdl2;
+extern crate sdl2_image;
+extern crate sdl2_ttf;
 
-use engine::Window;
-use engine::event_loop;
-use game::views::game_view::GameView;
+pub mod actions;
+pub mod actors;
+pub mod views;
+
+use mold2d::Window;
+use mold2d::event_loop;
+use views::game_view::GameView;
 
 fn main() {
     let window = Window {

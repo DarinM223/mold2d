@@ -15,10 +15,6 @@
 //! y axis, down is a positive change in the y axis, left is a negative
 //! change in the x axis, and right is a positive change in the x axis.
 
-#![feature(custom_attribute)]
-#[cfg_attr(feature="clippy", feature(plugin))]
-#[cfg_attr(feature="clippy", plugin(clippy))]
-
 extern crate libc;
 extern crate sdl2;
 extern crate sdl2_image;

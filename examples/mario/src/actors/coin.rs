@@ -1,5 +1,5 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::{Actor, ActorData, AnimatedSprite, BoundingBox, Collision, CollisionSide,
+use mold2d::{Actor, ActorData, AnimatedSprite, BoundingBox, Collision, CollisionSide,
              PositionChange, Context, Renderable, Spritesheet, SpritesheetConfig, SpriteRectangle,
              Viewport};
 use sdl2::rect::Rect;

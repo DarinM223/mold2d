@@ -2,7 +2,7 @@ use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
 use actors::coin::Coin;
 use actors::koopa::Koopa;
 use actors::player::Player;
-use engine::{Actor, ActorData, ActorManager, CollisionSide, MessageHandler, PositionChange,
+use mold2d::{Actor, ActorData, ActorManager, CollisionSide, MessageHandler, PositionChange,
              Viewport, Context};
 use sdl2::render::Renderer;
 

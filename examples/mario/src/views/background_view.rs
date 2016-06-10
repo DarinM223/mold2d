@@ -1,4 +1,4 @@
-use engine::{Context, View, ViewAction};
+use mold2d::{Context, View, ViewAction};
 use sdl2::pixels::Color;
 
 /// Test view that should display a background

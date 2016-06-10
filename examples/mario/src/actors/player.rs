@@ -1,6 +1,7 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::{Actor, ActorData, Animations, BoundingBox, CollisionSide, Context, Direction,
-             Polygon, PositionChange, Segment, Spritesheet, SpriteRectangle, Vector2D, Viewport};
+use mold2d::{Actor, ActorData, Animations, BoundingBox, CollisionSide, Context, Direction,
+             Polygon, PositionChange, Segment, Spritesheet, SpritesheetConfig, SpriteRectangle,
+             Vector2D, Viewport};
 use sdl2::pixels::Color;
 use sdl2::render::Renderer;
 
@@ -42,8 +43,7 @@ pub struct Player {
 
 impl Player {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Player {
-        use engine::sprite::SpritesheetConfig;
-        use engine::sprite::Direction::*;
+        use mold2d::sprite::Direction::*;
         use self::PlayerSize::*;
         use self::PlayerState::*;
 

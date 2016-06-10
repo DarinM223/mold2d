@@ -3,10 +3,6 @@ name = "game"
 version = "0.1.0"
 authors = ["Darin Minamoto <darinm223@gmail.com>"]
 
-[lib]
-name = "game"
-path = "lib.rs"
-
 [dependencies]
 rand = "0.3"
 sdl2 = "0.9"
@@ -14,5 +10,5 @@ sdl2_image = "0.3"
 sdl2_ttf = "0.9"
 clippy = { version = "*", optional = true }
 
-[dependencies.engine]
-path = "../engine"
+[dependencies.mold2d]
+path = "../../"
