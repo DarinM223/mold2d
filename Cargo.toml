@@ -1,10 +1,12 @@
 [package]
 name = "mold2d"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Darin Minamoto <darinm223@gmail.com>"]
-description = "A work in progress 2d platformer game and game engine that only uses SDL"
+description = "A simple platformer game library in Rust"
 repository = "https://github.com/DarinM223/mold2d"
 readme = "README.md"
+keywords = ["game", "library", "actors"]
+license = "MIT"
 
 [dependencies]
 libc = "0.2"

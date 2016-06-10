@@ -3,7 +3,7 @@ mold2d
 
 #### A simple 2d platformer game library in Rust
 
-![demo](/assets/demo.gif "Mario demo")
+![demo](/demo.gif "Mario demo")
 
 It includes the main game library implemented on top of SDL and a demo game that is used to
 test the performance and correctness of the library.
