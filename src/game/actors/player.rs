@@ -1,6 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, CollisionSide, Context,
-             Direction, Polygon, PositionChange, Segment, SpriteRectangle, Vector2D, Viewport};
+use engine::{Actor, ActorData, Animations, BoundingBox, CollisionSide, Context, Direction,
+             Polygon, PositionChange, Segment, Spritesheet, SpriteRectangle, Vector2D, Viewport};
 use sdl2::pixels::Color;
 use sdl2::render::Renderer;
 
@@ -34,7 +34,7 @@ pub struct Player {
     grounded: bool,
     curr_speed: Vector2D,
     rect: SpriteRectangle,
-    anims: AnimationManager<(PlayerSize, PlayerState, Direction)>,
+    anims: Animations<(PlayerSize, PlayerState, Direction)>,
     /// vector debugging parameters
     debug: bool,
     prev_segment: Option<Segment>,
@@ -42,27 +42,27 @@ pub struct Player {
 
 impl Player {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Player {
-        use engine::sprite::AnimationData;
+        use engine::sprite::SpritesheetConfig;
         use engine::sprite::Direction::*;
         use self::PlayerSize::*;
         use self::PlayerState::*;
 
-        let mut anims = AnimationManager::new(fps);
+        let mut anims = Animations::new(fps);
 
-        let banim = Animation::new(AnimationData {
-                                       width: 16,
-                                       height: 32,
-                                       sprites_in_row: 4,
-                                       path: "./assets/mario-big.png",
-                                   },
-                                   renderer);
-        let sanim = Animation::new(AnimationData {
-                                       width: 16,
-                                       height: 16,
-                                       sprites_in_row: 4,
-                                       path: "./assets/mario-small.png",
-                                   },
-                                   renderer);
+        let banim = Spritesheet::new(SpritesheetConfig {
+                                         width: 16,
+                                         height: 32,
+                                         sprites_in_row: 4,
+                                         path: "./assets/mario-big.png",
+                                     },
+                                     renderer);
+        let sanim = Spritesheet::new(SpritesheetConfig {
+                                         width: 16,
+                                         height: 16,
+                                         sprites_in_row: 4,
+                                         path: "./assets/mario-small.png",
+                                     },
+                                     renderer);
 
         let bbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
                                                                position.1,

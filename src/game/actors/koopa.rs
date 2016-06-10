@@ -1,6 +1,6 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::{Actor, ActorData, Animation, AnimationManager, BoundingBox, CollisionSide, Context,
-             Direction, PositionChange, SpriteRectangle, Vector2D, Viewport};
+use engine::{Actor, ActorData, Animations, BoundingBox, CollisionSide, Context, Direction,
+             PositionChange, Spritesheet, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const KOOPA_X_MAXSPEED: f64 = 10.0;
@@ -31,33 +31,33 @@ pub struct Koopa {
     grounded: bool,
     curr_speed: Vector2D,
     rect: SpriteRectangle,
-    anims: AnimationManager<(KoopaState, KoopaSize, Direction)>,
+    anims: Animations<(KoopaState, KoopaSize, Direction)>,
     invincibility_frames: i32,
 }
 
 impl Koopa {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Koopa {
-        use engine::sprite::AnimationData;
+        use engine::sprite::SpritesheetConfig;
         use engine::sprite::Direction::*;
         use self::KoopaSize::*;
         use self::KoopaState::*;
 
-        let mut anims = AnimationManager::new(fps);
+        let mut anims = Animations::new(fps);
 
-        let banim = Animation::new(AnimationData {
-                                       width: 16,
-                                       height: 29,
-                                       sprites_in_row: 4,
-                                       path: "./assets/koopa.png",
-                                   },
-                                   renderer);
-        let sanim = Animation::new(AnimationData {
-                                       width: 16,
-                                       height: 16,
-                                       sprites_in_row: 4,
-                                       path: "./assets/shell.png",
-                                   },
-                                   renderer);
+        let banim = Spritesheet::new(SpritesheetConfig {
+                                         width: 16,
+                                         height: 29,
+                                         sprites_in_row: 4,
+                                         path: "./assets/koopa.png",
+                                     },
+                                     renderer);
+        let sanim = Spritesheet::new(SpritesheetConfig {
+                                         width: 16,
+                                         height: 16,
+                                         sprites_in_row: 4,
+                                         path: "./assets/shell.png",
+                                     },
+                                     renderer);
 
         let bbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
                                                                position.1,

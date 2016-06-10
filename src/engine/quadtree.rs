@@ -1,5 +1,5 @@
 use sdl2::rect::Rect;
-use view::ActorData;
+use super::ActorData;
 use viewport::Viewport;
 
 const MAX_OBJECTS: usize = 5;

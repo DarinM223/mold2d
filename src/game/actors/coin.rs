@@ -1,6 +1,7 @@
 use actions::{ActorAction, ActorMessage, ActorType};
-use engine::{Actor, ActorData, AnimatedSprite, Animation, AnimationData, BoundingBox, Collision,
-             CollisionSide, PositionChange, Context, Renderable, SpriteRectangle, Viewport};
+use engine::{Actor, ActorData, AnimatedSprite, BoundingBox, Collision, CollisionSide,
+             PositionChange, Context, Renderable, Spritesheet, SpritesheetConfig, SpriteRectangle,
+             Viewport};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
@@ -14,13 +15,13 @@ pub struct Coin {
 
 impl Coin {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Coin {
-        let anim = Animation::new(AnimationData {
-                                      width: 32,
-                                      height: 32,
-                                      sprites_in_row: 8,
-                                      path: "./assets/coin.png",
-                                  },
-                                  renderer);
+        let anim = Spritesheet::new(SpritesheetConfig {
+                                        width: 32,
+                                        height: 32,
+                                        sprites_in_row: 8,
+                                        path: "./assets/coin.png",
+                                    },
+                                    renderer);
 
         let anims = anim.range(0, 8);
 

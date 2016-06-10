@@ -42,6 +42,7 @@ impl SpriteRectangle {
         }
     }
 
+    /// Creates a sprite rectangle from a SDL2 rectangle
     pub fn from_rect(rect: Rect) -> SpriteRectangle {
         SpriteRectangle {
             x: rect.x(),
@@ -57,6 +58,7 @@ impl SpriteRectangle {
         Rect::new(self.x, self.y, self.w, self.h).unwrap()
     }
 
+    /// Mutates a sprite rectangle based on the position change given
     pub fn apply_change(&mut self, change: &PositionChange) {
         self.x += change.x;
         self.y += change.y;
@@ -132,12 +134,14 @@ impl Sprite {
         }
     }
 
+    /// Returns the dimensions of the sprite
     pub fn size(&self) -> (u32, u32) {
         (self.src.width(), self.src.height())
     }
 }
 
 impl Renderable for Sprite {
+    /// Render the sprite image onto the rectangle
     fn render(&self, renderer: &mut Renderer, dest: Rect) {
         renderer.copy(&mut self.tex.borrow_mut(), Some(self.src), Some(dest));
     }
@@ -155,6 +159,7 @@ pub struct AnimatedSprite {
 }
 
 impl AnimatedSprite {
+    /// Creates a new animated sprite with the given Sprite frames and a frame delay
     fn new(frames: Vec<Sprite>, frame_delay: f64) -> AnimatedSprite {
         AnimatedSprite {
             frames: frames,
@@ -194,6 +199,7 @@ impl AnimatedSprite {
 }
 
 impl Renderable for AnimatedSprite {
+    /// Renders the current frame of the animated sprite
     fn render(&self, renderer: &mut Renderer, dest: Rect) {
         if self.frames.len() == 0 {
             panic!("There has to be at least one frame!");
@@ -206,7 +212,8 @@ impl Renderable for AnimatedSprite {
     }
 }
 
-pub struct AnimationData {
+/// Contains configuration fields for parsing a spritesheet
+pub struct SpritesheetConfig {
     /// The width of each animation frame
     pub width: u32,
     /// The height of each animation frame
@@ -217,34 +224,45 @@ pub struct AnimationData {
     pub path: &'static str,
 }
 
-pub struct Animation {
-    data: AnimationData,
+/// A spritesheet manager that returns sprites within a range
+pub struct Spritesheet {
+    config: SpritesheetConfig,
     spritesheet: Sprite,
 }
 
-impl Animation {
-    pub fn new(data: AnimationData, renderer: &mut Renderer) -> Animation {
-        let spritesheet = match Sprite::load(renderer, data.path) {
+impl Spritesheet {
+    /// Loads a spritesheet given a configuration object and a SDL2 renderer
+    pub fn new(config: SpritesheetConfig, renderer: &mut Renderer) -> Spritesheet {
+        let spritesheet = match Sprite::load(renderer, config.path) {
             Some(spritesheet) => spritesheet,
-            None => panic!("{} is not a valid path", data.path),
+            None => panic!("{} is not a valid path", config.path),
         };
 
-        Animation {
-            data: data,
+        Spritesheet {
+            config: config,
             spritesheet: spritesheet,
         }
     }
 
+    /// Returns a Vec of sprites within a certain range.
+    /// The number of the start and end ranges are from row to
+    /// row wrapping around. For example a 3x3 grid would have
+    /// indexes like this:
+    /// ```
+    /// 0 1 2
+    /// 3 4 5
+    /// 6 7 8
+    /// ```
     pub fn range(&self, start: i32, end: i32) -> Vec<Sprite> {
         (start..end)
             .map(|elem| {
-                let x = elem % self.data.sprites_in_row;
-                let y = elem / self.data.sprites_in_row;
+                let x = elem % self.config.sprites_in_row;
+                let y = elem / self.config.sprites_in_row;
 
-                let region = Rect::new_unwrap((self.data.width as i32) * x,
-                                              (self.data.height as i32) * y,
-                                              self.data.width,
-                                              self.data.height);
+                let region = Rect::new_unwrap((self.config.width as i32) * x,
+                                              (self.config.height as i32) * y,
+                                              self.config.width,
+                                              self.config.height);
                 self.spritesheet.region(region)
             })
             .flat_map(|sprite| sprite)
@@ -252,7 +270,8 @@ impl Animation {
     }
 }
 
-pub struct AnimationManager<State> {
+/// An animation manager that retrieves the animations for a state
+pub struct Animations<State> {
     fps: f64,
     animations: HashMap<State, (AnimatedSprite, BoundingBox)>,
     /// Saves the current state for better performance
@@ -263,11 +282,11 @@ pub struct AnimationManager<State> {
     curr_anim: Option<AnimatedSprite>,
 }
 
-impl<State> AnimationManager<State>
+impl<State> Animations<State>
     where State: Clone + Eq + Hash
 {
-    pub fn new(fps: f64) -> AnimationManager<State> {
-        AnimationManager {
+    pub fn new(fps: f64) -> Animations<State> {
+        Animations {
             fps: fps,
             animations: HashMap::new(),
             curr_state: None,

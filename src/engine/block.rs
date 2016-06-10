@@ -71,14 +71,14 @@ macro_rules! block {
                            renderer: &mut ::sdl2::render::Renderer,
                            _fps: f64)
                            -> $name {
-                    let anim_data = ::engine::AnimationData {
+                    let anim_data = ::engine::SpritesheetConfig {
                         width: $width,
                         height: $height,
                         sprites_in_row: $sprites_in_row,
                         path: $path,
                     };
 
-                    let anim = ::engine::Animation::new(anim_data, renderer);
+                    let anim = ::engine::Spritesheet::new(anim_data, renderer);
                     let mut sprite_anims = anim.range($index, $index + 1);
                     let sprite = sprite_anims.pop().unwrap();
 
