@@ -3,6 +3,8 @@ mold2d
 
 #### A simple 2d platformer game library in Rust
 
+[![Build Status](https://travis-ci.org/DarinM223/mold2d.svg?branch=master)](https://travis-ci.org/DarinM223/mold2d)
+
 ![demo](/demo.gif "Mario demo")
 
 It includes the main game library implemented on top of SDL and a demo game that is used to
