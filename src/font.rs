@@ -49,7 +49,7 @@ pub fn text_sprite(renderer: &Renderer,
 }
 
 /// Renders a text sprite at the specified point
-pub fn render_text(renderer: &mut Renderer, sprite: Sprite, point: (i32, i32)) {
+pub fn render_text(renderer: &mut Renderer, sprite: &Sprite, point: (i32, i32)) {
     let (x, y) = point;
     let (w, h) = sprite.size();
     sprite.render(renderer, Rect::new_unwrap(x, y, w, h));

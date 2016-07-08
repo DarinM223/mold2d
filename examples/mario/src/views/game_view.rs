@@ -2,7 +2,7 @@ use actions::{ActorAction, ActorMessage, ActorType};
 use actions::{actor_from_token, handle_collision, handle_message};
 use mold2d::font;
 use mold2d::level;
-use mold2d::{ActorManager, Context, Quadtree, View, ViewAction, Viewport};
+use mold2d::{ActorManager, Context, Quadtree, Sprite, View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use views::background_view::BackgroundView;
@@ -13,6 +13,8 @@ pub struct GameView {
     actors: ActorManager<ActorType, ActorMessage>,
     viewport: Viewport,
     level_path: String,
+    cached_score: Option<String>,
+    cached_font_sprite: Option<Sprite>,
 }
 
 impl GameView {
@@ -31,6 +33,8 @@ impl GameView {
             actors: actors,
             viewport: viewport,
             level_path: path.to_owned(),
+            cached_score: None,
+            cached_font_sprite: None,
         }
     }
 }
@@ -52,13 +56,28 @@ impl View for GameView {
         // render score
         if let Some(score) = context.score.score("GAME_SCORE") {
             let score_text = format!("Score: {}", score);
-            let font_sprite = font::text_sprite(&context.renderer,
-                                                &score_text[..],
-                                                "assets/belligerent.ttf",
-                                                32,
-                                                Color::RGB(0, 255, 0))
-                .unwrap();
-            font::render_text(&mut context.renderer, font_sprite, (100, 100));
+            let mut had_cached_score = false;
+
+            if let Some(ref prev_score) = self.cached_score {
+                if *prev_score == score_text {
+                    if let Some(ref font_sprite) = self.cached_font_sprite {
+                        font::render_text(&mut context.renderer, font_sprite, (100, 100));
+                    }
+                    had_cached_score = true;
+                }
+            }
+
+            if !had_cached_score {
+                let font_sprite = font::text_sprite(&context.renderer,
+                                                    &score_text[..],
+                                                    "assets/belligerent.ttf",
+                                                    32,
+                                                    Color::RGB(0, 255, 0))
+                    .unwrap();
+                font::render_text(&mut context.renderer, &font_sprite, (100, 100));
+                self.cached_score = Some(score_text);
+                self.cached_font_sprite = Some(font_sprite);
+            }
         }
     }
 
