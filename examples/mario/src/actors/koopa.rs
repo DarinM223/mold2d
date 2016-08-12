@@ -1,6 +1,6 @@
-use actions::{ActorAction, ActorMessage, ActorType};
-use mold2d::{Actor, ActorData, Animations, BoundingBox, CollisionSide, Context, Direction,
-             PositionChange, Spritesheet, SpritesheetConfig, SpriteRectangle, Vector2D, Viewport};
+use actions::{ActorAction, ActorData, ActorMessage, ActorType};
+use mold2d::{Actor, Animations, BoundingBox, CollisionSide, Context, Direction, PositionChange,
+             Spritesheet, SpritesheetConfig, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
 
 const KOOPA_X_MAXSPEED: f64 = 10.0;
@@ -91,7 +91,10 @@ impl Koopa {
     }
 }
 
-impl Actor<ActorType, ActorMessage> for Koopa {
+impl Actor for Koopa {
+    type Type = ActorType;
+    type Message = ActorMessage;
+
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         use actions::ActorAction::*;
 
@@ -180,7 +183,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         }
     }
 
-    fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other: &ActorData) -> Option<CollisionSide> {
         let key = (self.curr_state, self.size, self.direction);
         self.anims.collides_with(&key, &other.bounding_box)
     }
@@ -227,7 +230,7 @@ impl Actor<ActorType, ActorMessage> for Koopa {
         self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
     }
 
-    fn data(&mut self) -> ActorData<ActorType> {
+    fn data(&mut self) -> ActorData {
         ActorData {
             id: self.id,
             state: self.curr_state as u32,

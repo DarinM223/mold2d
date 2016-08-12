@@ -1,7 +1,7 @@
-use actions::{ActorAction, ActorMessage, ActorType};
-use mold2d::{Actor, ActorData, Animations, BoundingBox, CollisionSide, Context, Direction,
-             Polygon, PositionChange, Segment, Spritesheet, SpritesheetConfig, SpriteRectangle,
-             Vector2D, Viewport};
+use actions::{ActorAction, ActorData, ActorMessage, ActorType};
+use mold2d::{Actor, Animations, BoundingBox, CollisionSide, Context, Direction, Polygon,
+             PositionChange, Segment, Spritesheet, SpritesheetConfig, SpriteRectangle, Vector2D,
+             Viewport};
 use sdl2::pixels::Color;
 use sdl2::render::Renderer;
 
@@ -114,7 +114,10 @@ impl Player {
     }
 }
 
-impl Actor<ActorType, ActorMessage> for Player {
+impl Actor for Player {
+    type Type = ActorType;
+    type Message = ActorMessage;
+
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
             match *action {
@@ -177,7 +180,7 @@ impl Actor<ActorType, ActorMessage> for Player {
         }
     }
 
-    fn collides_with(&mut self, other: &ActorData<ActorType>) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other: &ActorData) -> Option<CollisionSide> {
         let key = (self.size, self.curr_state, self.direction);
         self.anims.collides_with(&key, &other.bounding_box)
     }
@@ -278,7 +281,7 @@ impl Actor<ActorType, ActorMessage> for Player {
         self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
     }
 
-    fn data(&mut self) -> ActorData<ActorType> {
+    fn data(&mut self) -> ActorData {
         ActorData {
             id: self.id,
             state: self.curr_state as u32,

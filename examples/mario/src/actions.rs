@@ -2,8 +2,8 @@ use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
 use actors::coin::Coin;
 use actors::koopa::Koopa;
 use actors::player::Player;
-use mold2d::{Actor, ActorData, ActorManager, CollisionSide, MessageHandler, PositionChange,
-             Viewport, Context};
+use mold2d;
+use mold2d::{ActorManager, CollisionSide, MessageHandler, PositionChange, Viewport, Context};
 use sdl2::render::Renderer;
 
 /// Actions for an actor to process
@@ -49,6 +49,9 @@ pub enum ActorType {
     Enemy,
 }
 
+pub type Actor = mold2d::Actor<Type = ActorType, Message = ActorMessage>;
+pub type ActorData = mold2d::ActorData<ActorType>;
+
 // Handlers
 
 #[inline]
@@ -56,7 +59,7 @@ pub fn actor_from_token(token: char,
                         id: i32,
                         position: (i32, i32),
                         renderer: &mut Renderer)
-                        -> Box<Actor<ActorType, ActorMessage>> {
+                        -> Box<Actor> {
     match token {
         'P' => Box::new(Player::new(id, position, renderer, 30.)),
         'C' => Box::new(Coin::new(id, position, renderer, 20.)),
@@ -70,8 +73,8 @@ pub fn actor_from_token(token: char,
 }
 
 #[inline]
-pub fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
-                      actors: &mut ActorManager<ActorType, ActorMessage>,
+pub fn handle_message(curr_actor: &mut Box<Actor>,
+                      actors: &mut ActorManager<Actor>,
                       viewport: &mut Viewport,
                       context: &mut Context,
                       action: &ActorMessage) {
@@ -106,11 +109,11 @@ pub fn handle_message(curr_actor: &mut Box<Actor<ActorType, ActorMessage>>,
 /// Moves actor away from collided actor and sends collision messages to
 /// both of the collided actors
 #[inline]
-pub fn handle_collision(actor: &mut Box<Actor<ActorType, ActorMessage>>,
-                        other: &ActorData<ActorType>,
+pub fn handle_collision(actor: &mut Box<Actor>,
+                        other: &ActorData,
                         direction: CollisionSide,
-                        handler: MessageHandler<ActorType, ActorMessage>,
-                        actors: &mut ActorManager<ActorType, ActorMessage>,
+                        handler: MessageHandler<Actor>,
+                        actors: &mut ActorManager<Actor>,
                         viewport: &mut Viewport,
                         context: &mut Context) {
     let data = actor.data();

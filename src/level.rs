@@ -4,16 +4,17 @@ use sdl2::render::Renderer;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
+use super::Actor;
 use viewport::Viewport;
 
 pub const GRID_SIZE: i32 = 40;
 
 /// Loads a new level and returns an ActorManager with the loaded actors
-pub fn load_level<Type, Message>(path: &str,
-                                 actor_for_token: ActorFromToken<Type, Message>,
-                                 renderer: &mut Renderer,
-                                 window: &Window)
-                                 -> io::Result<(ActorManager<Type, Message>, Viewport)> {
+pub fn load_level<A: Actor + ?Sized>(path: &str,
+                                     actor_for_token: ActorFromToken<A>,
+                                     renderer: &mut Renderer,
+                                     window: &Window)
+                                     -> io::Result<(ActorManager<A>, Viewport)> {
     let mut center_point = (0, 0);
     let mut manager = ActorManager::new(actor_for_token);
 

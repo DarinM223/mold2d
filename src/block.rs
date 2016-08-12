@@ -93,7 +93,10 @@ macro_rules! block {
                 }
             }
 
-            impl ::mold2d::Actor<$actor_type, $actor_message> for $name {
+            impl ::mold2d::Actor for $name {
+                type Type = $actor_type;
+                type Message = $actor_message;
+
                 fn handle_message(&mut self, _: &$actor_message) -> $actor_message {
                     $actor_message::None
                 }

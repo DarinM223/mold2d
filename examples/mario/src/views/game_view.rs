@@ -1,4 +1,4 @@
-use actions::{ActorAction, ActorMessage, ActorType};
+use actions::{Actor, ActorAction, ActorMessage, ActorType};
 use actions::{actor_from_token, handle_collision, handle_message};
 use mold2d::font;
 use mold2d::level;
@@ -10,7 +10,7 @@ use views::background_view::BackgroundView;
 /// The main game view used for
 /// the actual gameplay
 pub struct GameView {
-    actors: ActorManager<ActorType, ActorMessage>,
+    actors: ActorManager<Actor>,
     viewport: Viewport,
     level_path: String,
     cached_score: Option<String>,

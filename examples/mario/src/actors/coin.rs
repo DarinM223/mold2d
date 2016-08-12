@@ -1,7 +1,6 @@
-use actions::{ActorAction, ActorMessage, ActorType};
-use mold2d::{Actor, ActorData, AnimatedSprite, BoundingBox, Collision, CollisionSide,
-             PositionChange, Context, Renderable, Spritesheet, SpritesheetConfig, SpriteRectangle,
-             Viewport};
+use actions::{ActorAction, ActorData, ActorMessage, ActorType};
+use mold2d::{Actor, AnimatedSprite, BoundingBox, Collision, CollisionSide, PositionChange,
+             Context, Renderable, Spritesheet, SpritesheetConfig, SpriteRectangle, Viewport};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 
@@ -33,7 +32,10 @@ impl Coin {
     }
 }
 
-impl Actor<ActorType, ActorMessage> for Coin {
+impl Actor for Coin {
+    type Type = ActorType;
+    type Message = ActorMessage;
+
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         if let ActorMessage::ActorAction { ref action, .. } = *message {
             match *action {
@@ -60,7 +62,7 @@ impl Actor<ActorType, ActorMessage> for Coin {
         }
     }
 
-    fn collides_with(&mut self, other_actor: &ActorData<ActorType>) -> Option<CollisionSide> {
+    fn collides_with(&mut self, other_actor: &ActorData) -> Option<CollisionSide> {
         self.rect.collides_with(other_actor.rect)
     }
 
@@ -78,7 +80,7 @@ impl Actor<ActorType, ActorMessage> for Coin {
         self.animation.render(&mut context.renderer, rect);
     }
 
-    fn data(&mut self) -> ActorData<ActorType> {
+    fn data(&mut self) -> ActorData {
         ActorData {
             id: self.id,
             state: 0,
