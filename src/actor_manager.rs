@@ -32,10 +32,8 @@ impl<A: Actor + ?Sized> ActorManager<A> {
 
     /// Remove an actor from the actors
     pub fn remove(&mut self, id: i32) {
-        if let Some(temp_id) = self.temporary {
-            if id == temp_id {
-                self.temporary = None;
-            }
+        if self.temporary == Some(id) {
+            self.temporary = None;
         }
 
         self.actors.remove(&id);
@@ -54,11 +52,9 @@ impl<A: Actor + ?Sized> ActorManager<A> {
 
     /// Reinsert a temporarily removed actor
     pub fn temp_reinsert(&mut self, id: i32, actor: Box<A>) {
-        if let Some(temp_id) = self.temporary {
+        if self.temporary == Some(id) {
             // only insert the actor if it is the temporary one
-            if id == temp_id {
-                self.actors.insert(id, actor);
-            }
+            self.actors.insert(id, actor);
         }
     }
 }

@@ -41,9 +41,7 @@ pub fn text_sprite(renderer: &Renderer,
     }
 
     // cache if successful
-    if let Ok(ref mut cache) = font_cache.cache.lock() {
-        cache.insert(font_path.to_owned(), font);
-    }
+    let _ = font_cache.cache.lock().map(|ref mut cache| cache.insert(font_path.to_owned(), font));
 
     Ok(sprite)
 }

@@ -18,10 +18,8 @@ pub fn load_level<A: Actor + ?Sized>(path: &str,
     let mut center_point = (0, 0);
     let mut manager = ActorManager::new(actor_for_token);
 
-    let open_result = File::open(path);
-
-    if let Ok(f) = open_result {
-        let reader = BufReader::new(f);
+    File::open(path).and_then(|file| {
+        let reader = BufReader::new(file);
 
         let mut x = 0;
         let mut y = 0;
@@ -58,7 +56,5 @@ pub fn load_level<A: Actor + ?Sized>(path: &str,
         viewport.set_position(center_point);
 
         Ok((manager, viewport))
-    } else {
-        Err(io::Error::new(io::ErrorKind::InvalidData, "File could not be opened"))
-    }
+    })
 }

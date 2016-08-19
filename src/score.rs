@@ -31,11 +31,7 @@ impl Score {
     }
 
     pub fn score(&self, counter_name: &str) -> Option<i64> {
-        if let Some(score) = self.scores.get(counter_name) {
-            return Some(score.clone());
-        }
-
-        None
+        self.scores.get(counter_name).cloned()
     }
 
     // TODO(DarinM223): add functions to save and load a score from a file

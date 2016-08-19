@@ -70,7 +70,7 @@ impl<'a, Type> Quadtree<'a, Type> {
 
     /// Determine which node index the object belongs to
     fn index(&self, rect: &Rect) -> Option<i32> {
-        if let Some(rect) = self.viewport.constrain_to_viewport(rect) {
+        self.viewport.constrain_to_viewport(rect).and_then(|rect| {
             let vert_mid = (self.bounds.x() as f64) + (self.bounds.width() as f64) / 2.;
             let horiz_mid = (self.bounds.y() as f64) + (self.bounds.height() as f64) / 2.;
 
@@ -92,14 +92,14 @@ impl<'a, Type> Quadtree<'a, Type> {
                     return Some(3);
                 }
             }
-        }
 
-        None
+            None
+        })
     }
 
     /// Inserts an actor into the quadtree
     pub fn insert(&mut self, actor: ActorData<Type>) {
-        if let Some(_) = self.nodes[0] {
+        if self.nodes[0].is_some() {
             if let Some(index) = self.index(&actor.rect) {
                 if let Some(ref mut node) = self.nodes[index as usize] {
                     node.insert(actor);
@@ -109,7 +109,7 @@ impl<'a, Type> Quadtree<'a, Type> {
         }
 
         if self.objects.len() == MAX_OBJECTS && self.level < MAX_LEVELS {
-            if let None = self.nodes[0] {
+            if self.nodes[0].is_none() {
                 self.split();
             }
 

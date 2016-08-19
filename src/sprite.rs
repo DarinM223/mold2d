@@ -108,11 +108,9 @@ impl Sprite {
         let sprite = renderer.load_texture(Path::new(path)).ok().map(Sprite::new);
 
         // cache result if successful
-        if let Some(ref sprite) = sprite {
-            if let Ok(ref mut cache) = sprite_cache.cache.lock() {
-                cache.insert(path.to_owned(), sprite.clone());
-            }
-        }
+        let _ = sprite.clone().map(|sprite| {
+            sprite_cache.cache.lock().map(|ref mut cache| cache.insert(path.to_owned(), sprite))
+        });
 
         sprite
     }
@@ -169,10 +167,7 @@ impl AnimatedSprite {
     }
 
     pub fn with_fps(frames: Vec<Sprite>, fps: f64) -> AnimatedSprite {
-        if fps == 0.0 {
-            panic!("Passed 0 to AnimatedSprite::with_fps");
-        }
-
+        assert!(fps != 0.0);
         AnimatedSprite::new(frames, 1.0 / fps)
     }
 
@@ -181,10 +176,7 @@ impl AnimatedSprite {
     }
 
     fn set_fps(&mut self, fps: f64) {
-        if fps == 0.0 {
-            panic!("Passed 0 to AnimatedSprite::set_fps");
-        }
-
+        assert!(fps != 0.0);
         self.set_frame_delay(1.0 / fps);
     }
 
@@ -201,10 +193,7 @@ impl AnimatedSprite {
 impl Renderable for AnimatedSprite {
     /// Renders the current frame of the animated sprite
     fn render(&self, renderer: &mut Renderer, dest: Rect) {
-        if self.frames.len() == 0 {
-            panic!("There has to be at least one frame!");
-        }
-
+        assert!(self.frames.len() > 0, "There as to be at least one frame!");
         let current_frame = (self.current_time / self.frame_delay) as usize % self.frames.len();
 
         let frame = &self.frames[current_frame];
@@ -233,10 +222,7 @@ pub struct Spritesheet {
 impl Spritesheet {
     /// Loads a spritesheet given a configuration object and a SDL2 renderer
     pub fn new(config: SpritesheetConfig, renderer: &mut Renderer) -> Spritesheet {
-        let spritesheet = match Sprite::load(renderer, config.path) {
-            Some(spritesheet) => spritesheet,
-            None => panic!("{} is not a valid path", config.path),
-        };
+        let spritesheet = Sprite::load(renderer, config.path).unwrap();
 
         Spritesheet {
             config: config,
@@ -395,9 +381,7 @@ impl<State> Animations<State>
 
     /// Adds time to the current animation
     pub fn add_time(&mut self, s: &State, elapsed: f64) {
-        if let Some(animation) = self.anim_mut(s) {
-            animation.add_time(elapsed);
-        }
+        let _ = self.anim_mut(s).map(|ref mut anim| anim.add_time(elapsed));
     }
 
     /// Renders an animation in the manager
@@ -423,10 +407,6 @@ impl<State> Animations<State>
         let (rx, ry) = viewport.relative_point((rect.x, rect.y));
         let rect = Rect::new_unwrap(rx, ry, rect.w, rect.h);
 
-        if let Some(animation) = self.anim_mut(s) {
-            animation.render(renderer, rect);
-        } else {
-            panic!("Could not find animation");
-        }
+        self.anim_mut(s).unwrap().render(renderer, rect);
     }
 }
