@@ -30,7 +30,8 @@ impl KeyboardMappings {
     /// Creates a new keyboard mapper given a keyboard mapping string
     pub fn new(mappings: &str) -> KeyboardMappings {
         let mapping_str = mappings.to_owned();
-        let token_stream: Vec<_> = mapping_str.split(|x| (x == ' ') || (x == '\n'))
+        let token_stream: Vec<_> = mapping_str
+            .split(|x| (x == ' ') || (x == '\n'))
             .filter(|s| !s.trim().is_empty())
             .collect();
 

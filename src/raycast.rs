@@ -73,24 +73,22 @@ impl Polygon for Rect {
         let (f_x, f_y) = (self.x() as f64, self.y() as f64);
         let (f_w, f_h) = (self.width() as f64, self.height() as f64);
 
-        vec![
-            Segment {
-                point: (f_x, f_y),
-                vector: Vector2D { x: 0., y: f_h },
-            },
-            Segment {
-                point: (f_x, f_y + f_h),
-                vector: Vector2D { x: f_w, y: 0. },
-            },
-            Segment {
-                point: (f_x + f_w, f_y + f_h),
-                vector: Vector2D { x: 0., y: -f_h },
-            },
-            Segment {
-                point: (f_x + f_w, f_y),
-                vector: Vector2D { x: -f_w, y: 0. },
-            },
-        ]
+        vec![Segment {
+                 point: (f_x, f_y),
+                 vector: Vector2D { x: 0., y: f_h },
+             },
+             Segment {
+                 point: (f_x, f_y + f_h),
+                 vector: Vector2D { x: f_w, y: 0. },
+             },
+             Segment {
+                 point: (f_x + f_w, f_y + f_h),
+                 vector: Vector2D { x: 0., y: -f_h },
+             },
+             Segment {
+                 point: (f_x + f_w, f_y),
+                 vector: Vector2D { x: -f_w, y: 0. },
+             }]
     }
 
     fn collision_from_side(&self, id: usize) -> Option<CollisionSide> {
@@ -175,12 +173,22 @@ mod tests {
         let sides = rect.sides();
 
         assert_eq!(sides,
-                   vec![
-            Segment { point: (0., 0.), vector:  Vector2D { x: 0., y: 20. } },
-            Segment { point: (0., 20.), vector: Vector2D { x: 20., y: 0. } },
-            Segment { point: (20., 20.), vector: Vector2D { x: 0., y: -20. } },
-            Segment { point: (20., 0.), vector: Vector2D { x: -20., y: 0. } },
-        ]);
+                   vec![Segment {
+                            point: (0., 0.),
+                            vector: Vector2D { x: 0., y: 20. },
+                        },
+                        Segment {
+                            point: (0., 20.),
+                            vector: Vector2D { x: 20., y: 0. },
+                        },
+                        Segment {
+                            point: (20., 20.),
+                            vector: Vector2D { x: 0., y: -20. },
+                        },
+                        Segment {
+                            point: (20., 0.),
+                            vector: Vector2D { x: -20., y: 0. },
+                        }]);
     }
 
     #[test]

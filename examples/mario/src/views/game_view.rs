@@ -92,7 +92,7 @@ impl View for GameView {
         }
 
         {
-            let window_rect = Rect::new_unwrap(0, 0, context.window.width, context.window.height);
+            let window_rect = Rect::new(0, 0, context.window.width, context.window.height);
             let viewport_clone = self.viewport.clone();
             let mut quadtree = Quadtree::new(window_rect, &viewport_clone);
             let mut keys = Vec::with_capacity(self.actors.actors.len());

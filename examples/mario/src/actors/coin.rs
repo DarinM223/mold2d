@@ -74,7 +74,7 @@ impl Actor for Coin {
 
     fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-        let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
+        let rect = Rect::new(rx, ry, self.rect.w, self.rect.h);
 
         // Render sprite animation
         self.animation.render(&mut context.renderer, rect);

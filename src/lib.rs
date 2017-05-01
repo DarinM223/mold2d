@@ -15,10 +15,10 @@
 //! y axis, down is a positive change in the y axis, left is a negative
 //! change in the x axis, and right is a positive change in the x axis.
 
+#![feature(drop_types_in_const)]
+
 extern crate libc;
 extern crate sdl2;
-extern crate sdl2_image;
-extern crate sdl2_ttf;
 
 #[macro_use]
 pub mod block;
@@ -47,6 +47,7 @@ pub use raycast::{Polygon, Segment};
 pub use score::Score;
 pub use sprite::{AnimatedSprite, Animations, Direction, Renderable, Sprite, Spritesheet,
                  SpritesheetConfig, SpriteRectangle};
+pub use sdl2::ttf::FontError;
 pub use vector::{PositionChange, Vector2D};
 pub use viewport::Viewport;
 

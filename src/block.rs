@@ -123,7 +123,7 @@ macro_rules! block {
                           _elapsed: f64) {
                     use ::mold2d::Renderable;
                     let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-                    let rect = ::sdl2::rect::Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
+                    let rect = ::sdl2::rect::Rect::new(rx, ry, self.rect.w, self.rect.h);
 
                     self.sprite.render(&mut context.renderer, rect);
                 }

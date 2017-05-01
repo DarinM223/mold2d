@@ -7,8 +7,8 @@ use sdl2::rect::Rect;
 fn calc_viewport_point(center_coord: f64, window_coord: f64, map_coord: f64) -> f64 {
     let half = window_coord / 2.0;
 
-    ((center_coord - half).max(0.0))
-        .min((map_coord - window_coord).min((center_coord - half).abs()))
+    ((center_coord - half).max(0.0)).min((map_coord - window_coord).min((center_coord - half)
+                                                                            .abs()))
 }
 
 /// Constrains coordinates from an open world into the current window view
@@ -80,7 +80,7 @@ impl Viewport {
         if in_viewport {
             let center = center_point(rect);
             let (x, y) = self.relative_point((center.0 as i32, center.1 as i32));
-            Some(Rect::new_unwrap(x, y, rect.width(), rect.height()))
+            Some(Rect::new(x, y, rect.width(), rect.height()))
         } else {
             None
         }

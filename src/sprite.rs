@@ -1,9 +1,9 @@
 use cache;
 use collision;
 use collision::{BoundingBox, Collision, CollisionSide};
+use sdl2::image::LoadTexture;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
-use sdl2_image::LoadTexture;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -55,7 +55,7 @@ impl SpriteRectangle {
     /// Returns a SDL Rect created from the SpriteRectangle
     /// Used for rendering SpriteRectangles in SDL
     pub fn to_sdl(&self) -> Option<Rect> {
-        Rect::new(self.x, self.y, self.w, self.h).unwrap()
+        Some(Rect::new(self.x, self.y, self.w, self.h)) // TODO(DarinM223): fix method
     }
 
     /// Mutates a sprite rectangle based on the position change given
@@ -89,7 +89,7 @@ impl Sprite {
 
         Sprite {
             tex: Rc::new(RefCell::new(texture)),
-            src: Rect::new_unwrap(0, 0, tex_query.width, tex_query.height),
+            src: Rect::new(0, 0, tex_query.width, tex_query.height),
         }
     }
 
@@ -105,28 +105,36 @@ impl Sprite {
         }
 
         // otherwise load sprite from texture
-        let sprite = renderer.load_texture(Path::new(path)).ok().map(Sprite::new);
+        let sprite = renderer
+            .load_texture(Path::new(path))
+            .ok()
+            .map(Sprite::new);
 
         // cache result if successful
-        let _ = sprite.clone().map(|sprite| {
-            sprite_cache.cache.lock().map(|ref mut cache| cache.insert(path.to_owned(), sprite))
-        });
+        let _ = sprite
+            .clone()
+            .map(|sprite| {
+                     sprite_cache
+                         .cache
+                         .lock()
+                         .map(|ref mut cache| cache.insert(path.to_owned(), sprite))
+                 });
 
         sprite
     }
 
     /// Returns a sub-sprite from a rectangle region of the original sprite
     pub fn region(&self, rect: Rect) -> Option<Sprite> {
-        let new_src = Rect::new_unwrap(rect.x() + self.src.x(),
-                                       rect.y() + self.src.y(),
-                                       rect.width(),
-                                       rect.height());
+        let new_src = Rect::new(rect.x() + self.src.x(),
+                                rect.y() + self.src.y(),
+                                rect.width(),
+                                rect.height());
 
         if collision::rect_contains_rect(self.src, new_src) {
             Some(Sprite {
-                tex: self.tex.clone(),
-                src: new_src,
-            })
+                     tex: self.tex.clone(),
+                     src: new_src,
+                 })
         } else {
             None
         }
@@ -245,10 +253,10 @@ impl Spritesheet {
                 let x = elem % self.config.sprites_in_row;
                 let y = elem / self.config.sprites_in_row;
 
-                let region = Rect::new_unwrap((self.config.width as i32) * x,
-                                              (self.config.height as i32) * y,
-                                              self.config.width,
-                                              self.config.height);
+                let region = Rect::new((self.config.width as i32) * x,
+                                       (self.config.height as i32) * y,
+                                       self.config.width,
+                                       self.config.height);
                 self.spritesheet.region(region)
             })
             .flat_map(|sprite| sprite)
@@ -282,14 +290,14 @@ impl<State> Animations<State>
     }
 
     pub fn add(&mut self, s: State, anims: Vec<Sprite>, bound: BoundingBox) {
-        self.animations.insert(s, (AnimatedSprite::with_fps(anims, self.fps), bound));
+        self.animations
+            .insert(s, (AnimatedSprite::with_fps(anims, self.fps), bound));
     }
 
     fn set_state(&mut self, s: &State) {
         // Insert the saved bounding box and animation back into the hashmap
-        if let (Some(state), Some(bbox), Some(anim)) = (self.curr_state.take(),
-                                                        self.curr_bbox.take(),
-                                                        self.curr_anim.take()) {
+        if let (Some(state), Some(bbox), Some(anim)) =
+            (self.curr_state.take(), self.curr_bbox.take(), self.curr_anim.take()) {
             self.animations.insert(state, (anim, bbox));
         }
 
@@ -381,7 +389,8 @@ impl<State> Animations<State>
 
     /// Adds time to the current animation
     pub fn add_time(&mut self, s: &State, elapsed: f64) {
-        let _ = self.anim_mut(s).map(|ref mut anim| anim.add_time(elapsed));
+        let _ = self.anim_mut(s)
+            .map(|ref mut anim| anim.add_time(elapsed));
     }
 
     /// Renders an animation in the manager
@@ -397,7 +406,7 @@ impl<State> Animations<State>
                     BoundingBox::Rectangle(ref rect) => {
                         renderer.set_draw_color(::sdl2::pixels::Color::RGB(230, 230, 230));
                         let (rx, ry) = viewport.relative_point((rect.x, rect.y));
-                        let rect = Rect::new_unwrap(rx, ry, rect.w, rect.h);
+                        let rect = Rect::new(rx, ry, rect.w, rect.h);
                         renderer.fill_rect(rect);
                     }
                 }
@@ -405,7 +414,7 @@ impl<State> Animations<State>
         }
 
         let (rx, ry) = viewport.relative_point((rect.x, rect.y));
-        let rect = Rect::new_unwrap(rx, ry, rect.w, rect.h);
+        let rect = Rect::new(rx, ry, rect.w, rect.h);
 
         self.anim_mut(s).unwrap().render(renderer, rect);
     }

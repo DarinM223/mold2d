@@ -1,14 +1,16 @@
-use sdl2_ttf::Font;
+use sdl2::ttf::{Font, Sdl2TtfContext};
 use sprite::Sprite;
 use std::collections::HashMap;
 use std::mem;
 use std::sync::{Arc, Mutex, ONCE_INIT, Once};
 
+pub static GlobalTtfContext: Sdl2TtfContext = Sdl2TtfContext;
+
 /// A global thread-safe cache for resolving fonts
 /// from file path
 #[derive(Clone)]
 pub struct FontCache {
-    pub cache: Arc<Mutex<HashMap<String, Font>>>,
+    pub cache: Arc<Mutex<HashMap<String, Font<'static, 'static>>>>,
 }
 
 /// Returns the font cache as a singleton
@@ -18,12 +20,13 @@ pub fn font_cache() -> FontCache {
 
     unsafe {
         ONCE.call_once(|| {
-            let singleton = FontCache { cache: Arc::new(Mutex::new(HashMap::new())) };
+                           let singleton =
+                               FontCache { cache: Arc::new(Mutex::new(HashMap::new())) };
 
-            SINGLETON = mem::transmute(Box::new(singleton));
+                           SINGLETON = mem::transmute(Box::new(singleton));
 
-            // TODO(DarinM223): clean up memory after exit
-        });
+                           // TODO(DarinM223): clean up memory after exit
+                       });
 
         (*SINGLETON).clone()
     }
@@ -43,12 +46,13 @@ pub fn sprite_cache() -> SpriteCache {
 
     unsafe {
         ONCE.call_once(|| {
-            let singleton = SpriteCache { cache: Arc::new(Mutex::new(HashMap::new())) };
+                           let singleton =
+                               SpriteCache { cache: Arc::new(Mutex::new(HashMap::new())) };
 
-            SINGLETON = mem::transmute(Box::new(singleton));
+                           SINGLETON = mem::transmute(Box::new(singleton));
 
-            // TODO(DarinM223): clean up memory after exit
-        });
+                           // TODO(DarinM223): clean up memory after exit
+                       });
 
         (*SINGLETON).clone()
     }
