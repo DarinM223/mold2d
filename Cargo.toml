@@ -1,6 +1,6 @@
 [package]
 name = "mold2d"
-version = "0.0.2"
+version = "0.1.0"
 authors = ["Darin Minamoto <darinm223@gmail.com>"]
 description = "A simple platformer game library in Rust"
 repository = "https://github.com/DarinM223/mold2d"
@@ -10,6 +10,7 @@ license = "MIT"
 
 [dependencies]
 libc = "0.2"
+lazy_static = "0.2"
 
 [dependencies.sdl2]
 version = "0.29"

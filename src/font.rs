@@ -28,8 +28,7 @@ pub fn text_sprite(renderer: &Renderer,
     }
 
     // otherwise load font from file path
-    let font = cache::GLOBAL_TTF_CONTEXT
-        .load_font(Path::new(font_path), 12)?;
+    let font = cache::TTF_CONTEXT.load_font(Path::new(font_path), 12)?;
     let sprite;
 
     {

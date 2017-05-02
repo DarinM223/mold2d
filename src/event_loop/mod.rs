@@ -16,11 +16,10 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> Result<(), Box<Erro
     let video = sdl_context.video()?;
     let mut timer = sdl_context.timer()?;
     let _image_context = sdl2::image::init(INIT_PNG | INIT_JPG)?;
-    let _ttf_context = sdl2::ttf::init();
+    let _ttf_context = sdl2::ttf::init()?;
 
     let mut frame_timer = FrameTimer::new(&mut timer, true);
-    let sdl_window = video
-        .window(window.title, window.width, window.height)
+    let sdl_window = video.window(window.title, window.width, window.height)
         .position_centered()
         .opengl()
         .build()?;

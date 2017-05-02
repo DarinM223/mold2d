@@ -15,8 +15,8 @@
 //! y axis, down is a positive change in the y axis, left is a negative
 //! change in the x axis, and right is a positive change in the x axis.
 
-#![feature(drop_types_in_const)]
-
+#[macro_use]
+extern crate lazy_static;
 extern crate libc;
 extern crate sdl2;
 

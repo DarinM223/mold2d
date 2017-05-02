@@ -4,7 +4,9 @@ use std::collections::HashMap;
 use std::mem;
 use std::sync::{Arc, Mutex, ONCE_INIT, Once};
 
-pub static GLOBAL_TTF_CONTEXT: Sdl2TtfContext = Sdl2TtfContext;
+lazy_static! {
+    pub static ref TTF_CONTEXT: Sdl2TtfContext = Sdl2TtfContext;
+}
 
 /// A global thread-safe cache for resolving fonts
 /// from file path
@@ -24,8 +26,6 @@ pub fn font_cache() -> FontCache {
                                FontCache { cache: Arc::new(Mutex::new(HashMap::new())) };
 
                            SINGLETON = mem::transmute(Box::new(singleton));
-
-                           // TODO(DarinM223): clean up memory after exit
                        });
 
         (*SINGLETON).clone()
@@ -50,8 +50,6 @@ pub fn sprite_cache() -> SpriteCache {
                                SpriteCache { cache: Arc::new(Mutex::new(HashMap::new())) };
 
                            SINGLETON = mem::transmute(Box::new(singleton));
-
-                           // TODO(DarinM223): clean up memory after exit
                        });
 
         (*SINGLETON).clone()
