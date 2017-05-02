@@ -5,6 +5,7 @@ use mold2d::level;
 use mold2d::{ActorManager, Context, Quadtree, Sprite, View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
+use std::error::Error;
 use views::background_view::BackgroundView;
 
 /// The main game view used for
@@ -41,15 +42,17 @@ impl GameView {
 
 impl View for GameView {
     #[inline]
-    fn render(&mut self, context: &mut Context, elapsed: f64) {
+    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<Error>> {
         // start off with a black screen
-        context.renderer.set_draw_color(Color::RGB(135, 206, 250));
+        context
+            .renderer
+            .set_draw_color(Color::RGB(135, 206, 250));
         context.renderer.clear();
 
         // render contained actors
         for (_, actor) in &mut self.actors.actors {
-            if let Some(_) = self.viewport.constrain_to_viewport(&actor.data().rect) {
-                actor.render(context, &mut self.viewport, elapsed);
+            if self.viewport.rect_in_viewport(&actor.data().rect) {
+                actor.render(context, &mut self.viewport, elapsed)?;
             }
         }
 
@@ -61,7 +64,7 @@ impl View for GameView {
             if let Some(ref prev_score) = self.cached_score {
                 if *prev_score == score_text {
                     if let Some(ref font_sprite) = self.cached_font_sprite {
-                        font::render_text(&mut context.renderer, font_sprite, (100, 100));
+                        font::render_text(&mut context.renderer, font_sprite, (100, 100))?;
                     }
                     had_cached_score = true;
                 }
@@ -73,12 +76,14 @@ impl View for GameView {
                                                     "assets/belligerent.ttf",
                                                     32,
                                                     Color::RGB(0, 255, 0))
-                    .unwrap();
-                font::render_text(&mut context.renderer, &font_sprite, (100, 100));
+                        .unwrap();
+                font::render_text(&mut context.renderer, &font_sprite, (100, 100))?;
                 self.cached_score = Some(score_text);
                 self.cached_font_sprite = Some(font_sprite);
             }
         }
+
+        Ok(())
     }
 
     #[inline]
@@ -100,7 +105,7 @@ impl View for GameView {
             for (key, actor) in &mut self.actors.actors {
                 let data = actor.data().clone();
 
-                if let Some(_) = self.viewport.constrain_to_viewport(&data.rect) {
+                if self.viewport.rect_in_viewport(&data.rect) {
                     keys.push(key.clone());
                     quadtree.insert(data);
                 }
@@ -114,14 +119,15 @@ impl View for GameView {
                     // update the actor
                     let pos_change = actor.update(context, elapsed);
                     actor.handle_message(&ActorMessage::ActorAction {
-                        send_id: data.id,
-                        recv_id: data.id,
-                        action: ActorAction::ChangePosition(pos_change),
-                    });
+                                              send_id: data.id,
+                                              recv_id: data.id,
+                                              action: ActorAction::ChangePosition(pos_change),
+                                          });
 
                     if data.collision_filter != 0 && data.actor_type != ActorType::Block {
                         // only check collisions for nearby actors
-                        let nearby_actors = quadtree.retrieve(&data.rect)
+                        let nearby_actors = quadtree
+                            .retrieve(&data.rect)
                             .into_iter()
                             .map(|act| act.clone())
                             .collect::<Vec<_>>();
@@ -141,7 +147,8 @@ impl View for GameView {
                     self.actors.temp_reinsert(actor.data().id, actor);
 
                     if data.actor_type == ActorType::Player {
-                        self.viewport.set_position((data.rect.x(), data.rect.y()));
+                        self.viewport
+                            .set_position((data.rect.x(), data.rect.y()));
                     }
                 }
             }

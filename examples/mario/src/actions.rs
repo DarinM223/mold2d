@@ -127,19 +127,19 @@ pub fn handle_collision(actor: &mut Box<Actor>,
             };
 
             actor.handle_message(&ActorMessage::ActorAction {
-                send_id: -1,
-                recv_id: -1,
-                action: ActorAction::ChangePosition(change),
-            });
+                                      send_id: -1,
+                                      recv_id: -1,
+                                      action: ActorAction::ChangePosition(change),
+                                  });
         }
 
         if direction == CollisionSide::Bottom {
             let down_change = PositionChange::new().down(1);
             actor.handle_message(&ActorMessage::ActorAction {
-                send_id: -1,
-                recv_id: -1,
-                action: ActorAction::ChangePosition(down_change),
-            });
+                                      send_id: -1,
+                                      recv_id: -1,
+                                      action: ActorAction::ChangePosition(down_change),
+                                  });
         }
     }
 

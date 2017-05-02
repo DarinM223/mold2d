@@ -6,6 +6,7 @@ use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::error::Error;
 use std::hash::Hash;
 use std::path::Path;
 use std::rc::Rc;
@@ -20,7 +21,7 @@ pub enum Direction {
 }
 
 pub trait Renderable {
-    fn render(&self, renderer: &mut Renderer, dest: Rect);
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>>;
 }
 
 /// A mutable rectangle for a sprite so it can be moved around
@@ -54,8 +55,8 @@ impl SpriteRectangle {
 
     /// Returns a SDL Rect created from the SpriteRectangle
     /// Used for rendering SpriteRectangles in SDL
-    pub fn to_sdl(&self) -> Option<Rect> {
-        Some(Rect::new(self.x, self.y, self.w, self.h)) // TODO(DarinM223): fix method
+    pub fn to_sdl(&self) -> Rect {
+        Rect::new(self.x, self.y, self.w, self.h)
     }
 
     /// Mutates a sprite rectangle based on the position change given
@@ -94,21 +95,18 @@ impl Sprite {
     }
 
     /// Loads a new sprite from a path string to a sprite image file
-    pub fn load(renderer: &Renderer, path: &str) -> Option<Sprite> {
+    pub fn load(renderer: &Renderer, path: &str) -> Result<Sprite, Box<Error>> {
         let sprite_cache = cache::sprite_cache();
 
         // if sprite is cached, return from cache
         if let Ok(ref cache) = sprite_cache.cache.lock() {
             if let Some(sprite) = cache.get(path).map(|sprite| sprite.clone()) {
-                return Some(sprite);
+                return Ok(sprite);
             }
         }
 
         // otherwise load sprite from texture
-        let sprite = renderer
-            .load_texture(Path::new(path))
-            .ok()
-            .map(Sprite::new);
+        let sprite = renderer.load_texture(Path::new(path)).map(Sprite::new);
 
         // cache result if successful
         let _ = sprite
@@ -120,7 +118,7 @@ impl Sprite {
                          .map(|ref mut cache| cache.insert(path.to_owned(), sprite))
                  });
 
-        sprite
+        sprite.map_err(From::from)
     }
 
     /// Returns a sub-sprite from a rectangle region of the original sprite
@@ -148,8 +146,10 @@ impl Sprite {
 
 impl Renderable for Sprite {
     /// Render the sprite image onto the rectangle
-    fn render(&self, renderer: &mut Renderer, dest: Rect) {
-        renderer.copy(&mut self.tex.borrow_mut(), Some(self.src), Some(dest));
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>> {
+        renderer
+            .copy(&mut self.tex.borrow_mut(), Some(self.src), Some(dest))
+            .map_err(From::from)
     }
 }
 
@@ -200,12 +200,12 @@ impl AnimatedSprite {
 
 impl Renderable for AnimatedSprite {
     /// Renders the current frame of the animated sprite
-    fn render(&self, renderer: &mut Renderer, dest: Rect) {
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>> {
         assert!(self.frames.len() > 0, "There as to be at least one frame!");
         let current_frame = (self.current_time / self.frame_delay) as usize % self.frames.len();
 
         let frame = &self.frames[current_frame];
-        frame.render(renderer, dest);
+        frame.render(renderer, dest).map_err(From::from)
     }
 }
 
@@ -399,7 +399,8 @@ impl<State> Animations<State>
                   rect: &SpriteRectangle,
                   viewport: &mut Viewport,
                   renderer: &mut Renderer,
-                  debug: bool) {
+                  debug: bool)
+                  -> Result<(), Box<Error>> {
         if debug {
             if let Some(bounding_box) = self.bbox(s) {
                 match *bounding_box {
@@ -407,7 +408,7 @@ impl<State> Animations<State>
                         renderer.set_draw_color(::sdl2::pixels::Color::RGB(230, 230, 230));
                         let (rx, ry) = viewport.relative_point((rect.x, rect.y));
                         let rect = Rect::new(rx, ry, rect.w, rect.h);
-                        renderer.fill_rect(rect);
+                        renderer.fill_rect(rect)?;
                     }
                 }
             }
@@ -416,6 +417,9 @@ impl<State> Animations<State>
         let (rx, ry) = viewport.relative_point((rect.x, rect.y));
         let rect = Rect::new(rx, ry, rect.w, rect.h);
 
-        self.anim_mut(s).unwrap().render(renderer, rect);
+        self.anim_mut(s)
+            .unwrap()
+            .render(renderer, rect)
+            .map_err(From::from)
     }
 }

@@ -2,6 +2,7 @@ use actions::{ActorAction, ActorData, ActorMessage, ActorType};
 use mold2d::{Actor, Animations, BoundingBox, CollisionSide, Context, Direction, PositionChange,
              Spritesheet, SpritesheetConfig, SpriteRectangle, Vector2D, Viewport};
 use sdl2::render::Renderer;
+use std::error::Error;
 
 const KOOPA_X_MAXSPEED: f64 = 10.0;
 const KOOPA_Y_MAXSPEED: f64 = 15.0;
@@ -98,11 +99,16 @@ impl Actor for Koopa {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         use actions::ActorAction::*;
 
-        if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
+        if let ActorMessage::ActorAction {
+                   send_id,
+                   ref action,
+                   ..
+               } = *message {
             match *action {
                 ChangePosition(ref change) => {
                     self.rect.apply_change(change);
-                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
+                    self.anims
+                        .map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
                 DamageActor(_) => ActorMessage::RemoveActor(self.id),
@@ -225,9 +231,14 @@ impl Actor for Koopa {
         change
     }
 
-    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
+    fn render(&mut self,
+              context: &mut Context,
+              viewport: &mut Viewport,
+              _elapsed: f64)
+              -> Result<(), Box<Error>> {
         let key = (self.curr_state, self.size, self.direction);
-        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
+        self.anims
+            .render(&key, &self.rect, viewport, &mut context.renderer, false)
     }
 
     fn data(&mut self) -> ActorData {
@@ -237,7 +248,7 @@ impl Actor for Koopa {
             damage: 5,
             resolves_collisions: true,
             collision_filter: 0b1111,
-            rect: self.rect.to_sdl().unwrap(),
+            rect: self.rect.to_sdl(),
             bounding_box: self.anims
                 .bbox(&(self.curr_state, self.size, self.direction))
                 .map(|bb| bb.clone()),

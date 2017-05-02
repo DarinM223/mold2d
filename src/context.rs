@@ -1,7 +1,6 @@
 use events::Events;
 use score::Score;
 use sdl2::render::Renderer;
-use sdl2::image;
 
 /// Represents a SDL window to render
 pub struct Window {
@@ -23,8 +22,6 @@ impl<'a> Context<'a> {
     /// Creates a new context given the path for the keyboard configuration
     /// and the sdl renderer
     pub fn new(window: Window, events: Events, renderer: Renderer<'a>) -> Context<'a> {
-        image::init(image::INIT_PNG);
-
         Context {
             window: window,
             events: events,

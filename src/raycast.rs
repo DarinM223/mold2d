@@ -2,6 +2,7 @@ use collision::CollisionSide;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::Renderer;
+use std::error::Error;
 use vector::Vector2D;
 use viewport::Viewport;
 
@@ -51,12 +52,16 @@ impl Segment {
         self.vector.len()
     }
 
-    pub fn render(&self, color: Color, viewport: &mut Viewport, renderer: &mut Renderer) {
+    pub fn render(&self,
+                  color: Color,
+                  viewport: &mut Viewport,
+                  renderer: &mut Renderer)
+                  -> Result<(), Box<Error>> {
         let (rx, ry) = viewport.relative_point((self.point.0 as i32, self.point.1 as i32));
         let p1 = Point::new(rx as i32, ry as i32);
         let p2 = Point::new(rx + (self.vector.x as i32), ry + (self.vector.y as i32));
         renderer.set_draw_color(color);
-        renderer.draw_line(p1, p2);
+        renderer.draw_line(p1, p2).map_err(From::from)
     }
 }
 

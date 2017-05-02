@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::mem;
 use std::sync::{Arc, Mutex, ONCE_INIT, Once};
 
-pub static GlobalTtfContext: Sdl2TtfContext = Sdl2TtfContext;
+pub static GLOBAL_TTF_CONTEXT: Sdl2TtfContext = Sdl2TtfContext;
 
 /// A global thread-safe cache for resolving fonts
 /// from file path

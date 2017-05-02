@@ -4,6 +4,7 @@ use mold2d::{Actor, Animations, BoundingBox, CollisionSide, Context, Direction, 
              Viewport};
 use sdl2::pixels::Color;
 use sdl2::render::Renderer;
+use std::error::Error;
 
 const PLAYER_WIDTH: u32 = 30;
 const PLAYER_HEIGHT: u32 = 60;
@@ -119,11 +120,16 @@ impl Actor for Player {
     type Message = ActorMessage;
 
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
+        if let ActorMessage::ActorAction {
+                   send_id,
+                   ref action,
+                   ..
+               } = *message {
             match *action {
                 ActorAction::ChangePosition(ref change) => {
                     self.rect.apply_change(change);
-                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
+                    self.anims
+                        .map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
                 ActorAction::DamageActor(_) => {
@@ -258,27 +264,34 @@ impl Actor for Player {
         self.anims.add_time(&key, elapsed);
 
         self.prev_segment = Some(Segment {
-            point: (self.data().rect.x() as f64, self.data().rect.y() as f64),
-            vector: change.to_vector(),
-        });
+                                     point: (self.data().rect.x() as f64,
+                                             self.data().rect.y() as f64),
+                                     vector: change.to_vector(),
+                                 });
 
         change
     }
 
-    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
+    fn render(&mut self,
+              context: &mut Context,
+              viewport: &mut Viewport,
+              _elapsed: f64)
+              -> Result<(), Box<Error>> {
         // renders position change in debug mode
         if self.debug {
             let data = self.data();
             if let Some(ref mut segment) = self.prev_segment {
-                segment.render(Color::RGB(0, 0, 0), viewport, &mut context.renderer);
+                segment
+                    .render(Color::RGB(0, 0, 0), viewport, &mut context.renderer)?;
             }
             for side in data.rect.sides() {
-                side.render(Color::RGB(0, 255, 0), viewport, &mut context.renderer);
+                side.render(Color::RGB(0, 255, 0), viewport, &mut context.renderer)?;
             }
         }
 
         let key = (self.size, self.curr_state, self.direction);
-        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false);
+        self.anims
+            .render(&key, &self.rect, viewport, &mut context.renderer, false)
     }
 
     fn data(&mut self) -> ActorData {
@@ -288,7 +301,7 @@ impl Actor for Player {
             damage: 0,
             resolves_collisions: true,
             collision_filter: 0b1111,
-            rect: self.rect.to_sdl().unwrap(),
+            rect: self.rect.to_sdl(),
             bounding_box: self.anims
                 .bbox(&(self.size, self.curr_state, self.direction))
                 .map(|bb| bb.clone()),

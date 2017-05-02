@@ -47,11 +47,11 @@ pub use raycast::{Polygon, Segment};
 pub use score::Score;
 pub use sprite::{AnimatedSprite, Animations, Direction, Renderable, Sprite, Spritesheet,
                  SpritesheetConfig, SpriteRectangle};
-pub use sdl2::ttf::FontError;
 pub use vector::{PositionChange, Vector2D};
 pub use viewport::Viewport;
 
 use sdl2::rect::Rect;
+use std::error::Error;
 
 /// Handler for a view to deal with actor messages
 pub type MessageHandler<A: Actor + ?Sized> = Box<Fn(&mut Box<A>,
@@ -70,7 +70,7 @@ pub enum ViewAction {
 
 pub trait View {
     /// Called every frame to render a view
-    fn render(&mut self, context: &mut Context, elapsed: f64);
+    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<Error>>;
 
     /// Called every frame to update a view
     fn update(&mut self, context: &mut Context, elapsed: f64) -> Option<ViewAction>;
@@ -105,7 +105,11 @@ pub trait Actor {
     type Message;
 
     /// Called every frame to render an actor
-    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64);
+    fn render(&mut self,
+              context: &mut Context,
+              viewport: &mut Viewport,
+              elapsed: f64)
+              -> Result<(), Box<Error>>;
 
     /// Handle a message sent by another actor
     fn handle_message(&mut self, message: &Self::Message) -> Self::Message;

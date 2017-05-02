@@ -27,7 +27,7 @@ pub fn load_level<A: Actor + ?Sized>(path: &str,
         let mut has_player = false;
 
         for line in reader.lines() {
-            for token in try!(line).chars() {
+            for token in line?.chars() {
                 if token != ' ' {
                     manager.add(token, (x, y), renderer);
 
