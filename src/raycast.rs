@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn test_rect_sides() {
-        let rect = Rect::new_unwrap(0, 0, 20, 20);
+        let rect = Rect::new(0, 0, 20, 20);
         let sides = rect.sides();
 
         assert_eq!(sides,
@@ -225,7 +225,7 @@ mod tests {
 
     #[test]
     fn test_shorten_ray_left() {
-        let rect = Rect::new_unwrap(2, 3, 2, 2);
+        let rect = Rect::new(2, 3, 2, 2);
         let mut segment = Segment {
             point: (0., 3.),
             vector: Vector2D { x: 4., y: 0. },
@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn test_shorten_ray_top() {
-        let rect = Rect::new_unwrap(2, 3, 2, 2);
+        let rect = Rect::new(2, 3, 2, 2);
         let mut segment = Segment {
             point: (3., 0.),
             vector: Vector2D { x: 0., y: 4. },

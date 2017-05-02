@@ -254,22 +254,22 @@ mod tests {
 
     #[test]
     fn test_left_right_rect_collision() {
-        let left_rect = Rect::new_unwrap(-10, 0, 20, 20);
-        let right_rect = Rect::new_unwrap(0, 0, 20, 20);
+        let left_rect = Rect::new(-10, 0, 20, 20);
+        let right_rect = Rect::new(0, 0, 20, 20);
 
-        assert_eq!(left_rect.collides_with(right_rect),
+        assert_eq!(left_rect.collides_with(&right_rect),
                    Some(CollisionSide::Right));
-        assert_eq!(right_rect.collides_with(left_rect),
+        assert_eq!(right_rect.collides_with(&left_rect),
                    Some(CollisionSide::Left));
     }
 
     #[test]
     fn test_up_down_rect_collision() {
-        let up_rect = Rect::new_unwrap(0, -20, 20, 20);
-        let down_rect = Rect::new_unwrap(0, 0, 20, 20);
+        let up_rect = Rect::new(0, -20, 20, 20);
+        let down_rect = Rect::new(0, 0, 20, 20);
 
-        assert_eq!(up_rect.collides_with(down_rect),
+        assert_eq!(up_rect.collides_with(&down_rect),
                    Some(CollisionSide::Bottom));
-        assert_eq!(down_rect.collides_with(up_rect), Some(CollisionSide::Top));
+        assert_eq!(down_rect.collides_with(&up_rect), Some(CollisionSide::Top));
     }
 }
