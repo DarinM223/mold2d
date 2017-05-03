@@ -1,11 +1,7 @@
-#![feature(custom_attribute, plugin)]
-#[cfg_attr(feature="clippy", feature(plugin))]
-#[cfg_attr(feature="clippy", plugin(clippy))]
 #[macro_use(block)]
 extern crate mold2d;
+
 extern crate sdl2;
-extern crate sdl2_image;
-extern crate sdl2_ttf;
 
 pub mod actions;
 pub mod actors;

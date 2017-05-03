@@ -5,13 +5,15 @@ authors = ["Darin Minamoto <darinm223@gmail.com>"]
 
 [dependencies]
 rand = "0.3"
-sdl2 = "0.9"
-sdl2_image = "0.3"
-sdl2_ttf = "0.9"
 clippy = { version = "*", optional = true }
 
 [dependencies.mold2d]
 path = "../../"
+
+[dependencies.sdl2]
+version = "0.29"
+default-features = false
+features = ["ttf", "image"]
 
 [profile.release]
 debug = true

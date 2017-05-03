@@ -15,10 +15,10 @@
 //! y axis, down is a positive change in the y axis, left is a negative
 //! change in the x axis, and right is a positive change in the x axis.
 
+#[macro_use]
+extern crate lazy_static;
 extern crate libc;
 extern crate sdl2;
-extern crate sdl2_image;
-extern crate sdl2_ttf;
 
 #[macro_use]
 pub mod block;
@@ -51,6 +51,7 @@ pub use vector::{PositionChange, Vector2D};
 pub use viewport::Viewport;
 
 use sdl2::rect::Rect;
+use std::error::Error;
 
 /// Handler for a view to deal with actor messages
 pub type MessageHandler<A: Actor + ?Sized> = Box<Fn(&mut Box<A>,
@@ -69,7 +70,7 @@ pub enum ViewAction {
 
 pub trait View {
     /// Called every frame to render a view
-    fn render(&mut self, context: &mut Context, elapsed: f64);
+    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<Error>>;
 
     /// Called every frame to update a view
     fn update(&mut self, context: &mut Context, elapsed: f64) -> Option<ViewAction>;
@@ -104,7 +105,11 @@ pub trait Actor {
     type Message;
 
     /// Called every frame to render an actor
-    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, elapsed: f64);
+    fn render(&mut self,
+              context: &mut Context,
+              viewport: &mut Viewport,
+              elapsed: f64)
+              -> Result<(), Box<Error>>;
 
     /// Handle a message sent by another actor
     fn handle_message(&mut self, message: &Self::Message) -> Self::Message;

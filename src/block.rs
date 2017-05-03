@@ -106,7 +106,7 @@ macro_rules! block {
                                  other_actor: &::mold2d::ActorData<$actor_type>)
                                  -> Option<::mold2d::CollisionSide> {
                     use ::mold2d::Collision;
-                    self.rect.collides_with(other_actor.rect)
+                    self.rect.collides_with(&other_actor.rect)
                 }
 
                 fn update(&mut self,
@@ -120,12 +120,12 @@ macro_rules! block {
                 fn render(&mut self,
                           context: &mut ::mold2d::Context,
                           viewport: &mut ::mold2d::Viewport,
-                          _elapsed: f64) {
+                          _elapsed: f64) -> Result<(), Box<::std::error::Error>> {
                     use ::mold2d::Renderable;
                     let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-                    let rect = ::sdl2::rect::Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
+                    let rect = ::sdl2::rect::Rect::new(rx, ry, self.rect.w, self.rect.h);
 
-                    self.sprite.render(&mut context.renderer, rect);
+                    self.sprite.render(&mut context.renderer, rect)
                 }
 
                 fn data(&mut self) -> ::mold2d::ActorData<$actor_type> {
@@ -135,7 +135,7 @@ macro_rules! block {
                         damage: 0,
                         resolves_collisions: false,
                         collision_filter: $filter,
-                        rect: self.rect.to_sdl().unwrap(),
+                        rect: self.rect.to_sdl(),
                         bounding_box: Some(::mold2d::BoundingBox::Rectangle(self.rect.clone())),
                         actor_type: $actor_type::Block,
                     }

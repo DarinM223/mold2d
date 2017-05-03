@@ -152,11 +152,11 @@ pub fn print_collision_side_u8(direction: u8) {
 
 /// Checks collisions for different objects
 pub trait Collision<T> {
-    fn collides_with(&self, other: T) -> Option<CollisionSide>;
+    fn collides_with(&self, other: &T) -> Option<CollisionSide>;
 }
 
 impl Collision<Rect> for Rect {
-    fn collides_with(&self, other: Rect) -> Option<CollisionSide> {
+    fn collides_with(&self, other: &Rect) -> Option<CollisionSide> {
         let w = 0.5 * (self.width() + other.width()) as f64;
         let h = 0.5 * (self.height() + other.height()) as f64;
         let dx = center_point(self).0 - center_point(&other).0;
@@ -186,32 +186,20 @@ impl Collision<Rect> for Rect {
 }
 
 impl Collision<SpriteRectangle> for Rect {
-    fn collides_with(&self, other: SpriteRectangle) -> Option<CollisionSide> {
-        if let Some(rect) = other.to_sdl() {
-            return self.collides_with(rect);
-        }
-
-        None
+    fn collides_with(&self, other: &SpriteRectangle) -> Option<CollisionSide> {
+        self.collides_with(&other.to_sdl())
     }
 }
 
 impl Collision<Rect> for SpriteRectangle {
-    fn collides_with(&self, other: Rect) -> Option<CollisionSide> {
-        if let Some(rect) = self.to_sdl() {
-            return rect.collides_with(other);
-        }
-
-        None
+    fn collides_with(&self, other: &Rect) -> Option<CollisionSide> {
+        self.to_sdl().collides_with(other)
     }
 }
 
 impl Collision<SpriteRectangle> for SpriteRectangle {
-    fn collides_with(&self, other: SpriteRectangle) -> Option<CollisionSide> {
-        if let Some(rect) = other.to_sdl() {
-            return self.collides_with(rect);
-        }
-
-        None
+    fn collides_with(&self, other: &SpriteRectangle) -> Option<CollisionSide> {
+        self.collides_with(&other.to_sdl())
     }
 }
 
@@ -231,12 +219,11 @@ impl BoundingBox {
     }
 }
 
-impl<'a> Collision<&'a BoundingBox> for BoundingBox {
-    fn collides_with(&self, other: &'a BoundingBox) -> Option<CollisionSide> {
+impl Collision<BoundingBox> for BoundingBox {
+    fn collides_with(&self, other: &BoundingBox) -> Option<CollisionSide> {
         match (self, other) {
             (&BoundingBox::Rectangle(ref rect1), &BoundingBox::Rectangle(ref rect2)) => {
-                // TODO(DarinM223): avoid cloning the second rectangle
-                rect1.collides_with(rect2.clone())
+                rect1.collides_with(rect2)
             }
         }
     }
@@ -267,22 +254,22 @@ mod tests {
 
     #[test]
     fn test_left_right_rect_collision() {
-        let left_rect = Rect::new_unwrap(-10, 0, 20, 20);
-        let right_rect = Rect::new_unwrap(0, 0, 20, 20);
+        let left_rect = Rect::new(-10, 0, 20, 20);
+        let right_rect = Rect::new(0, 0, 20, 20);
 
-        assert_eq!(left_rect.collides_with(right_rect),
+        assert_eq!(left_rect.collides_with(&right_rect),
                    Some(CollisionSide::Right));
-        assert_eq!(right_rect.collides_with(left_rect),
+        assert_eq!(right_rect.collides_with(&left_rect),
                    Some(CollisionSide::Left));
     }
 
     #[test]
     fn test_up_down_rect_collision() {
-        let up_rect = Rect::new_unwrap(0, -20, 20, 20);
-        let down_rect = Rect::new_unwrap(0, 0, 20, 20);
+        let up_rect = Rect::new(0, -20, 20, 20);
+        let down_rect = Rect::new(0, 0, 20, 20);
 
-        assert_eq!(up_rect.collides_with(down_rect),
+        assert_eq!(up_rect.collides_with(&down_rect),
                    Some(CollisionSide::Bottom));
-        assert_eq!(down_rect.collides_with(up_rect), Some(CollisionSide::Top));
+        assert_eq!(down_rect.collides_with(&up_rect), Some(CollisionSide::Top));
     }
 }

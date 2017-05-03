@@ -7,8 +7,8 @@ use sdl2::rect::Rect;
 fn calc_viewport_point(center_coord: f64, window_coord: f64, map_coord: f64) -> f64 {
     let half = window_coord / 2.0;
 
-    ((center_coord - half).max(0.0))
-        .min((map_coord - window_coord).min((center_coord - half).abs()))
+    ((center_coord - half).max(0.0)).min((map_coord - window_coord).min((center_coord - half)
+                                                                            .abs()))
 }
 
 /// Constrains coordinates from an open world into the current window view
@@ -62,25 +62,30 @@ impl Viewport {
         (map_point.0 - self.x, map_point.1 - self.y)
     }
 
-    /// Returns a rectangle in viewport coordinates or None if not in viewport
-    pub fn constrain_to_viewport(&self, rect: &Rect) -> Option<Rect> {
+    /// Returns true if the rectangle is inside the viewport, false otherwise
+    pub fn rect_in_viewport(&self, rect: &Rect) -> bool {
+        let x_plus_width = rect.x() + rect.width() as i32;
+        let y_plus_height = rect.y() + rect.height() as i32;
         let rect_points = [(rect.x(), rect.y()),
-                           (rect.x() + (rect.width() as i32), rect.y()),
-                           (rect.x(), rect.y() + (rect.height() as i32)),
-                           (rect.x() + (rect.width() as i32), rect.y() + (rect.height() as i32))];
+                           (x_plus_width, rect.y()),
+                           (rect.x(), y_plus_height),
+                           (x_plus_width, y_plus_height)];
 
-        let mut in_viewport = false;
         for point in rect_points.iter() {
             if self.in_viewport(*point) {
-                in_viewport = true;
-                break;
+                return true;
             }
         }
 
-        if in_viewport {
+        false
+    }
+
+    /// Returns a rectangle in viewport coordinates or None if not in viewport
+    pub fn constrain_to_viewport(&self, rect: &Rect) -> Option<Rect> {
+        if self.rect_in_viewport(rect) {
             let center = center_point(rect);
             let (x, y) = self.relative_point((center.0 as i32, center.1 as i32));
-            Some(Rect::new_unwrap(x, y, rect.width(), rect.height()))
+            Some(Rect::new(x, y, rect.width(), rect.height()))
         } else {
             None
         }

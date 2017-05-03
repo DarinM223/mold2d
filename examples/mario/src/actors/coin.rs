@@ -3,6 +3,7 @@ use mold2d::{Actor, AnimatedSprite, BoundingBox, Collision, CollisionSide, Posit
              Context, Renderable, Spritesheet, SpritesheetConfig, SpriteRectangle, Viewport};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
+use std::error::Error;
 
 const COIN_VALUE: i32 = 5;
 
@@ -63,7 +64,7 @@ impl Actor for Coin {
     }
 
     fn collides_with(&mut self, other_actor: &ActorData) -> Option<CollisionSide> {
-        self.rect.collides_with(other_actor.rect)
+        self.rect.collides_with(&other_actor.rect)
     }
 
     fn update(&mut self, _context: &mut Context, elapsed: f64) -> PositionChange {
@@ -72,12 +73,16 @@ impl Actor for Coin {
         PositionChange::new()
     }
 
-    fn render(&mut self, context: &mut Context, viewport: &mut Viewport, _elapsed: f64) {
+    fn render(&mut self,
+              context: &mut Context,
+              viewport: &mut Viewport,
+              _elapsed: f64)
+              -> Result<(), Box<Error>> {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
-        let rect = Rect::new_unwrap(rx, ry, self.rect.w, self.rect.h);
+        let rect = Rect::new(rx, ry, self.rect.w, self.rect.h);
 
         // Render sprite animation
-        self.animation.render(&mut context.renderer, rect);
+        self.animation.render(&mut context.renderer, rect)
     }
 
     fn data(&mut self) -> ActorData {
@@ -87,7 +92,7 @@ impl Actor for Coin {
             damage: 0,
             collision_filter: 0b1111,
             resolves_collisions: false,
-            rect: self.rect.to_sdl().unwrap(),
+            rect: self.rect.to_sdl(),
             bounding_box: Some(BoundingBox::Rectangle(self.rect.clone())),
             actor_type: ActorType::Item,
         }
