@@ -99,16 +99,11 @@ impl Actor for Koopa {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         use actions::ActorAction::*;
 
-        if let ActorMessage::ActorAction {
-                   send_id,
-                   ref action,
-                   ..
-               } = *message {
+        if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
             match *action {
                 ChangePosition(ref change) => {
                     self.rect.apply_change(change);
-                    self.anims
-                        .map_bbox_mut(|bbox| bbox.apply_change(&change));
+                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
                 DamageActor(_) => ActorMessage::RemoveActor(self.id),
@@ -201,10 +196,7 @@ impl Actor for Koopa {
             0.
         };
 
-        let target_speed = Vector2D {
-            x: 0.,
-            y: max_y_speed,
-        };
+        let target_speed = Vector2D { x: 0., y: max_y_speed };
 
         self.curr_speed = (KOOPA_ACCELERATION * target_speed) + self.curr_speed;
 
@@ -237,8 +229,7 @@ impl Actor for Koopa {
               _elapsed: f64)
               -> Result<(), Box<Error>> {
         let key = (self.curr_state, self.size, self.direction);
-        self.anims
-            .render(&key, &self.rect, viewport, &mut context.renderer, false)
+        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false)
     }
 
     fn data(&mut self) -> ActorData {
