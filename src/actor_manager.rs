@@ -1,5 +1,6 @@
 use sdl2::render::Renderer;
 use std::collections::HashMap;
+use super::context::Window;
 use super::Actor;
 
 /// Handler for creating an actor from a token character
@@ -9,7 +10,6 @@ pub type ActorFromToken<A: Actor + ?Sized> = Box<Fn(char, i32, (i32, i32), &mut 
 pub struct ActorManager<A: Actor + ?Sized> {
     pub actors: HashMap<i32, Box<A>>,
     next_id: i32,
-    temporary: Option<i32>,
     actor_gen: ActorFromToken<A>,
 }
 
@@ -18,7 +18,6 @@ impl<A: Actor + ?Sized> ActorManager<A> {
         ActorManager {
             next_id: 0,
             actors: HashMap::new(),
-            temporary: None,
             actor_gen: actor_gen,
         }
     }
@@ -32,17 +31,7 @@ impl<A: Actor + ?Sized> ActorManager<A> {
 
     /// Remove an actor from the actors
     pub fn remove(&mut self, id: i32) {
-        if self.temporary == Some(id) {
-            self.temporary = None;
-        }
-
         self.actors.remove(&id);
-    }
-
-    /// Temporarily remove an actor to appease borrow checker
-    pub fn temp_remove(&mut self, id: i32) -> Option<Box<A>> {
-        self.temporary = Some(id);
-        self.actors.remove(&id)
     }
 
     /// Get a mutable reference to an actor given the id
@@ -50,11 +39,13 @@ impl<A: Actor + ?Sized> ActorManager<A> {
         self.actors.get_mut(&id)
     }
 
-    /// Reinsert a temporarily removed actor
-    pub fn temp_reinsert(&mut self, id: i32, actor: Box<A>) {
-        if self.temporary == Some(id) {
-            // only insert the actor if it is the temporary one
-            self.actors.insert(id, actor);
-        }
+    pub fn apply_message(&mut self,
+                         actor_id: i32,
+                         msg: &A::Message,
+                         none: A::Message)
+                         -> A::Message {
+        self.actors
+            .get_mut(&actor_id)
+            .map_or(none, |actor| actor.handle_message(msg))
     }
 }

@@ -166,12 +166,7 @@ pub struct PositionChange {
 
 impl PositionChange {
     pub fn new() -> PositionChange {
-        PositionChange {
-            x: 0,
-            y: 0,
-            w: 0,
-            h: 0,
-        }
+        PositionChange { x: 0, y: 0, w: 0, h: 0 }
     }
 
     pub fn from_vector(v: &Vector2D) -> PositionChange {
@@ -301,9 +296,6 @@ impl PositionChange {
     }
 
     pub fn to_vector(&self) -> Vector2D {
-        Vector2D {
-            x: self.x as f64,
-            y: self.y as f64,
-        }
+        Vector2D { x: self.x as f64, y: self.y as f64 }
     }
 }

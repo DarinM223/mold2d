@@ -25,7 +25,7 @@ pub trait Renderable {
 }
 
 /// A mutable rectangle for a sprite so it can be moved around
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct SpriteRectangle {
     pub x: i32,
     pub y: i32,
@@ -35,12 +35,7 @@ pub struct SpriteRectangle {
 
 impl SpriteRectangle {
     pub fn new(x: i32, y: i32, w: u32, h: u32) -> SpriteRectangle {
-        SpriteRectangle {
-            x: x,
-            y: y,
-            w: w,
-            h: h,
-        }
+        SpriteRectangle { x: x, y: y, w: w, h: h }
     }
 
     /// Creates a sprite rectangle from a SDL2 rectangle
@@ -112,11 +107,11 @@ impl Sprite {
         let _ = sprite
             .clone()
             .map(|sprite| {
-                     sprite_cache
-                         .cache
-                         .lock()
-                         .map(|ref mut cache| cache.insert(path.to_owned(), sprite))
-                 });
+                sprite_cache
+                    .cache
+                    .lock()
+                    .map(|ref mut cache| cache.insert(path.to_owned(), sprite))
+            });
 
         sprite.map_err(From::from)
     }
@@ -129,10 +124,7 @@ impl Sprite {
                                 rect.height());
 
         if collision::rect_contains_rect(self.src, new_src) {
-            Some(Sprite {
-                     tex: self.tex.clone(),
-                     src: new_src,
-                 })
+            Some(Sprite { tex: self.tex.clone(), src: new_src })
         } else {
             None
         }
@@ -290,8 +282,7 @@ impl<State> Animations<State>
     }
 
     pub fn add(&mut self, s: State, anims: Vec<Sprite>, bound: BoundingBox) {
-        self.animations
-            .insert(s, (AnimatedSprite::with_fps(anims, self.fps), bound));
+        self.animations.insert(s, (AnimatedSprite::with_fps(anims, self.fps), bound));
     }
 
     fn set_state(&mut self, s: &State) {
@@ -389,8 +380,7 @@ impl<State> Animations<State>
 
     /// Adds time to the current animation
     pub fn add_time(&mut self, s: &State, elapsed: f64) {
-        let _ = self.anim_mut(s)
-            .map(|ref mut anim| anim.add_time(elapsed));
+        let _ = self.anim_mut(s).map(|ref mut anim| anim.add_time(elapsed));
     }
 
     /// Renders an animation in the manager
@@ -417,9 +407,6 @@ impl<State> Animations<State>
         let (rx, ry) = viewport.relative_point((rect.x, rect.y));
         let rect = Rect::new(rx, ry, rect.w, rect.h);
 
-        self.anim_mut(s)
-            .unwrap()
-            .render(renderer, rect)
-            .map_err(From::from)
+        self.anim_mut(s).unwrap().render(renderer, rect).map_err(From::from)
     }
 }

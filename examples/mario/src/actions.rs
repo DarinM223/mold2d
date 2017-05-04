@@ -73,7 +73,7 @@ pub fn actor_from_token(token: char,
 }
 
 #[inline]
-pub fn handle_message(curr_actor: &mut Box<Actor>,
+pub fn handle_message(curr_actor_id: i32,
                       actors: &mut ActorManager<Actor>,
                       viewport: &mut Viewport,
                       context: &mut Context,
@@ -86,18 +86,12 @@ pub fn handle_message(curr_actor: &mut Box<Actor>,
         UpdateScore(amount) => context.score.increment_score("GAME_SCORE", amount),
         MultipleMessages(ref messages) => {
             for message in messages {
-                handle_message(curr_actor, actors, viewport, context, message);
+                handle_message(curr_actor_id, actors, viewport, context, message);
             }
         }
         ActorAction { recv_id, .. } => {
-            let message = if curr_actor.data().id == recv_id {
-                curr_actor.handle_message(&action)
-            } else if let Some(ref mut actor) = actors.get_mut(recv_id) {
-                actor.handle_message(&action)
-            } else {
-                ActorMessage::None
-            };
-            handle_message(curr_actor, actors, viewport, context, &message);
+            let message = actors.apply_message(recv_id, action, ActorMessage::None);
+            handle_message(curr_actor_id, actors, viewport, context, &message);
         }
         // TODO(DarinM223): change this to check # of lives left and if
         // it is 0, display the game over screen, otherwise display the level screen again
@@ -106,16 +100,9 @@ pub fn handle_message(curr_actor: &mut Box<Actor>,
     }
 }
 
-/// Moves actor away from collided actor and sends collision messages to
-/// both of the collided actors
+/// Moves actor away from collided actor.
 #[inline]
-pub fn handle_collision(actor: &mut Box<Actor>,
-                        other: &ActorData,
-                        direction: CollisionSide,
-                        handler: MessageHandler<Actor>,
-                        actors: &mut ActorManager<Actor>,
-                        viewport: &mut Viewport,
-                        context: &mut Context) {
+pub fn resolve_collision(actor: &mut Box<Actor>, other: &ActorData, direction: CollisionSide) {
     let data = actor.data();
     if data.resolves_collisions {
         while actor.collides_with(other) == Some(direction) {
@@ -142,23 +129,33 @@ pub fn handle_collision(actor: &mut Box<Actor>,
                                   });
         }
     }
+}
 
+/// Sends collision messages to both of the collided actors.
+#[inline]
+pub fn handle_collision(actor: &ActorData,
+                        other: &ActorData,
+                        direction: CollisionSide,
+                        handler: MessageHandler<Actor>,
+                        actors: &mut ActorManager<Actor>,
+                        viewport: &mut Viewport,
+                        context: &mut Context) {
     let direction = direction & other.collision_filter;
     let rev_dir = CollisionSide::reverse_u8(direction);
 
     if direction != 0 {
         let response = ActorMessage::ActorAction {
             send_id: other.id,
-            recv_id: data.id,
+            recv_id: actor.id,
             action: ActorAction::Collision(other.actor_type, CollisionSide::from(direction)),
         };
         let other_msg = ActorMessage::ActorAction {
-            send_id: data.id,
+            send_id: actor.id,
             recv_id: other.id,
-            action: ActorAction::Collision(data.actor_type, CollisionSide::from(rev_dir)),
+            action: ActorAction::Collision(actor.actor_type, CollisionSide::from(rev_dir)),
         };
 
-        (handler)(actor, actors, viewport, context, &response);
-        (handler)(actor, actors, viewport, context, &other_msg);
+        (handler)(actor.id, actors, viewport, context, &response);
+        (handler)(actor.id, actors, viewport, context, &other_msg);
     }
 }

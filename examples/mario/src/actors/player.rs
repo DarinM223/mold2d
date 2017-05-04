@@ -92,13 +92,9 @@ impl Player {
         anims.add((Crouching, Idle, Left), banim.range(2, 3), cbbox.clone());
         anims.add((Crouching, Idle, Right), banim.range(10, 11), cbbox.clone());
         anims.add((Crouching, Jumping, Left), banim.range(2, 3), cbbox.clone());
-        anims.add((Crouching, Jumping, Right),
-                  banim.range(10, 11),
-                  cbbox.clone());
+        anims.add((Crouching, Jumping, Right), banim.range(10, 11), cbbox.clone());
         anims.add((Crouching, Walking, Left), banim.range(2, 3), cbbox.clone());
-        anims.add((Crouching, Walking, Right),
-                  banim.range(10, 11),
-                  cbbox.clone());
+        anims.add((Crouching, Walking, Right), banim.range(10, 11), cbbox.clone());
 
         Player {
             id: id,
@@ -120,16 +116,11 @@ impl Actor for Player {
     type Message = ActorMessage;
 
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        if let ActorMessage::ActorAction {
-                   send_id,
-                   ref action,
-                   ..
-               } = *message {
+        if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
             match *action {
                 ActorAction::ChangePosition(ref change) => {
                     self.rect.apply_change(change);
-                    self.anims
-                        .map_bbox_mut(|bbox| bbox.apply_change(&change));
+                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
                 ActorAction::DamageActor(_) => {
@@ -235,10 +226,7 @@ impl Actor for Player {
             0.
         };
 
-        let target_speed = Vector2D {
-            x: max_x_speed,
-            y: max_y_speed,
-        };
+        let target_speed = Vector2D { x: max_x_speed, y: max_y_speed };
 
         self.curr_speed = (PLAYER_ACCELERATION * target_speed) +
                           ((1.0 - PLAYER_ACCELERATION) * self.curr_speed);
@@ -281,8 +269,7 @@ impl Actor for Player {
         if self.debug {
             let data = self.data();
             if let Some(ref mut segment) = self.prev_segment {
-                segment
-                    .render(Color::RGB(0, 0, 0), viewport, &mut context.renderer)?;
+                segment.render(Color::RGB(0, 0, 0), viewport, &mut context.renderer)?;
             }
             for side in data.rect.sides() {
                 side.render(Color::RGB(0, 255, 0), viewport, &mut context.renderer)?;
@@ -290,8 +277,7 @@ impl Actor for Player {
         }
 
         let key = (self.size, self.curr_state, self.direction);
-        self.anims
-            .render(&key, &self.rect, viewport, &mut context.renderer, false)
+        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false)
     }
 
     fn data(&mut self) -> ActorData {

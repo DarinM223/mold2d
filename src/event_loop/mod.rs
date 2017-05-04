@@ -19,14 +19,14 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> Result<(), Box<Erro
     let _ttf_context = sdl2::ttf::init()?;
 
     let mut frame_timer = FrameTimer::new(&mut timer, true);
-    let sdl_window = video.window(window.title, window.width, window.height)
+    let sdl_window = video
+        .window(window.title, window.width, window.height)
         .position_centered()
         .opengl()
         .build()?;
     let sdl_renderer = sdl_window.renderer().accelerated().build()?;
-    let mut game_context = Context::new(window,
-                                        Events::new(sdl_context.event_pump()?, ""),
-                                        sdl_renderer);
+    let mut game_context =
+        Context::new(window, Events::new(sdl_context.event_pump()?, ""), sdl_renderer);
     let mut curr_view = init_view(&mut game_context);
 
     loop {
