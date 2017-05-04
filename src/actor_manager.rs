@@ -39,6 +39,8 @@ impl<A: Actor + ?Sized> ActorManager<A> {
         self.actors.get_mut(&id)
     }
 
+    /// Attempts to send a message to an actor and returns either
+    /// the response or a given default message if the actor can't be found
     pub fn apply_message(&mut self,
                          actor_id: i32,
                          msg: &A::Message,

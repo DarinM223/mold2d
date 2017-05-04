@@ -10,7 +10,7 @@ use std::path::Path;
 pub fn text_sprite(renderer: &Renderer,
                    text: &str,
                    font_path: &'static str,
-                   size: i32,
+                   size: u16,
                    color: Color)
                    -> Result<Sprite, Box<Error>> {
     let font_cache = cache::font_cache();
@@ -28,7 +28,7 @@ pub fn text_sprite(renderer: &Renderer,
     }
 
     // otherwise load font from file path
-    let font = cache::TTF_CONTEXT.load_font(Path::new(font_path), 12)?;
+    let font = cache::TTF_CONTEXT.load_font(Path::new(font_path), size)?;
     let sprite;
 
     {
