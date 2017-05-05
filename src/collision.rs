@@ -203,7 +203,7 @@ impl Collision<SpriteRectangle> for SpriteRectangle {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum BoundingBox {
     Rectangle(SpriteRectangle),
 }
@@ -257,10 +257,8 @@ mod tests {
         let left_rect = Rect::new(-10, 0, 20, 20);
         let right_rect = Rect::new(0, 0, 20, 20);
 
-        assert_eq!(left_rect.collides_with(&right_rect),
-                   Some(CollisionSide::Right));
-        assert_eq!(right_rect.collides_with(&left_rect),
-                   Some(CollisionSide::Left));
+        assert_eq!(left_rect.collides_with(&right_rect), Some(CollisionSide::Right));
+        assert_eq!(right_rect.collides_with(&left_rect), Some(CollisionSide::Left));
     }
 
     #[test]
@@ -268,8 +266,7 @@ mod tests {
         let up_rect = Rect::new(0, -20, 20, 20);
         let down_rect = Rect::new(0, 0, 20, 20);
 
-        assert_eq!(up_rect.collides_with(&down_rect),
-                   Some(CollisionSide::Bottom));
+        assert_eq!(up_rect.collides_with(&down_rect), Some(CollisionSide::Bottom));
         assert_eq!(down_rect.collides_with(&up_rect), Some(CollisionSide::Top));
     }
 }

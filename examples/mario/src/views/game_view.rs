@@ -1,5 +1,5 @@
 use actions::{Actor, ActorAction, ActorMessage, ActorType};
-use actions::{actor_from_token, handle_collision, handle_message};
+use actions::{actor_from_token, handle_collision, resolve_collision, handle_message};
 use mold2d::font;
 use mold2d::level;
 use mold2d::{ActorManager, Context, Quadtree, Sprite, View, ViewAction, Viewport};
@@ -44,9 +44,7 @@ impl View for GameView {
     #[inline]
     fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<Error>> {
         // start off with a black screen
-        context
-            .renderer
-            .set_draw_color(Color::RGB(135, 206, 250));
+        context.renderer.set_draw_color(Color::RGB(135, 206, 250));
         context.renderer.clear();
 
         // render contained actors
@@ -112,8 +110,9 @@ impl View for GameView {
             }
 
             for key in keys {
-                let actor = self.actors.temp_remove(key);
-                if let Some(mut actor) = actor {
+                let mut collisions = [None; 6];
+                let mut collision_idx = 0;
+                if let Some(ref mut actor) = self.actors.get_mut(key) {
                     let data = actor.data();
 
                     // update the actor
@@ -133,22 +132,29 @@ impl View for GameView {
                             .collect::<Vec<_>>();
                         for other in nearby_actors {
                             if let Some(direction) = actor.collides_with(&other) {
-                                handle_collision(&mut actor,
-                                                 &other,
-                                                 direction,
-                                                 Box::new(handle_message),
-                                                 &mut self.actors,
-                                                 &mut self.viewport,
-                                                 context);
+                                resolve_collision(actor, &other, direction);
+                                collisions[collision_idx] = Some((data, other, direction));
+                                collision_idx += 1;
                             }
                         }
                     }
 
-                    self.actors.temp_reinsert(actor.data().id, actor);
-
                     if data.actor_type == ActorType::Player {
-                        self.viewport
-                            .set_position((data.rect.x(), data.rect.y()));
+                        self.viewport.set_position((data.rect.x(), data.rect.y()));
+                    }
+                }
+
+                for collision in collisions.iter() {
+                    if let Some((actor, other, direction)) = *collision {
+                        handle_collision(&actor,
+                                         &other,
+                                         direction,
+                                         Box::new(handle_message),
+                                         &mut self.actors,
+                                         &mut self.viewport,
+                                         context);
+                    } else {
+                        break;
                     }
                 }
             }

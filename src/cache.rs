@@ -22,11 +22,10 @@ pub fn font_cache() -> FontCache {
 
     unsafe {
         ONCE.call_once(|| {
-                           let singleton =
-                               FontCache { cache: Arc::new(Mutex::new(HashMap::new())) };
+            let singleton = FontCache { cache: Arc::new(Mutex::new(HashMap::new())) };
 
-                           SINGLETON = mem::transmute(Box::new(singleton));
-                       });
+            SINGLETON = mem::transmute(Box::new(singleton));
+        });
 
         (*SINGLETON).clone()
     }
@@ -46,11 +45,10 @@ pub fn sprite_cache() -> SpriteCache {
 
     unsafe {
         ONCE.call_once(|| {
-                           let singleton =
-                               SpriteCache { cache: Arc::new(Mutex::new(HashMap::new())) };
+            let singleton = SpriteCache { cache: Arc::new(Mutex::new(HashMap::new())) };
 
-                           SINGLETON = mem::transmute(Box::new(singleton));
-                       });
+            SINGLETON = mem::transmute(Box::new(singleton));
+        });
 
         (*SINGLETON).clone()
     }

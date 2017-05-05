@@ -54,7 +54,7 @@ use sdl2::rect::Rect;
 use std::error::Error;
 
 /// Handler for a view to deal with actor messages
-pub type MessageHandler<A: Actor + ?Sized> = Box<Fn(&mut Box<A>,
+pub type MessageHandler<A: Actor + ?Sized> = Box<Fn(i32,
                                                     &mut ActorManager<A>,
                                                     &mut Viewport,
                                                     &mut Context,
@@ -77,7 +77,7 @@ pub trait View {
 }
 
 /// The data contained in an actor
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct ActorData<Type> {
     /// The id of the actor given by the actor manager
     pub id: i32,
