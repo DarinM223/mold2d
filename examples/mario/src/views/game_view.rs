@@ -153,7 +153,7 @@ impl View for GameView {
                             &actor,
                             &other,
                             direction,
-                            Box::new(handle_message),
+                            &handle_message,
                             &mut self.actors,
                             &mut self.viewport,
                             context,

@@ -57,7 +57,7 @@ use std::error::Error;
 
 /// Handler for a view to deal with actor messages
 pub type MessageHandler<A> =
-    Box<Fn(i32, &mut ActorManager<A>, &mut Viewport, &mut Context, &<A as Actor>::Message)>;
+    Fn(i32, &mut ActorManager<A>, &mut Viewport, &mut Context, &<A as Actor>::Message);
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {

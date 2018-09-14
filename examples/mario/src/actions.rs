@@ -140,7 +140,7 @@ pub fn handle_collision(
     actor: &ActorData,
     other: &ActorData,
     direction: CollisionSide,
-    handler: MessageHandler<Actor>,
+    handler: &MessageHandler<Actor>,
     actors: &mut ActorManager<Actor>,
     viewport: &mut Viewport,
     context: &mut Context,
