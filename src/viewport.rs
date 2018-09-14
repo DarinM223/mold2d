@@ -7,8 +7,8 @@ use sdl2::rect::Rect;
 fn calc_viewport_point(center_coord: f64, window_coord: f64, map_coord: f64) -> f64 {
     let half = window_coord / 2.0;
 
-    ((center_coord - half).max(0.0)).min((map_coord - window_coord).min((center_coord - half)
-                                                                            .abs()))
+    ((center_coord - half).max(0.0))
+        .min((map_coord - window_coord).min((center_coord - half).abs()))
 }
 
 /// Constrains coordinates from an open world into the current window view
@@ -31,17 +31,21 @@ impl Viewport {
             x: 0,
             y: 0,
             window_dimensions: (window.width as i32, window.height as i32),
-            map_dimensions: map_dimensions,
+            map_dimensions,
         }
     }
 
     pub fn set_position(&mut self, new_center: (i32, i32)) {
-        let new_x = calc_viewport_point(new_center.0 as f64,
-                                        self.window_dimensions.0 as f64,
-                                        self.map_dimensions.0 as f64);
-        let new_y = calc_viewport_point(new_center.1 as f64,
-                                        self.window_dimensions.1 as f64,
-                                        self.map_dimensions.1 as f64);
+        let new_x = calc_viewport_point(
+            f64::from(new_center.0),
+            f64::from(self.window_dimensions.0),
+            f64::from(self.map_dimensions.0),
+        );
+        let new_y = calc_viewport_point(
+            f64::from(new_center.1),
+            f64::from(self.window_dimensions.1),
+            f64::from(self.map_dimensions.1),
+        );
 
         self.x = new_x as i32;
         self.y = new_y as i32;
@@ -66,10 +70,12 @@ impl Viewport {
     pub fn rect_in_viewport(&self, rect: &Rect) -> bool {
         let x_plus_width = rect.x() + rect.width() as i32;
         let y_plus_height = rect.y() + rect.height() as i32;
-        let rect_points = [(rect.x(), rect.y()),
-                           (x_plus_width, rect.y()),
-                           (rect.x(), y_plus_height),
-                           (x_plus_width, y_plus_height)];
+        let rect_points = [
+            (rect.x(), rect.y()),
+            (x_plus_width, rect.y()),
+            (rect.x(), y_plus_height),
+            (x_plus_width, y_plus_height),
+        ];
 
         for point in rect_points.iter() {
             if self.in_viewport(*point) {

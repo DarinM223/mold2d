@@ -1,10 +1,9 @@
+use super::Actor;
 use sdl2::render::Renderer;
 use std::collections::HashMap;
-use super::context::Window;
-use super::Actor;
 
 /// Handler for creating an actor from a token character
-pub type ActorFromToken<A: Actor + ?Sized> = Box<Fn(char, i32, (i32, i32), &mut Renderer) -> Box<A>>;
+pub type ActorFromToken<A> = Box<Fn(char, i32, (i32, i32), &mut Renderer) -> Box<A>>;
 
 /// Manages all the actors for the game by hashing actors by id
 pub struct ActorManager<A: Actor + ?Sized> {
@@ -18,7 +17,7 @@ impl<A: Actor + ?Sized> ActorManager<A> {
         ActorManager {
             next_id: 0,
             actors: HashMap::new(),
-            actor_gen: actor_gen,
+            actor_gen,
         }
     }
 
@@ -41,11 +40,12 @@ impl<A: Actor + ?Sized> ActorManager<A> {
 
     /// Attempts to send a message to an actor and returns either
     /// the response or a given default message if the actor can't be found
-    pub fn apply_message(&mut self,
-                         actor_id: i32,
-                         msg: &A::Message,
-                         none: A::Message)
-                         -> A::Message {
+    pub fn apply_message(
+        &mut self,
+        actor_id: i32,
+        msg: &A::Message,
+        none: A::Message,
+    ) -> A::Message {
         self.actors
             .get_mut(&actor_id)
             .map_or(none, |actor| actor.handle_message(msg))

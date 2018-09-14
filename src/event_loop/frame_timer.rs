@@ -24,9 +24,9 @@ impl<'a> FrameTimer<'a> {
         FrameTimer {
             before: timer.ticks(),
             last_second: timer.ticks(),
-            timer: timer,
+            timer,
             fps: 0u16,
-            debug: debug,
+            debug,
         }
     }
 
@@ -36,7 +36,7 @@ impl<'a> FrameTimer<'a> {
     pub fn on_frame(&mut self) -> FrameAction {
         let now = self.timer.ticks();
         let time_change = now - self.before;
-        let elapsed = time_change as f64 / 1000.0;
+        let elapsed = f64::from(time_change) / 1000.0;
 
         if time_change < FRAME_INTERVAL {
             self.timer.delay(FRAME_INTERVAL - time_change);

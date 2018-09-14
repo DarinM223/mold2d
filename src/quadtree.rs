@@ -1,5 +1,5 @@
-use sdl2::rect::Rect;
 use super::ActorData;
+use sdl2::rect::Rect;
 use viewport::Viewport;
 
 const MAX_OBJECTS: usize = 5;
@@ -26,82 +26,76 @@ impl<'a, Type> Quadtree<'a, Type> {
             objects: Vec::with_capacity(MAX_OBJECTS),
             bounds: rect,
             nodes: [None, None, None, None],
-            viewport: viewport,
+            viewport,
         }
     }
 
     /// Splits the node into four subnodes
     fn split(&mut self) {
-        let width = ((self.bounds.width() as f64) / 2.0) as i32;
-        let height = ((self.bounds.height() as f64) / 2.0) as i32;
+        let width = (f64::from(self.bounds.width()) / 2.0) as i32;
+        let height = (f64::from(self.bounds.height()) / 2.0) as i32;
         let (x, y) = (self.bounds.x(), self.bounds.y());
 
         if width as u32 > 0u32 && height as u32 > 0u32 {
-            self.nodes[0] =
-                Some(Box::new(Quadtree {
-                                  level: self.level + 1,
-                                  objects: Vec::with_capacity(MAX_OBJECTS),
-                                  bounds: Rect::new(x + width, y, width as u32, height as u32),
-                                  nodes: [None, None, None, None],
-                                  viewport: self.viewport,
-                              }));
+            self.nodes[0] = Some(Box::new(Quadtree {
+                level: self.level + 1,
+                objects: Vec::with_capacity(MAX_OBJECTS),
+                bounds: Rect::new(x + width, y, width as u32, height as u32),
+                nodes: [None, None, None, None],
+                viewport: self.viewport,
+            }));
             self.nodes[1] = Some(Box::new(Quadtree {
-                                              level: self.level + 1,
-                                              objects: Vec::with_capacity(MAX_OBJECTS),
-                                              bounds: Rect::new(x, y, width as u32, height as u32),
-                                              nodes: [None, None, None, None],
-                                              viewport: self.viewport,
-                                          }));
-            self.nodes[2] =
-                Some(Box::new(Quadtree {
-                                  level: self.level + 1,
-                                  objects: Vec::with_capacity(MAX_OBJECTS),
-                                  bounds: Rect::new(x, y + height, width as u32, height as u32),
-                                  nodes: [None, None, None, None],
-                                  viewport: self.viewport,
-                              }));
+                level: self.level + 1,
+                objects: Vec::with_capacity(MAX_OBJECTS),
+                bounds: Rect::new(x, y, width as u32, height as u32),
+                nodes: [None, None, None, None],
+                viewport: self.viewport,
+            }));
+            self.nodes[2] = Some(Box::new(Quadtree {
+                level: self.level + 1,
+                objects: Vec::with_capacity(MAX_OBJECTS),
+                bounds: Rect::new(x, y + height, width as u32, height as u32),
+                nodes: [None, None, None, None],
+                viewport: self.viewport,
+            }));
             self.nodes[3] = Some(Box::new(Quadtree {
-                                              level: self.level + 1,
-                                              objects: Vec::with_capacity(MAX_OBJECTS),
-                                              bounds: Rect::new(x + width,
-                                                                y + height,
-                                                                width as u32,
-                                                                height as u32),
-                                              nodes: [None, None, None, None],
-                                              viewport: self.viewport,
-                                          }));
+                level: self.level + 1,
+                objects: Vec::with_capacity(MAX_OBJECTS),
+                bounds: Rect::new(x + width, y + height, width as u32, height as u32),
+                nodes: [None, None, None, None],
+                viewport: self.viewport,
+            }));
         }
     }
 
     /// Determine which node index the object belongs to
     fn index(&self, rect: &Rect) -> Option<i32> {
-        self.viewport
-            .constrain_to_viewport(rect)
-            .and_then(|rect| {
-                let vert_mid = (self.bounds.x() as f64) + (self.bounds.width() as f64) / 2.;
-                let horiz_mid = (self.bounds.y() as f64) + (self.bounds.height() as f64) / 2.;
+        self.viewport.constrain_to_viewport(rect).and_then(|rect| {
+            let vert_mid = f64::from(self.bounds.x()) + f64::from(self.bounds.width()) / 2.;
+            let horiz_mid = f64::from(self.bounds.y()) + f64::from(self.bounds.height()) / 2.;
 
-                let top_quad = (rect.y() as f64) < horiz_mid &&
-                               (rect.y() as f64) + (rect.height() as f64) < horiz_mid;
-                let bot_quad = (rect.y() as f64) > horiz_mid;
+            let top_quad = f64::from(rect.y()) < horiz_mid
+                && f64::from(rect.y()) + f64::from(rect.height()) < horiz_mid;
+            let bot_quad = f64::from(rect.y()) > horiz_mid;
 
-                if (rect.x() as f64) < vert_mid &&
-                   (rect.x() as f64) + (rect.width() as f64) < vert_mid {
-                    if top_quad {
-                        return Some(1);
-                    } else if bot_quad {
-                        return Some(2);
-                    }
-                } else if (rect.x() as f64) > vert_mid {
-                    if top_quad {
-                        return Some(0);
-                    } else if bot_quad {
-                        return Some(3);
-                    }
+            if f64::from(rect.x()) < vert_mid
+                && f64::from(rect.x()) + f64::from(rect.width()) < vert_mid
+            {
+                if top_quad {
+                    return Some(1);
+                } else if bot_quad {
+                    return Some(2);
                 }
+            } else if f64::from(rect.x()) > vert_mid {
+                if top_quad {
+                    return Some(0);
+                } else if bot_quad {
+                    return Some(3);
+                }
+            }
 
-                None
-            })
+            None
+        })
     }
 
     /// Inserts an actor into the quadtree
@@ -184,5 +178,9 @@ impl<'a, Type> Quadtree<'a, Type> {
         }
 
         l
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }

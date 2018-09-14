@@ -7,8 +7,8 @@ pub mod actions;
 pub mod actors;
 pub mod views;
 
-use mold2d::Window;
 use mold2d::event_loop;
+use mold2d::Window;
 use views::game_view::GameView;
 
 fn main() {

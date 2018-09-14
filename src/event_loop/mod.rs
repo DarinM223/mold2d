@@ -1,16 +1,17 @@
 mod frame_timer;
 
+use self::frame_timer::{FrameAction, FrameTimer};
+use super::{View, ViewAction};
 use context::{Context, Window};
 use events::Events;
 use sdl2;
-use sdl2::image::{INIT_PNG, INIT_JPG};
-use self::frame_timer::{FrameAction, FrameTimer};
-use super::{View, ViewAction};
+use sdl2::image::{INIT_JPG, INIT_PNG};
 use std::error::Error;
 
 /// Initializes SDL and creates the window and event loop
 pub fn create_event_loop<F>(window: Window, init_view: F) -> Result<(), Box<Error>>
-    where F: Fn(&mut Context) -> Box<View>
+where
+    F: Fn(&mut Context) -> Box<View>,
 {
     let sdl_context = sdl2::init()?;
     let video = sdl_context.video()?;
@@ -25,8 +26,11 @@ pub fn create_event_loop<F>(window: Window, init_view: F) -> Result<(), Box<Erro
         .opengl()
         .build()?;
     let sdl_renderer = sdl_window.renderer().accelerated().build()?;
-    let mut game_context =
-        Context::new(window, Events::new(sdl_context.event_pump()?, ""), sdl_renderer);
+    let mut game_context = Context::new(
+        window,
+        Events::new(sdl_context.event_pump()?, ""),
+        sdl_renderer,
+    );
     let mut curr_view = init_view(&mut game_context);
 
     loop {

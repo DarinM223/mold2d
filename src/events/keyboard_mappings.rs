@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use std::io::prelude::*;
 use std::fs::File;
+use std::io::prelude::*;
 
 // TODO(DarinM223): edit this as necessary for default keycodes
-pub const KEYBOARD_DEFAULTS: &'static str = r#"
+pub const KEYBOARD_DEFAULTS: &str = r#"
 27 ESC
 13 ENTER
 32 SPACE
@@ -30,12 +30,14 @@ impl KeyboardMappings {
     /// Creates a new keyboard mapper given a keyboard mapping string
     pub fn new(mappings: &str) -> KeyboardMappings {
         let mapping_str = mappings.to_owned();
-        let token_stream: Vec<_> = mapping_str
+        let token_stream: Vec<&str> = mapping_str
             .split(|x| (x == ' ') || (x == '\n'))
             .filter(|s| !s.trim().is_empty())
             .collect();
 
-        let mut keyboard_mappings = KeyboardMappings { key_map: HashMap::new() };
+        let mut keyboard_mappings = KeyboardMappings {
+            key_map: HashMap::new(),
+        };
         let mut state = MappingState::Keycode;
 
         for token in &token_stream {
@@ -46,7 +48,7 @@ impl KeyboardMappings {
                     }
                 }
                 MappingState::Action(keycode) => {
-                    let action = token.clone().to_owned();
+                    let action = token.to_string();
 
                     keyboard_mappings.key_map.insert(keycode, action);
                     state = MappingState::Keycode;

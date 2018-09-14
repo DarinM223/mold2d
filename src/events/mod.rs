@@ -1,8 +1,8 @@
 mod keyboard_mappings;
 
-use sdl2::EventPump;
-use sdl2::event::Event;
 use self::keyboard_mappings::KeyboardMappings;
+use sdl2::event::Event;
+use sdl2::EventPump;
 use std::collections::HashSet;
 
 /// Handles keyboard events through SDL
@@ -16,7 +16,7 @@ pub struct Events {
 impl Events {
     pub fn new(pump: EventPump, mappings_path: &str) -> Events {
         Events {
-            pump: pump,
+            pump,
             events: HashSet::new(),
             once_events: HashSet::new(),
             mappings: KeyboardMappings::from_file(mappings_path),

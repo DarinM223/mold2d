@@ -1,7 +1,8 @@
 use actions::{ActorAction, ActorData, ActorMessage, ActorType};
-use mold2d::{Actor, Animations, BoundingBox, CollisionSide, Context, Direction, Polygon,
-             PositionChange, Segment, Spritesheet, SpritesheetConfig, SpriteRectangle, Vector2D,
-             Viewport};
+use mold2d::{
+    Actor, Animations, BoundingBox, CollisionSide, Context, Direction, Polygon, PositionChange,
+    Segment, SpriteRectangle, Spritesheet, SpritesheetConfig, Vector2D, Viewport,
+};
 use sdl2::pixels::Color;
 use sdl2::render::Renderer;
 use std::error::Error;
@@ -44,67 +45,74 @@ pub struct Player {
 
 impl Player {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Player {
-        use mold2d::sprite::Direction::*;
         use self::PlayerSize::*;
         use self::PlayerState::*;
+        use mold2d::sprite::Direction::*;
 
         let mut anims = Animations::new(fps);
 
-        let banim = Spritesheet::new(SpritesheetConfig {
-                                         width: 16,
-                                         height: 32,
-                                         sprites_in_row: 4,
-                                         path: "./assets/mario-big.png",
-                                     },
-                                     renderer);
-        let sanim = Spritesheet::new(SpritesheetConfig {
-                                         width: 16,
-                                         height: 16,
-                                         sprites_in_row: 4,
-                                         path: "./assets/mario-small.png",
-                                     },
-                                     renderer);
+        let banim = Spritesheet::new(
+            SpritesheetConfig {
+                width: 16,
+                height: 32,
+                sprites_in_row: 4,
+                path: "./assets/mario-big.png",
+            },
+            renderer,
+        );
+        let sanim = Spritesheet::new(
+            SpritesheetConfig {
+                width: 16,
+                height: 16,
+                sprites_in_row: 4,
+                path: "./assets/mario-small.png",
+            },
+            renderer,
+        );
 
-        let bbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
-                                                               position.1,
-                                                               PLAYER_WIDTH,
-                                                               PLAYER_HEIGHT));
-        let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
-                                                                position.1 +
-                                                                PLAYER_HALF_HEIGHT as i32,
-                                                                PLAYER_WIDTH,
-                                                                PLAYER_HALF_HEIGHT));
+        let bbox = BoundingBox::Rectangle(SpriteRectangle::new(
+            position.0,
+            position.1,
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT,
+        ));
+        let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(
+            position.0,
+            position.1 + PLAYER_HALF_HEIGHT as i32,
+            PLAYER_WIDTH,
+            PLAYER_HALF_HEIGHT,
+        ));
 
-        anims.add((Big, Idle, Left), banim.range(1, 2), bbox.clone());
-        anims.add((Big, Idle, Right), banim.range(12, 13), bbox.clone());
-        anims.add((Big, Walking, Left), banim.range(5, 8), bbox.clone());
-        anims.add((Big, Walking, Right), banim.range(13, 16), bbox.clone());
-        anims.add((Big, Jumping, Left), banim.range(3, 4), bbox.clone());
-        anims.add((Big, Jumping, Right), banim.range(11, 12), bbox.clone());
+        anims.add((Big, Idle, Left), banim.range(1, 2), bbox);
+        anims.add((Big, Idle, Right), banim.range(12, 13), bbox);
+        anims.add((Big, Walking, Left), banim.range(5, 8), bbox);
+        anims.add((Big, Walking, Right), banim.range(13, 16), bbox);
+        anims.add((Big, Jumping, Left), banim.range(3, 4), bbox);
+        anims.add((Big, Jumping, Right), banim.range(11, 12), bbox);
 
-        anims.add((Small, Idle, Left), sanim.range(0, 1), cbbox.clone());
-        anims.add((Small, Idle, Right), sanim.range(8, 9), cbbox.clone());
-        anims.add((Small, Walking, Left), sanim.range(1, 4), cbbox.clone());
-        anims.add((Small, Walking, Right), sanim.range(9, 12), cbbox.clone());
-        anims.add((Small, Jumping, Left), sanim.range(4, 5), cbbox.clone());
-        anims.add((Small, Jumping, Right), sanim.range(12, 13), cbbox.clone());
+        anims.add((Small, Idle, Left), sanim.range(0, 1), cbbox);
+        anims.add((Small, Idle, Right), sanim.range(8, 9), cbbox);
+        anims.add((Small, Walking, Left), sanim.range(1, 4), cbbox);
+        anims.add((Small, Walking, Right), sanim.range(9, 12), cbbox);
+        anims.add((Small, Jumping, Left), sanim.range(4, 5), cbbox);
+        anims.add((Small, Jumping, Right), sanim.range(12, 13), cbbox);
 
-        anims.add((Crouching, Idle, Left), banim.range(2, 3), cbbox.clone());
-        anims.add((Crouching, Idle, Right), banim.range(10, 11), cbbox.clone());
-        anims.add((Crouching, Jumping, Left), banim.range(2, 3), cbbox.clone());
-        anims.add((Crouching, Jumping, Right), banim.range(10, 11), cbbox.clone());
-        anims.add((Crouching, Walking, Left), banim.range(2, 3), cbbox.clone());
-        anims.add((Crouching, Walking, Right), banim.range(10, 11), cbbox.clone());
+        anims.add((Crouching, Idle, Left), banim.range(2, 3), cbbox);
+        anims.add((Crouching, Idle, Right), banim.range(10, 11), cbbox);
+        anims.add((Crouching, Jumping, Left), banim.range(2, 3), cbbox);
+        anims.add((Crouching, Jumping, Right), banim.range(10, 11), cbbox);
+        anims.add((Crouching, Walking, Left), banim.range(2, 3), cbbox);
+        anims.add((Crouching, Walking, Right), banim.range(10, 11), cbbox);
 
         Player {
-            id: id,
+            id,
             curr_state: PlayerState::Jumping,
             direction: Direction::Right,
             size: PlayerSize::Big,
             grounded: false,
             curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, PLAYER_WIDTH, PLAYER_HEIGHT),
-            anims: anims,
+            anims,
             debug: false,
             prev_segment: None,
         }
@@ -116,26 +124,29 @@ impl Actor for Player {
     type Message = ActorMessage;
 
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
+        if let ActorMessage::ActorAction {
+            send_id,
+            ref action,
+            ..
+        } = *message
+        {
             match *action {
                 ActorAction::ChangePosition(ref change) => {
                     self.rect.apply_change(change);
                     self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
-                ActorAction::DamageActor(_) => {
-                    match self.size {
-                        PlayerSize::Big | PlayerSize::Crouching => {
-                            let amount: i32 = self.rect.h as i32 / 2;
-                            let half_change = PositionChange::new().shrink_height_top(amount);
-                            self.rect.apply_change(&half_change);
-                            self.size = PlayerSize::Small;
+                ActorAction::DamageActor(_) => match self.size {
+                    PlayerSize::Big | PlayerSize::Crouching => {
+                        let amount: i32 = self.rect.h as i32 / 2;
+                        let half_change = PositionChange::new().shrink_height_top(amount);
+                        self.rect.apply_change(&half_change);
+                        self.size = PlayerSize::Small;
 
-                            ActorMessage::None
-                        }
-                        PlayerSize::Small => ActorMessage::PlayerDied,
+                        ActorMessage::None
                     }
-                }
+                    PlayerSize::Small => ActorMessage::PlayerDied,
+                },
                 ActorAction::Bounce(can_bounce) => {
                     if can_bounce {
                         if self.curr_state != PlayerState::Jumping {
@@ -226,10 +237,13 @@ impl Actor for Player {
             0.
         };
 
-        let target_speed = Vector2D { x: max_x_speed, y: max_y_speed };
+        let target_speed = Vector2D {
+            x: max_x_speed,
+            y: max_y_speed,
+        };
 
-        self.curr_speed = (PLAYER_ACCELERATION * target_speed) +
-                          ((1.0 - PLAYER_ACCELERATION) * self.curr_speed);
+        self.curr_speed =
+            (PLAYER_ACCELERATION * target_speed) + ((1.0 - PLAYER_ACCELERATION) * self.curr_speed);
 
         // Apply position change
         let mut change = PositionChange::new().left(self.curr_speed.x as i32);
@@ -252,19 +266,22 @@ impl Actor for Player {
         self.anims.add_time(&key, elapsed);
 
         self.prev_segment = Some(Segment {
-                                     point: (self.data().rect.x() as f64,
-                                             self.data().rect.y() as f64),
-                                     vector: change.to_vector(),
-                                 });
+            point: (
+                f64::from(self.data().rect.x()),
+                f64::from(self.data().rect.y()),
+            ),
+            vector: change.to_vector(),
+        });
 
         change
     }
 
-    fn render(&mut self,
-              context: &mut Context,
-              viewport: &mut Viewport,
-              _elapsed: f64)
-              -> Result<(), Box<Error>> {
+    fn render(
+        &mut self,
+        context: &mut Context,
+        viewport: &mut Viewport,
+        _elapsed: f64,
+    ) -> Result<(), Box<Error>> {
         // renders position change in debug mode
         if self.debug {
             let data = self.data();
@@ -277,7 +294,8 @@ impl Actor for Player {
         }
 
         let key = (self.size, self.curr_state, self.direction);
-        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false)
+        self.anims
+            .render(&key, &self.rect, viewport, &mut context.renderer, false)
     }
 
     fn data(&mut self) -> ActorData {
@@ -288,9 +306,10 @@ impl Actor for Player {
             resolves_collisions: true,
             collision_filter: 0b1111,
             rect: self.rect.to_sdl(),
-            bounding_box: self.anims
+            bounding_box: self
+                .anims
                 .bbox(&(self.size, self.curr_state, self.direction))
-                .map(|bb| bb.clone()),
+                .cloned(),
             actor_type: ActorType::Player,
         }
     }

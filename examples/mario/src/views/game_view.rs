@@ -1,5 +1,5 @@
+use actions::{actor_from_token, handle_collision, handle_message, resolve_collision};
 use actions::{Actor, ActorAction, ActorMessage, ActorType};
-use actions::{actor_from_token, handle_collision, resolve_collision, handle_message};
 use mold2d::font;
 use mold2d::level;
 use mold2d::{ActorManager, Context, Quadtree, Sprite, View, ViewAction, Viewport};
@@ -20,10 +20,12 @@ pub struct GameView {
 
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
-        let level_result = level::load_level(path,
-                                             Box::new(actor_from_token),
-                                             &mut context.renderer,
-                                             &context.window);
+        let level_result = level::load_level(
+            path,
+            Box::new(actor_from_token),
+            &mut context.renderer,
+            &context.window,
+        );
         let (actors, viewport) = level_result.unwrap();
 
         if context.score.score("GAME_SCORE") == None {
@@ -31,8 +33,8 @@ impl GameView {
         }
 
         GameView {
-            actors: actors,
-            viewport: viewport,
+            actors,
+            viewport,
             level_path: path.to_owned(),
             cached_score: None,
             cached_font_sprite: None,
@@ -48,7 +50,7 @@ impl View for GameView {
         context.renderer.clear();
 
         // render contained actors
-        for (_, actor) in &mut self.actors.actors {
+        for actor in self.actors.actors.values_mut() {
             if self.viewport.rect_in_viewport(&actor.data().rect) {
                 actor.render(context, &mut self.viewport, elapsed)?;
             }
@@ -69,12 +71,13 @@ impl View for GameView {
             }
 
             if !had_cached_score {
-                let font_sprite = font::text_sprite(&context.renderer,
-                                                    &score_text[..],
-                                                    "assets/belligerent.ttf",
-                                                    32,
-                                                    Color::RGB(0, 255, 0))
-                        .unwrap();
+                let font_sprite = font::text_sprite(
+                    &context.renderer,
+                    &score_text[..],
+                    "assets/belligerent.ttf",
+                    32,
+                    Color::RGB(0, 255, 0),
+                ).unwrap();
                 font::render_text(&mut context.renderer, &font_sprite, (100, 100))?;
                 self.cached_score = Some(score_text);
                 self.cached_font_sprite = Some(font_sprite);
@@ -101,7 +104,7 @@ impl View for GameView {
             let mut keys = Vec::with_capacity(self.actors.actors.len());
 
             for (key, actor) in &mut self.actors.actors {
-                let data = actor.data().clone();
+                let data = actor.data();
 
                 if self.viewport.rect_in_viewport(&data.rect) {
                     keys.push(key.clone());
@@ -118,17 +121,17 @@ impl View for GameView {
                     // update the actor
                     let pos_change = actor.update(context, elapsed);
                     actor.handle_message(&ActorMessage::ActorAction {
-                                              send_id: data.id,
-                                              recv_id: data.id,
-                                              action: ActorAction::ChangePosition(pos_change),
-                                          });
+                        send_id: data.id,
+                        recv_id: data.id,
+                        action: ActorAction::ChangePosition(pos_change),
+                    });
 
                     if data.collision_filter != 0 && data.actor_type != ActorType::Block {
                         // only check collisions for nearby actors
                         let nearby_actors = quadtree
                             .retrieve(&data.rect)
                             .into_iter()
-                            .map(|act| act.clone())
+                            .cloned()
                             .collect::<Vec<_>>();
                         for other in nearby_actors {
                             if let Some(direction) = actor.collides_with(&other) {
@@ -146,13 +149,15 @@ impl View for GameView {
 
                 for collision in collisions.iter() {
                     if let Some((actor, other, direction)) = *collision {
-                        handle_collision(&actor,
-                                         &other,
-                                         direction,
-                                         Box::new(handle_message),
-                                         &mut self.actors,
-                                         &mut self.viewport,
-                                         context);
+                        handle_collision(
+                            &actor,
+                            &other,
+                            direction,
+                            Box::new(handle_message),
+                            &mut self.actors,
+                            &mut self.viewport,
+                            context,
+                        );
                     } else {
                         break;
                     }

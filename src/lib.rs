@@ -45,8 +45,10 @@ pub use events::Events;
 pub use quadtree::Quadtree;
 pub use raycast::{Polygon, Segment};
 pub use score::Score;
-pub use sprite::{AnimatedSprite, Animations, Direction, Renderable, Sprite, Spritesheet,
-                 SpritesheetConfig, SpriteRectangle};
+pub use sprite::{
+    AnimatedSprite, Animations, Direction, Renderable, Sprite, SpriteRectangle, Spritesheet,
+    SpritesheetConfig,
+};
 pub use vector::{PositionChange, Vector2D};
 pub use viewport::Viewport;
 
@@ -54,11 +56,8 @@ use sdl2::rect::Rect;
 use std::error::Error;
 
 /// Handler for a view to deal with actor messages
-pub type MessageHandler<A: Actor + ?Sized> = Box<Fn(i32,
-                                                    &mut ActorManager<A>,
-                                                    &mut Viewport,
-                                                    &mut Context,
-                                                    &A::Message)>;
+pub type MessageHandler<A> =
+    Box<Fn(i32, &mut ActorManager<A>, &mut Viewport, &mut Context, &<A as Actor>::Message)>;
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {
@@ -105,11 +104,12 @@ pub trait Actor {
     type Message;
 
     /// Called every frame to render an actor
-    fn render(&mut self,
-              context: &mut Context,
-              viewport: &mut Viewport,
-              elapsed: f64)
-              -> Result<(), Box<Error>>;
+    fn render(
+        &mut self,
+        context: &mut Context,
+        viewport: &mut Viewport,
+        elapsed: f64,
+    ) -> Result<(), Box<Error>>;
 
     /// Handle a message sent by another actor
     fn handle_message(&mut self, message: &Self::Message) -> Self::Message;

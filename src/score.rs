@@ -7,7 +7,9 @@ pub struct Score {
 
 impl Score {
     pub fn new() -> Score {
-        Score { scores: HashMap::new() }
+        Score {
+            scores: HashMap::new(),
+        }
     }
 
     pub fn add_score(&mut self, name: &str) {
@@ -26,7 +28,7 @@ impl Score {
 
     pub fn increment_score(&mut self, name: &str, increment_amount: i32) {
         if let Some(score) = self.scores.get_mut(name) {
-            *score = *score + increment_amount as i64;
+            *score += i64::from(increment_amount);
         }
     }
 

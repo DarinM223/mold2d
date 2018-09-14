@@ -1,6 +1,8 @@
 use actions::{ActorAction, ActorData, ActorMessage, ActorType};
-use mold2d::{Actor, AnimatedSprite, BoundingBox, Collision, CollisionSide, PositionChange,
-             Context, Renderable, Spritesheet, SpritesheetConfig, SpriteRectangle, Viewport};
+use mold2d::{
+    Actor, AnimatedSprite, BoundingBox, Collision, CollisionSide, Context, PositionChange,
+    Renderable, SpriteRectangle, Spritesheet, SpritesheetConfig, Viewport,
+};
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 use std::error::Error;
@@ -15,18 +17,20 @@ pub struct Coin {
 
 impl Coin {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Coin {
-        let anim = Spritesheet::new(SpritesheetConfig {
-                                        width: 32,
-                                        height: 32,
-                                        sprites_in_row: 8,
-                                        path: "./assets/coin.png",
-                                    },
-                                    renderer);
+        let anim = Spritesheet::new(
+            SpritesheetConfig {
+                width: 32,
+                height: 32,
+                sprites_in_row: 8,
+                path: "./assets/coin.png",
+            },
+            renderer,
+        );
 
         let anims = anim.range(0, 8);
 
         Coin {
-            id: id,
+            id,
             rect: SpriteRectangle::new(position.0, position.1, 32, 32),
             animation: AnimatedSprite::with_fps(anims, fps),
         }
@@ -73,11 +77,12 @@ impl Actor for Coin {
         PositionChange::new()
     }
 
-    fn render(&mut self,
-              context: &mut Context,
-              viewport: &mut Viewport,
-              _elapsed: f64)
-              -> Result<(), Box<Error>> {
+    fn render(
+        &mut self,
+        context: &mut Context,
+        viewport: &mut Viewport,
+        _elapsed: f64,
+    ) -> Result<(), Box<Error>> {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new(rx, ry, self.rect.w, self.rect.h);
 
@@ -93,7 +98,7 @@ impl Actor for Coin {
             collision_filter: 0b1111,
             resolves_collisions: false,
             rect: self.rect.to_sdl(),
-            bounding_box: Some(BoundingBox::Rectangle(self.rect.clone())),
+            bounding_box: Some(BoundingBox::Rectangle(self.rect)),
             actor_type: ActorType::Item,
         }
     }

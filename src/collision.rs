@@ -21,8 +21,10 @@ pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {
 
 /// Returns the center point of a rectangle as a tuple of decimals
 pub fn center_point(rect: &Rect) -> (f64, f64) {
-    ((rect.x() as f64) + 0.5 * (rect.width() as f64),
-     (rect.y() as f64) + 0.5 * (rect.height() as f64))
+    (
+        f64::from(rect.x()) + 0.5 * f64::from(rect.width()),
+        f64::from(rect.y()) + 0.5 * f64::from(rect.height()),
+    )
 }
 
 #[repr(u8)]
@@ -122,8 +124,12 @@ impl PartialEq<CollisionSide> for u8 {
 
 impl From<u8> for CollisionSide {
     fn from(side: u8) -> CollisionSide {
-        assert!(side == CollisionSide::Left || side == CollisionSide::Right ||
-                side == CollisionSide::Bottom || side == CollisionSide::Top);
+        assert!(
+            side == CollisionSide::Left
+                || side == CollisionSide::Right
+                || side == CollisionSide::Bottom
+                || side == CollisionSide::Top
+        );
         unsafe { mem::transmute(side) }
     }
 }
@@ -157,8 +163,8 @@ pub trait Collision<T> {
 
 impl Collision<Rect> for Rect {
     fn collides_with(&self, other: &Rect) -> Option<CollisionSide> {
-        let w = 0.5 * (self.width() + other.width()) as f64;
-        let h = 0.5 * (self.height() + other.height()) as f64;
+        let w = 0.5 * f64::from(self.width() + other.width());
+        let h = 0.5 * f64::from(self.height() + other.height());
         let dx = center_point(self).0 - center_point(&other).0;
         let dy = center_point(self).1 - center_point(&other).1;
 
@@ -257,8 +263,14 @@ mod tests {
         let left_rect = Rect::new(-10, 0, 20, 20);
         let right_rect = Rect::new(0, 0, 20, 20);
 
-        assert_eq!(left_rect.collides_with(&right_rect), Some(CollisionSide::Right));
-        assert_eq!(right_rect.collides_with(&left_rect), Some(CollisionSide::Left));
+        assert_eq!(
+            left_rect.collides_with(&right_rect),
+            Some(CollisionSide::Right)
+        );
+        assert_eq!(
+            right_rect.collides_with(&left_rect),
+            Some(CollisionSide::Left)
+        );
     }
 
     #[test]
@@ -266,7 +278,10 @@ mod tests {
         let up_rect = Rect::new(0, -20, 20, 20);
         let down_rect = Rect::new(0, 0, 20, 20);
 
-        assert_eq!(up_rect.collides_with(&down_rect), Some(CollisionSide::Bottom));
+        assert_eq!(
+            up_rect.collides_with(&down_rect),
+            Some(CollisionSide::Bottom)
+        );
         assert_eq!(down_rect.collides_with(&up_rect), Some(CollisionSide::Top));
     }
 }

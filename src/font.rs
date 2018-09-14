@@ -7,12 +7,13 @@ use std::error::Error;
 use std::path::Path;
 
 /// Returns a text sprite with the specified text, font, size, and color
-pub fn text_sprite(renderer: &Renderer,
-                   text: &str,
-                   font_path: &'static str,
-                   size: u16,
-                   color: Color)
-                   -> Result<Sprite, Box<Error>> {
+pub fn text_sprite(
+    renderer: &Renderer,
+    text: &str,
+    font_path: &'static str,
+    size: u16,
+    color: Color,
+) -> Result<Sprite, Box<Error>> {
     let font_cache = cache::font_cache();
 
     // if font is cached use the cached font
@@ -48,10 +49,11 @@ pub fn text_sprite(renderer: &Renderer,
 }
 
 /// Renders a text sprite at the specified point
-pub fn render_text(renderer: &mut Renderer,
-                   sprite: &Sprite,
-                   point: (i32, i32))
-                   -> Result<(), Box<Error>> {
+pub fn render_text(
+    renderer: &mut Renderer,
+    sprite: &Sprite,
+    point: (i32, i32),
+) -> Result<(), Box<Error>> {
     let (x, y) = point;
     let (w, h) = sprite.size();
     sprite.render(renderer, Rect::new(x, y, w, h))

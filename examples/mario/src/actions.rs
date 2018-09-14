@@ -3,7 +3,7 @@ use actors::coin::Coin;
 use actors::koopa::Koopa;
 use actors::player::Player;
 use mold2d;
-use mold2d::{ActorManager, CollisionSide, MessageHandler, PositionChange, Viewport, Context};
+use mold2d::{ActorManager, CollisionSide, Context, MessageHandler, PositionChange, Viewport};
 use sdl2::render::Renderer;
 
 /// Actions for an actor to process
@@ -55,11 +55,12 @@ pub type ActorData = mold2d::ActorData<ActorType>;
 // Handlers
 
 #[inline]
-pub fn actor_from_token(token: char,
-                        id: i32,
-                        position: (i32, i32),
-                        renderer: &mut Renderer)
-                        -> Box<Actor> {
+pub fn actor_from_token(
+    token: char,
+    id: i32,
+    position: (i32, i32),
+    renderer: &mut Renderer,
+) -> Box<Actor> {
     match token {
         'P' => Box::new(Player::new(id, position, renderer, 30.)),
         'C' => Box::new(Coin::new(id, position, renderer, 20.)),
@@ -73,11 +74,13 @@ pub fn actor_from_token(token: char,
 }
 
 #[inline]
-pub fn handle_message(curr_actor_id: i32,
-                      actors: &mut ActorManager<Actor>,
-                      viewport: &mut Viewport,
-                      context: &mut Context,
-                      action: &ActorMessage) {
+pub fn handle_message(
+    curr_actor_id: i32,
+    actors: &mut ActorManager<Actor>,
+    viewport: &mut Viewport,
+    context: &mut Context,
+    action: &ActorMessage,
+) {
     use actions::ActorMessage::*;
 
     match *action {
@@ -114,32 +117,34 @@ pub fn resolve_collision(actor: &mut Box<Actor>, other: &ActorData, direction: C
             };
 
             actor.handle_message(&ActorMessage::ActorAction {
-                                      send_id: -1,
-                                      recv_id: -1,
-                                      action: ActorAction::ChangePosition(change),
-                                  });
+                send_id: -1,
+                recv_id: -1,
+                action: ActorAction::ChangePosition(change),
+            });
         }
 
         if direction == CollisionSide::Bottom {
             let down_change = PositionChange::new().down(1);
             actor.handle_message(&ActorMessage::ActorAction {
-                                      send_id: -1,
-                                      recv_id: -1,
-                                      action: ActorAction::ChangePosition(down_change),
-                                  });
+                send_id: -1,
+                recv_id: -1,
+                action: ActorAction::ChangePosition(down_change),
+            });
         }
     }
 }
 
 /// Sends collision messages to both of the collided actors.
 #[inline]
-pub fn handle_collision(actor: &ActorData,
-                        other: &ActorData,
-                        direction: CollisionSide,
-                        handler: MessageHandler<Actor>,
-                        actors: &mut ActorManager<Actor>,
-                        viewport: &mut Viewport,
-                        context: &mut Context) {
+pub fn handle_collision(
+    actor: &ActorData,
+    other: &ActorData,
+    direction: CollisionSide,
+    handler: MessageHandler<Actor>,
+    actors: &mut ActorManager<Actor>,
+    viewport: &mut Viewport,
+    context: &mut Context,
+) {
     let direction = direction & other.collision_filter;
     let rev_dir = CollisionSide::reverse_u8(direction);
 

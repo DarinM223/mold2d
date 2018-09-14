@@ -35,7 +35,7 @@ pub struct SpriteRectangle {
 
 impl SpriteRectangle {
     pub fn new(x: i32, y: i32, w: u32, h: u32) -> SpriteRectangle {
-        SpriteRectangle { x: x, y: y, w: w, h: h }
+        SpriteRectangle { x, y, w, h }
     }
 
     /// Creates a sprite rectangle from a SDL2 rectangle
@@ -95,7 +95,7 @@ impl Sprite {
 
         // if sprite is cached, return from cache
         if let Ok(ref cache) = sprite_cache.cache.lock() {
-            if let Some(sprite) = cache.get(path).map(|sprite| sprite.clone()) {
+            if let Some(sprite) = cache.get(path).cloned() {
                 return Ok(sprite);
             }
         }
@@ -104,27 +104,30 @@ impl Sprite {
         let sprite = renderer.load_texture(Path::new(path)).map(Sprite::new);
 
         // cache result if successful
-        let _ = sprite
-            .clone()
-            .map(|sprite| {
-                sprite_cache
-                    .cache
-                    .lock()
-                    .map(|ref mut cache| cache.insert(path.to_owned(), sprite))
-            });
+        let _ = sprite.clone().map(|sprite| {
+            sprite_cache
+                .cache
+                .lock()
+                .map(|ref mut cache| cache.insert(path.to_owned(), sprite))
+        });
 
         sprite.map_err(From::from)
     }
 
     /// Returns a sub-sprite from a rectangle region of the original sprite
     pub fn region(&self, rect: Rect) -> Option<Sprite> {
-        let new_src = Rect::new(rect.x() + self.src.x(),
-                                rect.y() + self.src.y(),
-                                rect.width(),
-                                rect.height());
+        let new_src = Rect::new(
+            rect.x() + self.src.x(),
+            rect.y() + self.src.y(),
+            rect.width(),
+            rect.height(),
+        );
 
         if collision::rect_contains_rect(self.src, new_src) {
-            Some(Sprite { tex: self.tex.clone(), src: new_src })
+            Some(Sprite {
+                tex: self.tex.clone(),
+                src: new_src,
+            })
         } else {
             None
         }
@@ -140,7 +143,7 @@ impl Renderable for Sprite {
     /// Render the sprite image onto the rectangle
     fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>> {
         renderer
-            .copy(&mut self.tex.borrow_mut(), Some(self.src), Some(dest))
+            .copy(&self.tex.borrow_mut(), Some(self.src), Some(dest))
             .map_err(From::from)
     }
 }
@@ -160,8 +163,8 @@ impl AnimatedSprite {
     /// Creates a new animated sprite with the given Sprite frames and a frame delay
     fn new(frames: Vec<Sprite>, frame_delay: f64) -> AnimatedSprite {
         AnimatedSprite {
-            frames: frames,
-            frame_delay: frame_delay,
+            frames,
+            frame_delay,
             current_time: 0.0,
         }
     }
@@ -193,7 +196,10 @@ impl AnimatedSprite {
 impl Renderable for AnimatedSprite {
     /// Renders the current frame of the animated sprite
     fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>> {
-        assert!(self.frames.len() > 0, "There as to be at least one frame!");
+        assert!(
+            !self.frames.is_empty(),
+            "There as to be at least one frame!"
+        );
         let current_frame = (self.current_time / self.frame_delay) as usize % self.frames.len();
 
         let frame = &self.frames[current_frame];
@@ -225,8 +231,8 @@ impl Spritesheet {
         let spritesheet = Sprite::load(renderer, config.path).unwrap();
 
         Spritesheet {
-            config: config,
-            spritesheet: spritesheet,
+            config,
+            spritesheet,
         }
     }
 
@@ -245,13 +251,14 @@ impl Spritesheet {
                 let x = elem % self.config.sprites_in_row;
                 let y = elem / self.config.sprites_in_row;
 
-                let region = Rect::new((self.config.width as i32) * x,
-                                       (self.config.height as i32) * y,
-                                       self.config.width,
-                                       self.config.height);
+                let region = Rect::new(
+                    (self.config.width as i32) * x,
+                    (self.config.height as i32) * y,
+                    self.config.width,
+                    self.config.height,
+                );
                 self.spritesheet.region(region)
-            })
-            .flat_map(|sprite| sprite)
+            }).flat_map(|sprite| sprite)
             .collect()
     }
 }
@@ -269,11 +276,12 @@ pub struct Animations<State> {
 }
 
 impl<State> Animations<State>
-    where State: Clone + Eq + Hash
+where
+    State: Clone + Eq + Hash,
 {
     pub fn new(fps: f64) -> Animations<State> {
         Animations {
-            fps: fps,
+            fps,
             animations: HashMap::new(),
             curr_state: None,
             curr_bbox: None,
@@ -282,13 +290,17 @@ impl<State> Animations<State>
     }
 
     pub fn add(&mut self, s: State, anims: Vec<Sprite>, bound: BoundingBox) {
-        self.animations.insert(s, (AnimatedSprite::with_fps(anims, self.fps), bound));
+        self.animations
+            .insert(s, (AnimatedSprite::with_fps(anims, self.fps), bound));
     }
 
     fn set_state(&mut self, s: &State) {
         // Insert the saved bounding box and animation back into the hashmap
-        if let (Some(state), Some(bbox), Some(anim)) =
-            (self.curr_state.take(), self.curr_bbox.take(), self.curr_anim.take()) {
+        if let (Some(state), Some(bbox), Some(anim)) = (
+            self.curr_state.take(),
+            self.curr_bbox.take(),
+            self.curr_anim.take(),
+        ) {
             self.animations.insert(state, (anim, bbox));
         }
 
@@ -351,7 +363,8 @@ impl<State> Animations<State>
     /// Maps a function that mutates a bounding box over all of the
     /// bounding boxes in the animation
     pub fn map_bbox_mut<F>(&mut self, f: F)
-        where F: Fn(&mut BoundingBox)
+    where
+        F: Fn(&mut BoundingBox),
     {
         if let Some(ref mut bbox) = self.curr_bbox {
             f(bbox);
@@ -365,10 +378,11 @@ impl<State> Animations<State>
 
     /// Checks if the animation at the state collides with another bounding box
     /// and returns the side of the collision if it happens
-    pub fn collides_with(&mut self,
-                         s: &State,
-                         other_bbox: &Option<BoundingBox>)
-                         -> Option<CollisionSide> {
+    pub fn collides_with(
+        &mut self,
+        s: &State,
+        other_bbox: &Option<BoundingBox>,
+    ) -> Option<CollisionSide> {
         if let Some(bounding_box) = self.bbox(s) {
             if let Some(ref bbox) = *other_bbox {
                 return bounding_box.collides_with(bbox);
@@ -384,13 +398,14 @@ impl<State> Animations<State>
     }
 
     /// Renders an animation in the manager
-    pub fn render(&mut self,
-                  s: &State,
-                  rect: &SpriteRectangle,
-                  viewport: &mut Viewport,
-                  renderer: &mut Renderer,
-                  debug: bool)
-                  -> Result<(), Box<Error>> {
+    pub fn render(
+        &mut self,
+        s: &State,
+        rect: &SpriteRectangle,
+        viewport: &mut Viewport,
+        renderer: &mut Renderer,
+        debug: bool,
+    ) -> Result<(), Box<Error>> {
         if debug {
             if let Some(bounding_box) = self.bbox(s) {
                 match *bounding_box {
@@ -407,6 +422,9 @@ impl<State> Animations<State>
         let (rx, ry) = viewport.relative_point((rect.x, rect.y));
         let rect = Rect::new(rx, ry, rect.w, rect.h);
 
-        self.anim_mut(s).unwrap().render(renderer, rect).map_err(From::from)
+        self.anim_mut(s)
+            .unwrap()
+            .render(renderer, rect)
+            .map_err(From::from)
     }
 }

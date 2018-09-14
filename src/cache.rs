@@ -2,7 +2,7 @@ use sdl2::ttf::{Font, Sdl2TtfContext};
 use sprite::Sprite;
 use std::collections::HashMap;
 use std::mem;
-use std::sync::{Arc, Mutex, ONCE_INIT, Once};
+use std::sync::{Arc, Mutex, Once, ONCE_INIT};
 
 lazy_static! {
     pub static ref TTF_CONTEXT: Sdl2TtfContext = Sdl2TtfContext;
@@ -22,7 +22,9 @@ pub fn font_cache() -> FontCache {
 
     unsafe {
         ONCE.call_once(|| {
-            let singleton = FontCache { cache: Arc::new(Mutex::new(HashMap::new())) };
+            let singleton = FontCache {
+                cache: Arc::new(Mutex::new(HashMap::new())),
+            };
 
             SINGLETON = mem::transmute(Box::new(singleton));
         });
@@ -45,7 +47,9 @@ pub fn sprite_cache() -> SpriteCache {
 
     unsafe {
         ONCE.call_once(|| {
-            let singleton = SpriteCache { cache: Arc::new(Mutex::new(HashMap::new())) };
+            let singleton = SpriteCache {
+                cache: Arc::new(Mutex::new(HashMap::new())),
+            };
 
             SINGLETON = mem::transmute(Box::new(singleton));
         });

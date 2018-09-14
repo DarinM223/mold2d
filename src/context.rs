@@ -23,9 +23,9 @@ impl<'a> Context<'a> {
     /// and the sdl renderer
     pub fn new(window: Window, events: Events, renderer: Renderer<'a>) -> Context<'a> {
         Context {
-            window: window,
-            events: events,
-            renderer: renderer,
+            window,
+            events,
+            renderer,
             score: Score::new(),
         }
     }

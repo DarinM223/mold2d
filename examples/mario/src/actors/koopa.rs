@@ -1,6 +1,8 @@
 use actions::{ActorAction, ActorData, ActorMessage, ActorType};
-use mold2d::{Actor, Animations, BoundingBox, CollisionSide, Context, Direction, PositionChange,
-             Spritesheet, SpritesheetConfig, SpriteRectangle, Vector2D, Viewport};
+use mold2d::{
+    Actor, Animations, BoundingBox, CollisionSide, Context, Direction, PositionChange,
+    SpriteRectangle, Spritesheet, SpritesheetConfig, Vector2D, Viewport,
+};
 use sdl2::render::Renderer;
 use std::error::Error;
 
@@ -38,55 +40,63 @@ pub struct Koopa {
 
 impl Koopa {
     pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Koopa {
-        use mold2d::sprite::Direction::*;
         use self::KoopaSize::*;
         use self::KoopaState::*;
+        use mold2d::sprite::Direction::*;
 
         let mut anims = Animations::new(fps);
 
-        let banim = Spritesheet::new(SpritesheetConfig {
-                                         width: 16,
-                                         height: 29,
-                                         sprites_in_row: 4,
-                                         path: "./assets/koopa.png",
-                                     },
-                                     renderer);
-        let sanim = Spritesheet::new(SpritesheetConfig {
-                                         width: 16,
-                                         height: 16,
-                                         sprites_in_row: 4,
-                                         path: "./assets/shell.png",
-                                     },
-                                     renderer);
+        let banim = Spritesheet::new(
+            SpritesheetConfig {
+                width: 16,
+                height: 29,
+                sprites_in_row: 4,
+                path: "./assets/koopa.png",
+            },
+            renderer,
+        );
+        let sanim = Spritesheet::new(
+            SpritesheetConfig {
+                width: 16,
+                height: 16,
+                sprites_in_row: 4,
+                path: "./assets/shell.png",
+            },
+            renderer,
+        );
 
-        let bbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
-                                                               position.1,
-                                                               KOOPA_WIDTH,
-                                                               KOOPA_HEIGHT));
-        let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(position.0,
-                                                                position.1,
-                                                                KOOPA_WIDTH,
-                                                                KOOPA_HEIGHT / 2));
+        let bbox = BoundingBox::Rectangle(SpriteRectangle::new(
+            position.0,
+            position.1,
+            KOOPA_WIDTH,
+            KOOPA_HEIGHT,
+        ));
+        let cbbox = BoundingBox::Rectangle(SpriteRectangle::new(
+            position.0,
+            position.1,
+            KOOPA_WIDTH,
+            KOOPA_HEIGHT / 2,
+        ));
 
-        anims.add((Jumping, Upright, Left), banim.range(0, 1), bbox.clone());
-        anims.add((Jumping, Upright, Right), banim.range(3, 4), bbox.clone());
-        anims.add((Walking, Upright, Left), banim.range(0, 2), bbox.clone());
-        anims.add((Walking, Upright, Right), banim.range(2, 4), bbox.clone());
+        anims.add((Jumping, Upright, Left), banim.range(0, 1), bbox);
+        anims.add((Jumping, Upright, Right), banim.range(3, 4), bbox);
+        anims.add((Walking, Upright, Left), banim.range(0, 2), bbox);
+        anims.add((Walking, Upright, Right), banim.range(2, 4), bbox);
 
-        anims.add((Jumping, Shell, Left), sanim.range(0, 1), cbbox.clone());
-        anims.add((Jumping, Shell, Right), sanim.range(4, 5), cbbox.clone());
-        anims.add((Walking, Shell, Left), sanim.range(0, 1), cbbox.clone());
-        anims.add((Walking, Shell, Right), sanim.range(4, 5), cbbox.clone());
+        anims.add((Jumping, Shell, Left), sanim.range(0, 1), cbbox);
+        anims.add((Jumping, Shell, Right), sanim.range(4, 5), cbbox);
+        anims.add((Walking, Shell, Left), sanim.range(0, 1), cbbox);
+        anims.add((Walking, Shell, Right), sanim.range(4, 5), cbbox);
 
         Koopa {
-            id: id,
+            id,
             curr_state: KoopaState::Walking,
             size: KoopaSize::Upright,
             direction: Direction::Left,
             grounded: false,
             curr_speed: Vector2D { x: 0., y: 0. },
             rect: SpriteRectangle::new(position.0, position.1, KOOPA_WIDTH, KOOPA_HEIGHT),
-            anims: anims,
+            anims,
             invincibility_frames: 0,
         }
     }
@@ -99,7 +109,12 @@ impl Actor for Koopa {
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
         use actions::ActorAction::*;
 
-        if let ActorMessage::ActorAction { send_id, ref action, .. } = *message {
+        if let ActorMessage::ActorAction {
+            send_id,
+            ref action,
+            ..
+        } = *message
+        {
             match *action {
                 ChangePosition(ref change) => {
                     self.rect.apply_change(change);
@@ -112,8 +127,9 @@ impl Actor for Koopa {
                     ActorMessage::ActorAction {
                         send_id: self.id,
                         recv_id: send_id,
-                        action: ActorAction::Bounce(self.size == KoopaSize::Upright ||
-                                                    self.curr_speed.x == 0.),
+                        action: ActorAction::Bounce(
+                            self.size == KoopaSize::Upright || self.curr_speed.x == 0.,
+                        ),
                     }
                 }
                 Collision(ActorType::Block, CollisionSide::Bottom) => {
@@ -196,7 +212,10 @@ impl Actor for Koopa {
             0.
         };
 
-        let target_speed = Vector2D { x: 0., y: max_y_speed };
+        let target_speed = Vector2D {
+            x: 0.,
+            y: max_y_speed,
+        };
 
         self.curr_speed = (KOOPA_ACCELERATION * target_speed) + self.curr_speed;
 
@@ -223,13 +242,15 @@ impl Actor for Koopa {
         change
     }
 
-    fn render(&mut self,
-              context: &mut Context,
-              viewport: &mut Viewport,
-              _elapsed: f64)
-              -> Result<(), Box<Error>> {
+    fn render(
+        &mut self,
+        context: &mut Context,
+        viewport: &mut Viewport,
+        _elapsed: f64,
+    ) -> Result<(), Box<Error>> {
         let key = (self.curr_state, self.size, self.direction);
-        self.anims.render(&key, &self.rect, viewport, &mut context.renderer, false)
+        self.anims
+            .render(&key, &self.rect, viewport, &mut context.renderer, false)
     }
 
     fn data(&mut self) -> ActorData {
@@ -240,9 +261,10 @@ impl Actor for Koopa {
             resolves_collisions: true,
             collision_filter: 0b1111,
             rect: self.rect.to_sdl(),
-            bounding_box: self.anims
+            bounding_box: self
+                .anims
                 .bbox(&(self.curr_state, self.size, self.direction))
-                .map(|bb| bb.clone()),
+                .cloned(),
             actor_type: ActorType::Enemy,
         }
     }
