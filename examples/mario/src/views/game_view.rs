@@ -115,7 +115,7 @@ impl View for GameView {
             for key in keys {
                 let mut collisions = [None; 6];
                 let mut collision_idx = 0;
-                if let Some(ref mut actor) = self.actors.get_mut(key) {
+                if let Some(actor) = self.actors.get_mut(key) {
                     let data = actor.data();
 
                     // update the actor

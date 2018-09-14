@@ -34,8 +34,8 @@ impl<A: Actor + ?Sized> ActorManager<A> {
     }
 
     /// Get a mutable reference to an actor given the id
-    pub fn get_mut(&mut self, id: i32) -> Option<&mut Box<A>> {
-        self.actors.get_mut(&id)
+    pub fn get_mut(&mut self, id: i32) -> Option<&mut A> {
+        self.actors.get_mut(&id).map(|a| &mut **a)
     }
 
     /// Attempts to send a message to an actor and returns either

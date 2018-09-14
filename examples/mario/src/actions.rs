@@ -105,7 +105,7 @@ pub fn handle_message(
 
 /// Moves actor away from collided actor.
 #[inline]
-pub fn resolve_collision(actor: &mut Box<Actor>, other: &ActorData, direction: CollisionSide) {
+pub fn resolve_collision(actor: &mut Actor, other: &ActorData, direction: CollisionSide) {
     let data = actor.data();
     if data.resolves_collisions {
         while actor.collides_with(other) == Some(direction) {
