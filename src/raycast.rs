@@ -40,7 +40,7 @@ impl Segment {
 
     /// Returns a segment with a magnitude shortened by a certain amount
     pub fn shorten(&self, amount: f64) -> Segment {
-        let old_length = self.len();
+        let old_length = self.length();
         let norm_seg = self.normalize();
         let magnitude = old_length - amount;
 
@@ -51,8 +51,8 @@ impl Segment {
     }
 
     /// Returns the length of the segment
-    pub fn len(&self) -> f64 {
-        self.vector.len()
+    pub fn length(&self) -> f64 {
+        self.vector.length()
     }
 
     pub fn render(
@@ -175,7 +175,7 @@ mod tests {
         };
 
         let normalized_segment = segment.normalize();
-        assert_float(normalized_segment.len(), 1.);
+        assert_float(normalized_segment.length(), 1.);
     }
 
     #[test]
@@ -215,7 +215,7 @@ mod tests {
         let shortened_segment = segment.shorten(2.);
 
         assert_eq!(segment.point, shortened_segment.point);
-        assert_float(shortened_segment.len(), segment.len() - 2.);
+        assert_float(shortened_segment.length(), segment.length() - 2.);
     }
 
     #[test]

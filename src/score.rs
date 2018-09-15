@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 /// Maintains multiple updatable scores
+#[derive(Default)]
 pub struct Score {
     scores: HashMap<String, i64>,
 }

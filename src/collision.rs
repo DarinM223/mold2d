@@ -172,18 +172,14 @@ impl Collision<Rect> for Rect {
             let wy = w * dy;
             let hx = h * dx;
 
-            if wy > hx {
-                if wy > -hx {
-                    return Some(CollisionSide::Top);
-                } else {
-                    return Some(CollisionSide::Right);
-                }
+            if wy > hx && wy > -hx {
+                return Some(CollisionSide::Top);
+            } else if wy > hx {
+                return Some(CollisionSide::Right);
+            } else if wy <= hx && wy > -hx {
+                return Some(CollisionSide::Left);
             } else {
-                if wy > -hx {
-                    return Some(CollisionSide::Left);
-                } else {
-                    return Some(CollisionSide::Bottom);
-                }
+                return Some(CollisionSide::Bottom);
             }
         }
 

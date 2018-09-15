@@ -9,15 +9,15 @@ pub struct Vector2D {
 
 impl Vector2D {
     /// Returns the length of a vector
-    pub fn len(&self) -> f64 {
+    pub fn length(&self) -> f64 {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
     /// Returns a normalized vector
     pub fn normalize(&self) -> Vector2D {
         Vector2D {
-            x: self.x / self.len(),
-            y: self.y / self.len(),
+            x: self.x / self.length(),
+            y: self.y / self.length(),
         }
     }
 }
@@ -155,7 +155,7 @@ impl Div<Vector2D> for f64 {
 }
 
 /// Represents a change of position
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct PositionChange {
     pub x: i32,
     pub y: i32,
