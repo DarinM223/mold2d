@@ -1,5 +1,5 @@
 use super::Actor;
-use actor_manager::{ActorFromToken, ActorManager};
+use actor_manager::{ActorFromToken, ActorManager, ActorPosition, ActorToken};
 use context::Window;
 use sdl2::render::Renderer;
 use std::fs::File;
@@ -30,7 +30,7 @@ pub fn load_level<A: Actor + ?Sized>(
         for line in reader.lines() {
             for token in line?.chars() {
                 if token != ' ' {
-                    manager.add(token, (x, y), renderer);
+                    manager.add(ActorToken(token), ActorPosition(x, y), renderer);
 
                     if token == 'P' {
                         has_player = true;
