@@ -50,7 +50,7 @@ impl View for GameView {
         context.renderer.clear();
 
         // render contained actors
-        for actor in self.actors.actors.values_mut() {
+        for actor in self.actors.values_mut() {
             if self.viewport.rect_in_viewport(&actor.data().rect) {
                 actor.render(context, &mut self.viewport, elapsed)?;
             }
@@ -101,13 +101,13 @@ impl View for GameView {
             let window_rect = Rect::new(0, 0, context.window.width, context.window.height);
             let viewport_clone = self.viewport.clone();
             let mut quadtree = Quadtree::new(window_rect, &viewport_clone);
-            let mut keys = Vec::with_capacity(self.actors.actors.len());
+            let mut keys = Vec::with_capacity(self.actors.len());
 
-            for (key, actor) in &mut self.actors.actors {
+            for (key, actor) in &mut self.actors.iter_mut() {
                 let data = actor.data();
 
                 if self.viewport.rect_in_viewport(&data.rect) {
-                    keys.push(key.clone());
+                    keys.push(key);
                     quadtree.insert(data);
                 }
             }
@@ -121,8 +121,8 @@ impl View for GameView {
                     // update the actor
                     let pos_change = actor.update(context, elapsed);
                     actor.handle_message(&ActorMessage::ActorAction {
-                        send_id: data.id,
-                        recv_id: data.id,
+                        send_id: data.index,
+                        recv_id: data.index,
                         action: ActorAction::ChangePosition(pos_change),
                     });
 

@@ -62,12 +62,12 @@ macro_rules! block {
             pub struct $name {
                 pub rect: ::mold2d::SpriteRectangle,
                 pub sprite: ::mold2d::Sprite,
-                id: i32,
+                index: ::mold2d::ActorIndex,
             }
 
             impl $name {
-                pub fn new(id: i32,
-                           position: (i32, i32),
+                pub fn new(index: ::mold2d::ActorIndex,
+                           position: ::mold2d::ActorPosition,
                            renderer: &mut ::sdl2::render::Renderer,
                            _fps: f64)
                            -> $name {
@@ -83,7 +83,7 @@ macro_rules! block {
                     let sprite = sprite_anims.pop().unwrap();
 
                     $name {
-                        id: id,
+                        index,
                         rect: ::mold2d::SpriteRectangle::new(position.0,
                                                              position.1,
                                                              $size,
@@ -130,7 +130,7 @@ macro_rules! block {
 
                 fn data(&mut self) -> ::mold2d::ActorData<$actor_type> {
                     ::mold2d::ActorData {
-                        id: self.id,
+                        index: self.index,
                         state: 0 as u32,
                         damage: 0,
                         resolves_collisions: false,
