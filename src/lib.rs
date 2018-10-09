@@ -38,7 +38,7 @@ pub mod sprite;
 pub mod vector;
 pub mod viewport;
 
-pub use actor_manager::{ActorFromToken, ActorIndex, ActorManager, ActorPosition, ActorToken};
+pub use actor_manager::{ActorIndex, ActorManager, ActorPosition, ActorToken};
 pub use collision::{BoundingBox, Collision, CollisionSide};
 pub use context::{Context, Window};
 pub use events::Events;

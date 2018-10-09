@@ -22,7 +22,7 @@ impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
         let level_result = level::load_level(
             path,
-            Box::new(actor_from_token),
+            actor_from_token,
             &mut context.renderer,
             &context.window,
         );

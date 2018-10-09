@@ -87,7 +87,11 @@ pub fn handle_message(
     use actions::ActorMessage::*;
 
     match *action {
-        AddActor(token, pos) => actors.add(token, pos, &mut context.renderer),
+        AddActor(token, pos) => {
+            let next_index = actors.next_index();
+            let actor = actor_from_token(token, next_index, pos, &mut context.renderer);
+            actors.add(next_index, actor);
+        }
         RemoveActor(id) => actors.remove(id),
         UpdateScore(amount) => context.score.increment_score("GAME_SCORE", amount),
         MultipleMessages(ref messages) => {

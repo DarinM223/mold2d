@@ -1,5 +1,4 @@
 use super::Actor;
-use sdl2::render::Renderer;
 use std::mem;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -14,10 +13,6 @@ pub struct ActorIndex {
     pub generation: usize,
 }
 
-/// Handler for creating an actor from a token character
-pub type ActorFromToken<A> =
-    Box<Fn(ActorToken, ActorIndex, ActorPosition, &mut Renderer) -> Box<A>>;
-
 enum Slot<A: ?Sized> {
     Free { next_free: Option<usize> },
     Full { actor: Box<A>, generation: usize },
@@ -29,45 +24,53 @@ pub struct ActorManager<A: Actor + ?Sized> {
     free_top: Option<usize>,
     generation: usize,
     size: usize,
-    actor_gen: ActorFromToken<A>,
+}
+
+impl<A: Actor + ?Sized> Default for ActorManager<A> {
+    fn default() -> ActorManager<A> {
+        ActorManager::new()
+    }
 }
 
 impl<A: Actor + ?Sized> ActorManager<A> {
-    pub fn new(actor_gen: ActorFromToken<A>) -> ActorManager<A> {
+    pub fn new() -> ActorManager<A> {
         ActorManager {
             slots: Vec::new(),
             free_top: None,
             generation: 0,
             size: 0,
-            actor_gen,
         }
     }
 
-    pub fn with_capacity(capacity: usize, actor_gen: ActorFromToken<A>) -> ActorManager<A> {
+    pub fn with_capacity(capacity: usize) -> ActorManager<A> {
         ActorManager {
             slots: Vec::with_capacity(capacity),
             free_top: None,
             generation: 0,
             size: 0,
-            actor_gen,
         }
     }
 
-    /// Add a new actor into the manager
-    pub fn add(&mut self, token: ActorToken, position: ActorPosition, renderer: &mut Renderer) {
+    /// Removes the next index from the manager and returns it.
+    pub fn next_index(&mut self) -> ActorIndex {
         let id = match self.free_top.take() {
             Some(top) => top,
             None => self.slots.len(),
         };
-        let index = ActorIndex {
+        ActorIndex {
             id,
             generation: self.generation,
-        };
-        let actor = (self.actor_gen)(token, index, position, renderer);
+        }
+    }
+
+    /// Add a new actor into the manager
+    pub fn add(&mut self, index: ActorIndex, actor: Box<A>) {
         let actor_slot = Slot::Full {
             actor,
-            generation: self.generation,
+            generation: index.generation,
         };
+
+        let id = index.id;
         if id == self.slots.len() {
             self.slots.push(actor_slot);
         } else {
@@ -138,6 +141,10 @@ impl<A: Actor + ?Sized> ActorManager<A> {
         self.size
     }
 
+    pub fn capacity(&self) -> usize {
+        self.slots.capacity()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -152,5 +159,98 @@ impl<A: Actor + ?Sized> ActorManager<A> {
     ) -> A::Message {
         self.get_mut(actor_id)
             .map_or(none, |actor| actor.handle_message(msg))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use collision::CollisionSide;
+    use context::Context;
+    use sdl2::rect::Rect;
+    use sdl2::render::Renderer;
+    use std::error::Error;
+    use vector::PositionChange;
+    use viewport::Viewport;
+    use ActorData;
+
+    #[derive(Debug, Clone, PartialEq)]
+    struct TestActor(ActorIndex);
+    impl Actor for TestActor {
+        type Type = ();
+        type Message = ();
+
+        fn handle_message(&mut self, _message: &()) -> () {
+            ()
+        }
+        fn collides_with(&mut self, _other: &ActorData<()>) -> Option<CollisionSide> {
+            None
+        }
+        fn update(&mut self, _context: &mut Context, _elapsed: f64) -> PositionChange {
+            PositionChange {
+                x: 0,
+                y: 0,
+                w: 0,
+                h: 0,
+            }
+        }
+        fn render(
+            &mut self,
+            _context: &mut Context,
+            _viewport: &mut Viewport,
+            _elapsed: f64,
+        ) -> Result<(), Box<Error>> {
+            Ok(())
+        }
+        fn data(&mut self) -> ActorData<Self::Type> {
+            ActorData {
+                index: self.0,
+                state: 0,
+                damage: 0,
+                collision_filter: 0,
+                resolves_collisions: false,
+                rect: Rect::new(0, 0, 0, 0),
+                bounding_box: None,
+                actor_type: (),
+            }
+        }
+    }
+
+    fn actor_from_token(
+        _token: ActorToken,
+        index: ActorIndex,
+        _position: ActorPosition,
+        _renderer: &mut Renderer,
+    ) -> Box<Actor<Type = (), Message = ()>> {
+        Box::new(TestActor(index))
+    }
+
+    #[test]
+    fn insert_and_remove() {
+        let mut manager = ActorManager::with_capacity(100);
+        let mut indexes = Vec::new();
+        for _ in 0..100 {
+            let next_index = manager.next_index();
+            manager.add(next_index, Box::new(TestActor(next_index)));
+            indexes.push(next_index);
+        }
+
+        for i in indexes.iter().take(50) {
+            assert!(manager.get_mut(*i).is_some());
+            manager.remove(*i);
+            assert_eq!(manager.get_mut(*i), None);
+        }
+
+        for _ in 0..50 {
+            let next_index = manager.next_index();
+            manager.add(next_index, Box::new(TestActor(next_index)));
+        }
+
+        assert_eq!(manager.len(), 100);
+        assert_eq!(manager.capacity(), 100);
+
+        let mut count = 0;
+        manager.values_mut().for_each(|_| count += 1);
+        assert_eq!(count, 100);
     }
 }
