@@ -37,7 +37,7 @@ where
                     let next_index = manager.next_index();
                     let actor = actor_for_token(
                         ActorToken(token),
-                        next_index,
+                        next_index.index(),
                         ActorPosition(x, y),
                         renderer,
                     );

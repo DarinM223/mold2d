@@ -13,6 +13,15 @@ pub struct ActorIndex {
     pub generation: usize,
 }
 
+#[derive(Debug)]
+pub struct NextIndex(ActorIndex);
+
+impl NextIndex {
+    pub fn index(&self) -> ActorIndex {
+        self.0
+    }
+}
+
 enum Slot<A: ?Sized> {
     Free { next_free: Option<usize> },
     Full { actor: Box<A>, generation: usize },
@@ -52,19 +61,21 @@ impl<A: Actor + ?Sized> ActorManager<A> {
     }
 
     /// Removes the next index from the manager and returns it.
-    pub fn next_index(&mut self) -> ActorIndex {
+    pub fn next_index(&mut self) -> NextIndex {
         let id = match self.free_top.take() {
             Some(top) => top,
             None => self.slots.len(),
         };
-        ActorIndex {
+        NextIndex(ActorIndex {
             id,
             generation: self.generation,
-        }
+        })
     }
 
-    /// Add a new actor into the manager
-    pub fn add(&mut self, index: ActorIndex, actor: Box<A>) {
+    /// Adds a new actor into the manager.
+    ///
+    /// The index passed in must be the result of next_index().
+    pub fn add(&mut self, NextIndex(index): NextIndex, actor: Box<A>) {
         let actor_slot = Slot::Full {
             actor,
             generation: index.generation,
@@ -82,7 +93,7 @@ impl<A: Actor + ?Sized> ActorManager<A> {
         self.size += 1;
     }
 
-    /// Remove an actor
+    /// Removes an actor from the manager.
     pub fn remove(&mut self, index: ActorIndex) {
         let id = index.id;
 
@@ -226,13 +237,14 @@ mod tests {
     }
 
     #[test]
-    fn insert_and_remove() {
+    fn test_insert_and_remove() {
         let mut manager = ActorManager::with_capacity(100);
         let mut indexes = Vec::new();
         for _ in 0..100 {
             let next_index = manager.next_index();
-            manager.add(next_index, Box::new(TestActor(next_index)));
-            indexes.push(next_index);
+            let index = next_index.index();
+            manager.add(next_index, Box::new(TestActor(index)));
+            indexes.push(index);
         }
 
         for i in indexes.iter().take(50) {
@@ -243,7 +255,8 @@ mod tests {
 
         for _ in 0..50 {
             let next_index = manager.next_index();
-            manager.add(next_index, Box::new(TestActor(next_index)));
+            let index = next_index.index();
+            manager.add(next_index, Box::new(TestActor(index)));
         }
 
         assert_eq!(manager.len(), 100);
@@ -252,5 +265,31 @@ mod tests {
         let mut count = 0;
         manager.values_mut().for_each(|_| count += 1);
         assert_eq!(count, 100);
+    }
+
+    #[test]
+    fn test_stale_index() {
+        let mut manager = ActorManager::new();
+
+        let index;
+        {
+            let next_index = manager.next_index();
+            index = next_index.index();
+            manager.add(next_index, Box::new(TestActor(index)));
+            assert!(manager.get_mut(index).is_some());
+        }
+
+        // After replacing the value, you shouldn't be able to read
+        // from the old index.
+        {
+            manager.remove(index);
+            let next_index = manager.next_index();
+            let new_index = next_index.index();
+            assert_eq!(index.id, new_index.id);
+            manager.add(next_index, Box::new(TestActor(new_index)));
+
+            assert!(manager.get_mut(new_index).is_some());
+            assert_eq!(manager.get_mut(index), None);
+        }
     }
 }

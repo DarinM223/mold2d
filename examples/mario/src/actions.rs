@@ -89,7 +89,7 @@ pub fn handle_message(
     match *action {
         AddActor(token, pos) => {
             let next_index = actors.next_index();
-            let actor = actor_from_token(token, next_index, pos, &mut context.renderer);
+            let actor = actor_from_token(token, next_index.index(), pos, &mut context.renderer);
             actors.add(next_index, actor);
         }
         RemoveActor(id) => actors.remove(id),
