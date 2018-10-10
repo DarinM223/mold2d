@@ -1,7 +1,7 @@
 use actions::{ActorAction, ActorData, ActorMessage, ActorType};
 use mold2d::{
-    Actor, Animations, BoundingBox, CollisionSide, Context, Direction, PositionChange,
-    SpriteRectangle, Spritesheet, SpritesheetConfig, Vector2D, Viewport,
+    Actor, ActorIndex, ActorPosition, Animations, BoundingBox, CollisionSide, Context, Direction,
+    PositionChange, SpriteRectangle, Spritesheet, SpritesheetConfig, Vector2D, Viewport,
 };
 use sdl2::render::Renderer;
 use std::error::Error;
@@ -27,7 +27,7 @@ pub const KOOPA_WIDTH: u32 = 30;
 pub const KOOPA_HEIGHT: u32 = 60;
 
 pub struct Koopa {
-    id: i32,
+    index: ActorIndex,
     curr_state: KoopaState,
     size: KoopaSize,
     direction: Direction,
@@ -39,7 +39,12 @@ pub struct Koopa {
 }
 
 impl Koopa {
-    pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Koopa {
+    pub fn new(
+        index: ActorIndex,
+        position: ActorPosition,
+        renderer: &mut Renderer,
+        fps: f64,
+    ) -> Koopa {
         use self::KoopaSize::*;
         use self::KoopaState::*;
         use mold2d::sprite::Direction::*;
@@ -89,7 +94,7 @@ impl Koopa {
         anims.add((Walking, Shell, Right), sanim.range(4, 5), cbbox);
 
         Koopa {
-            id,
+            index,
             curr_state: KoopaState::Walking,
             size: KoopaSize::Upright,
             direction: Direction::Left,
@@ -121,11 +126,11 @@ impl Actor for Koopa {
                     self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
                     ActorMessage::None
                 }
-                DamageActor(_) => ActorMessage::RemoveActor(self.id),
+                DamageActor(_) => ActorMessage::RemoveActor(self.index),
                 CanBounce => {
                     // Respond with yes if size is upright
                     ActorMessage::ActorAction {
-                        send_id: self.id,
+                        send_id: self.index,
                         recv_id: send_id,
                         action: ActorAction::Bounce(
                             self.size == KoopaSize::Upright || self.curr_speed.x == 0.,
@@ -162,7 +167,7 @@ impl Actor for Koopa {
                 }
                 Collision(actor_type, side) if side & 0b1101 != 0 => {
                     let damage_message = ActorMessage::ActorAction {
-                        send_id: self.id,
+                        send_id: self.index,
                         recv_id: send_id,
                         action: ActorAction::DamageActor(0),
                     };
@@ -172,7 +177,7 @@ impl Actor for Koopa {
                             ActorType::Item => {
                                 // Attempt to pick up item if kicked
                                 ActorMessage::ActorAction {
-                                    send_id: self.id,
+                                    send_id: self.index,
                                     recv_id: send_id,
                                     action: ActorAction::DamageActor(0),
                                 }
@@ -255,7 +260,7 @@ impl Actor for Koopa {
 
     fn data(&mut self) -> ActorData {
         ActorData {
-            id: self.id,
+            index: self.index,
             state: self.curr_state as u32,
             damage: 5,
             resolves_collisions: true,

@@ -38,7 +38,7 @@ pub mod sprite;
 pub mod vector;
 pub mod viewport;
 
-pub use actor_manager::{ActorFromToken, ActorManager};
+pub use actor_manager::{ActorIndex, ActorManager, ActorPosition, ActorToken};
 pub use collision::{BoundingBox, Collision, CollisionSide};
 pub use context::{Context, Window};
 pub use events::Events;
@@ -57,7 +57,7 @@ use std::error::Error;
 
 /// Handler for a view to deal with actor messages
 pub type MessageHandler<A> =
-    Fn(i32, &mut ActorManager<A>, &mut Viewport, &mut Context, &<A as Actor>::Message);
+    Fn(ActorIndex, &mut ActorManager<A>, &mut Viewport, &mut Context, &<A as Actor>::Message);
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {
@@ -78,8 +78,8 @@ pub trait View {
 /// The data contained in an actor
 #[derive(Clone, Copy, PartialEq)]
 pub struct ActorData<Type> {
-    /// The id of the actor given by the actor manager
-    pub id: i32,
+    /// The index of the actor given by the actor manager
+    pub index: ActorIndex,
     /// The current state of the actor as a number
     pub state: u32,
     /// The damage that the actor has taken so far

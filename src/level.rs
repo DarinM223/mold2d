@@ -1,5 +1,5 @@
 use super::Actor;
-use actor_manager::{ActorFromToken, ActorManager};
+use actor_manager::{ActorIndex, ActorManager, ActorPosition, ActorToken};
 use context::Window;
 use sdl2::render::Renderer;
 use std::fs::File;
@@ -10,14 +10,18 @@ use viewport::Viewport;
 pub const GRID_SIZE: i32 = 40;
 
 /// Loads a new level and returns an ActorManager with the loaded actors
-pub fn load_level<A: Actor + ?Sized>(
+pub fn load_level<A, F>(
     path: &str,
-    actor_for_token: ActorFromToken<A>,
+    actor_for_token: F,
     renderer: &mut Renderer,
     window: &Window,
-) -> io::Result<(ActorManager<A>, Viewport)> {
+) -> io::Result<(ActorManager<A>, Viewport)>
+where
+    A: Actor + ?Sized,
+    F: Fn(ActorToken, ActorIndex, ActorPosition, &mut Renderer) -> Box<A>,
+{
     let mut center_point = (0, 0);
-    let mut manager = ActorManager::new(actor_for_token);
+    let mut manager = ActorManager::new();
 
     File::open(path).and_then(|file| {
         let reader = BufReader::new(file);
@@ -30,7 +34,14 @@ pub fn load_level<A: Actor + ?Sized>(
         for line in reader.lines() {
             for token in line?.chars() {
                 if token != ' ' {
-                    manager.add(token, (x, y), renderer);
+                    let next_index = manager.next_index();
+                    let actor = actor_for_token(
+                        ActorToken(token),
+                        next_index.index(),
+                        ActorPosition(x, y),
+                        renderer,
+                    );
+                    manager.add(next_index, actor);
 
                     if token == 'P' {
                         has_player = true;

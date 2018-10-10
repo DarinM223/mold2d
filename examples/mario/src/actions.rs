@@ -3,7 +3,10 @@ use actors::coin::Coin;
 use actors::koopa::Koopa;
 use actors::player::Player;
 use mold2d;
-use mold2d::{ActorManager, CollisionSide, Context, MessageHandler, PositionChange, Viewport};
+use mold2d::{
+    ActorIndex, ActorManager, ActorPosition, ActorToken, CollisionSide, Context, MessageHandler,
+    PositionChange, Viewport,
+};
 use sdl2::render::Renderer;
 
 /// Actions for an actor to process
@@ -26,12 +29,12 @@ pub enum ActorAction {
 /// Actor messages
 #[derive(Clone, Debug, PartialEq)]
 pub enum ActorMessage {
-    AddActor(char, (i32, i32)),
-    RemoveActor(i32),
+    AddActor(ActorToken, ActorPosition),
+    RemoveActor(ActorIndex),
     SetViewport(i32, i32),
     ActorAction {
-        send_id: i32,
-        recv_id: i32,
+        send_id: ActorIndex,
+        recv_id: ActorIndex,
         action: ActorAction,
     },
     MultipleMessages(Vec<Box<ActorMessage>>),
@@ -56,26 +59,26 @@ pub type ActorData = mold2d::ActorData<ActorType>;
 
 #[inline]
 pub fn actor_from_token(
-    token: char,
-    id: i32,
-    position: (i32, i32),
+    ActorToken(token): ActorToken,
+    index: ActorIndex,
+    position: ActorPosition,
     renderer: &mut Renderer,
 ) -> Box<Actor> {
     match token {
-        'P' => Box::new(Player::new(id, position, renderer, 30.)),
-        'C' => Box::new(Coin::new(id, position, renderer, 20.)),
-        'K' => Box::new(Koopa::new(id, position, renderer, 30.)),
-        'S' => Box::new(StartBlock::new(id, position, renderer, 1.)),
-        '=' => Box::new(GroundBlockTop::new(id, position, renderer, 1.)),
-        '-' => Box::new(GroundBlockMid::new(id, position, renderer, 1.)),
-        '_' => Box::new(StoneBlock::new(id, position, renderer, 1.)),
+        'P' => Box::new(Player::new(index, position, renderer, 30.)),
+        'C' => Box::new(Coin::new(index, position, renderer, 20.)),
+        'K' => Box::new(Koopa::new(index, position, renderer, 30.)),
+        'S' => Box::new(StartBlock::new(index, position, renderer, 1.)),
+        '=' => Box::new(GroundBlockTop::new(index, position, renderer, 1.)),
+        '-' => Box::new(GroundBlockMid::new(index, position, renderer, 1.)),
+        '_' => Box::new(StoneBlock::new(index, position, renderer, 1.)),
         _ => panic!("Actor not implemented for token!"),
     }
 }
 
 #[inline]
 pub fn handle_message(
-    curr_actor_id: i32,
+    curr_actor_id: ActorIndex,
     actors: &mut ActorManager<Actor>,
     viewport: &mut Viewport,
     context: &mut Context,
@@ -84,7 +87,11 @@ pub fn handle_message(
     use actions::ActorMessage::*;
 
     match *action {
-        AddActor(token, pos) => actors.add(token, pos, &mut context.renderer),
+        AddActor(token, pos) => {
+            let next_index = actors.next_index();
+            let actor = actor_from_token(token, next_index.index(), pos, &mut context.renderer);
+            actors.add(next_index, actor);
+        }
         RemoveActor(id) => actors.remove(id),
         UpdateScore(amount) => context.score.increment_score("GAME_SCORE", amount),
         MultipleMessages(ref messages) => {
@@ -107,6 +114,10 @@ pub fn handle_message(
 #[inline]
 pub fn resolve_collision(actor: &mut Actor, other: &ActorData, direction: CollisionSide) {
     let data = actor.data();
+    let invalid_index = ActorIndex {
+        id: 0,
+        generation: 0,
+    };
     if data.resolves_collisions {
         while actor.collides_with(other) == Some(direction) {
             let change = match direction {
@@ -117,8 +128,8 @@ pub fn resolve_collision(actor: &mut Actor, other: &ActorData, direction: Collis
             };
 
             actor.handle_message(&ActorMessage::ActorAction {
-                send_id: -1,
-                recv_id: -1,
+                send_id: invalid_index,
+                recv_id: invalid_index,
                 action: ActorAction::ChangePosition(change),
             });
         }
@@ -126,8 +137,8 @@ pub fn resolve_collision(actor: &mut Actor, other: &ActorData, direction: Collis
         if direction == CollisionSide::Bottom {
             let down_change = PositionChange::new().down(1);
             actor.handle_message(&ActorMessage::ActorAction {
-                send_id: -1,
-                recv_id: -1,
+                send_id: invalid_index,
+                recv_id: invalid_index,
                 action: ActorAction::ChangePosition(down_change),
             });
         }
@@ -150,17 +161,17 @@ pub fn handle_collision(
 
     if direction != 0 {
         let response = ActorMessage::ActorAction {
-            send_id: other.id,
-            recv_id: actor.id,
+            send_id: other.index,
+            recv_id: actor.index,
             action: ActorAction::Collision(other.actor_type, CollisionSide::from(direction)),
         };
         let other_msg = ActorMessage::ActorAction {
-            send_id: actor.id,
-            recv_id: other.id,
+            send_id: actor.index,
+            recv_id: other.index,
             action: ActorAction::Collision(actor.actor_type, CollisionSide::from(rev_dir)),
         };
 
-        (handler)(actor.id, actors, viewport, context, &response);
-        (handler)(actor.id, actors, viewport, context, &other_msg);
+        (handler)(actor.index, actors, viewport, context, &response);
+        (handler)(actor.index, actors, viewport, context, &other_msg);
     }
 }

@@ -1,7 +1,7 @@
 use actions::{ActorAction, ActorData, ActorMessage, ActorType};
 use mold2d::{
-    Actor, AnimatedSprite, BoundingBox, Collision, CollisionSide, Context, PositionChange,
-    Renderable, SpriteRectangle, Spritesheet, SpritesheetConfig, Viewport,
+    Actor, ActorIndex, ActorPosition, AnimatedSprite, BoundingBox, Collision, CollisionSide,
+    Context, PositionChange, Renderable, SpriteRectangle, Spritesheet, SpritesheetConfig, Viewport,
 };
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
@@ -10,13 +10,18 @@ use std::error::Error;
 const COIN_VALUE: i32 = 5;
 
 pub struct Coin {
-    id: i32,
+    index: ActorIndex,
     rect: SpriteRectangle,
     animation: AnimatedSprite,
 }
 
 impl Coin {
-    pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Coin {
+    pub fn new(
+        index: ActorIndex,
+        position: ActorPosition,
+        renderer: &mut Renderer,
+        fps: f64,
+    ) -> Coin {
         let anim = Spritesheet::new(
             SpritesheetConfig {
                 width: 32,
@@ -30,7 +35,7 @@ impl Coin {
         let anims = anim.range(0, 8);
 
         Coin {
-            id,
+            index,
             rect: SpriteRectangle::new(position.0, position.1, 32, 32),
             animation: AnimatedSprite::with_fps(anims, fps),
         }
@@ -49,7 +54,7 @@ impl Actor for Coin {
                     // Update score and remove coin
                     ActorMessage::MultipleMessages(vec![
                         Box::new(ActorMessage::UpdateScore(COIN_VALUE)),
-                        Box::new(ActorMessage::RemoveActor(self.data().id)),
+                        Box::new(ActorMessage::RemoveActor(self.data().index)),
                     ])
                 }
                 // Action when an enemy is thrown or kicked into item
@@ -57,7 +62,7 @@ impl Actor for Coin {
                     // Update score and remove coin
                     ActorMessage::MultipleMessages(vec![
                         Box::new(ActorMessage::UpdateScore(COIN_VALUE)),
-                        Box::new(ActorMessage::RemoveActor(self.data().id)),
+                        Box::new(ActorMessage::RemoveActor(self.data().index)),
                     ])
                 }
                 _ => ActorMessage::None,
@@ -92,7 +97,7 @@ impl Actor for Coin {
 
     fn data(&mut self) -> ActorData {
         ActorData {
-            id: self.id,
+            index: self.index,
             state: 0,
             damage: 0,
             collision_filter: 0b1111,

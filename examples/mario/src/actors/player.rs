@@ -1,7 +1,8 @@
 use actions::{ActorAction, ActorData, ActorMessage, ActorType};
 use mold2d::{
-    Actor, Animations, BoundingBox, CollisionSide, Context, Direction, Polygon, PositionChange,
-    Segment, SpriteRectangle, Spritesheet, SpritesheetConfig, Vector2D, Viewport,
+    Actor, ActorIndex, ActorPosition, Animations, BoundingBox, CollisionSide, Context, Direction,
+    Polygon, PositionChange, Segment, SpriteRectangle, Spritesheet, SpritesheetConfig, Vector2D,
+    Viewport,
 };
 use sdl2::pixels::Color;
 use sdl2::render::Renderer;
@@ -30,7 +31,7 @@ pub enum PlayerSize {
 }
 
 pub struct Player {
-    id: i32,
+    index: ActorIndex,
     curr_state: PlayerState,
     direction: Direction,
     size: PlayerSize,
@@ -44,7 +45,12 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(id: i32, position: (i32, i32), renderer: &mut Renderer, fps: f64) -> Player {
+    pub fn new(
+        index: ActorIndex,
+        position: ActorPosition,
+        renderer: &mut Renderer,
+        fps: f64,
+    ) -> Player {
         use self::PlayerSize::*;
         use self::PlayerState::*;
         use mold2d::sprite::Direction::*;
@@ -105,7 +111,7 @@ impl Player {
         anims.add((Crouching, Walking, Right), banim.range(10, 11), cbbox);
 
         Player {
-            id,
+            index,
             curr_state: PlayerState::Jumping,
             direction: Direction::Right,
             size: PlayerSize::Big,
@@ -168,7 +174,7 @@ impl Actor for Player {
                 ActorAction::Collision(ActorType::Enemy, CollisionSide::Bottom) => {
                     // Ask actor if it can bounce on it
                     ActorMessage::ActorAction {
-                        send_id: self.id,
+                        send_id: self.index,
                         recv_id: send_id,
                         action: ActorAction::CanBounce,
                     }
@@ -300,7 +306,7 @@ impl Actor for Player {
 
     fn data(&mut self) -> ActorData {
         ActorData {
-            id: self.id,
+            index: self.index,
             state: self.curr_state as u32,
             damage: 0,
             resolves_collisions: true,
