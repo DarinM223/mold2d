@@ -1,4 +1,5 @@
 use crate::actions::{ActorMessage, ActorType};
+use mold2d::block;
 
 block! {
     actor_type: ActorType,

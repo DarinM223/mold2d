@@ -1,6 +1,3 @@
-#[macro_use(block)]
-extern crate mold2d;
-
 pub mod actions;
 pub mod actors;
 pub mod views;
