@@ -1,10 +1,10 @@
-use collision::CollisionSide;
+use crate::collision::CollisionSide;
+use crate::vector::Vector2D;
+use crate::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
 use sdl2::render::Renderer;
 use std::error::Error;
-use vector::Vector2D;
-use viewport::Viewport;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Segment {
@@ -159,9 +159,9 @@ fn get_intersection(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use collision::CollisionSide;
+    use crate::collision::CollisionSide;
+    use crate::vector::Vector2D;
     use sdl2::rect::Rect;
-    use vector::Vector2D;
 
     fn assert_float(a: f64, b: f64) {
         assert!((a - b).abs() < 0.000000001);

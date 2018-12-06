@@ -1,8 +1,8 @@
+use crate::sprite::SpriteRectangle;
+use crate::vector::PositionChange;
 use sdl2::rect::Rect;
-use sprite::SpriteRectangle;
 use std::mem;
 use std::ops::{BitAnd, BitOr};
-use vector::PositionChange;
 
 /// Checks if a rectangle contains another rectangle
 pub fn rect_contains_rect(parent: Rect, child: Rect) -> bool {

@@ -1,6 +1,6 @@
 use super::ActorData;
+use crate::viewport::Viewport;
 use sdl2::rect::Rect;
-use viewport::Viewport;
 
 const MAX_OBJECTS: usize = 5;
 const MAX_LEVELS: i32 = 10;

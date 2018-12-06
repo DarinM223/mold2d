@@ -176,14 +176,14 @@ impl<A: Actor + ?Sized> ActorManager<A> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use collision::CollisionSide;
-    use context::Context;
+    use crate::collision::CollisionSide;
+    use crate::context::Context;
+    use crate::vector::PositionChange;
+    use crate::viewport::Viewport;
+    use crate::ActorData;
     use sdl2::rect::Rect;
     use sdl2::render::Renderer;
     use std::error::Error;
-    use vector::PositionChange;
-    use viewport::Viewport;
-    use ActorData;
 
     #[derive(Debug, Clone, PartialEq)]
     struct TestActor(ActorIndex);
@@ -272,24 +272,20 @@ mod tests {
         let mut manager = ActorManager::new();
 
         let index;
-        {
-            let next_index = manager.next_index();
-            index = next_index.index();
-            manager.add(next_index, Box::new(TestActor(index)));
-            assert!(manager.get_mut(index).is_some());
-        }
+        let next_index = manager.next_index();
+        index = next_index.index();
+        manager.add(next_index, Box::new(TestActor(index)));
+        assert!(manager.get_mut(index).is_some());
 
         // After replacing the value, you shouldn't be able to read
         // from the old index.
-        {
-            manager.remove(index);
-            let next_index = manager.next_index();
-            let new_index = next_index.index();
-            assert_eq!(index.id, new_index.id);
-            manager.add(next_index, Box::new(TestActor(new_index)));
+        manager.remove(index);
+        let next_index = manager.next_index();
+        let new_index = next_index.index();
+        assert_eq!(index.id, new_index.id);
+        manager.add(next_index, Box::new(TestActor(new_index)));
 
-            assert!(manager.get_mut(new_index).is_some());
-            assert_eq!(manager.get_mut(index), None);
-        }
+        assert!(manager.get_mut(new_index).is_some());
+        assert_eq!(manager.get_mut(index), None);
     }
 }

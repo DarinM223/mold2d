@@ -1,4 +1,4 @@
-use actions::{ActorAction, ActorData, ActorMessage, ActorType};
+use crate::actions::{ActorAction, ActorData, ActorMessage, ActorType};
 use mold2d::{
     Actor, ActorIndex, ActorPosition, AnimatedSprite, BoundingBox, Collision, CollisionSide,
     Context, PositionChange, Renderable, SpriteRectangle, Spritesheet, SpritesheetConfig, Viewport,

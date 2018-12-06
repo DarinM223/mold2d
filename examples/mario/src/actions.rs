@@ -1,7 +1,7 @@
-use actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
-use actors::coin::Coin;
-use actors::koopa::Koopa;
-use actors::player::Player;
+use crate::actors::block::{GroundBlockMid, GroundBlockTop, StartBlock, StoneBlock};
+use crate::actors::coin::Coin;
+use crate::actors::koopa::Koopa;
+use crate::actors::player::Player;
 use mold2d;
 use mold2d::{
     ActorIndex, ActorManager, ActorPosition, ActorToken, CollisionSide, Context, MessageHandler,
@@ -84,7 +84,7 @@ pub fn handle_message(
     context: &mut Context,
     action: &ActorMessage,
 ) {
-    use actions::ActorMessage::*;
+    use crate::actions::ActorMessage::*;
 
     match *action {
         AddActor(token, pos) => {

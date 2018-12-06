@@ -1,5 +1,5 @@
-use events::Events;
-use score::Score;
+use crate::events::Events;
+use crate::score::Score;
 use sdl2::render::Renderer;
 
 /// Represents a SDL window to render

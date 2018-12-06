@@ -1,4 +1,4 @@
-use actions::{ActorAction, ActorData, ActorMessage, ActorType};
+use crate::actions::{ActorAction, ActorData, ActorMessage, ActorType};
 use mold2d::{
     Actor, ActorIndex, ActorPosition, Animations, BoundingBox, CollisionSide, Context, Direction,
     PositionChange, SpriteRectangle, Spritesheet, SpritesheetConfig, Vector2D, Viewport,
@@ -112,7 +112,7 @@ impl Actor for Koopa {
     type Message = ActorMessage;
 
     fn handle_message(&mut self, message: &ActorMessage) -> ActorMessage {
-        use actions::ActorAction::*;
+        use crate::actions::ActorAction::*;
 
         if let ActorMessage::ActorAction {
             send_id,

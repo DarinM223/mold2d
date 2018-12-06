@@ -15,15 +15,8 @@
 //! y axis, down is a positive change in the y axis, left is a negative
 //! change in the x axis, and right is a positive change in the x axis.
 
-#[macro_use]
-extern crate lazy_static;
-extern crate libc;
-extern crate sdl2;
-
-#[macro_use]
-pub mod block;
-
 pub mod actor_manager;
+pub mod block;
 pub mod cache;
 pub mod collision;
 pub mod context;
@@ -38,19 +31,19 @@ pub mod sprite;
 pub mod vector;
 pub mod viewport;
 
-pub use actor_manager::{ActorIndex, ActorManager, ActorPosition, ActorToken};
-pub use collision::{BoundingBox, Collision, CollisionSide};
-pub use context::{Context, Window};
-pub use events::Events;
-pub use quadtree::Quadtree;
-pub use raycast::{Polygon, Segment};
-pub use score::Score;
-pub use sprite::{
+pub use crate::actor_manager::{ActorIndex, ActorManager, ActorPosition, ActorToken};
+pub use crate::collision::{BoundingBox, Collision, CollisionSide};
+pub use crate::context::{Context, Window};
+pub use crate::events::Events;
+pub use crate::quadtree::Quadtree;
+pub use crate::raycast::{Polygon, Segment};
+pub use crate::score::Score;
+pub use crate::sprite::{
     AnimatedSprite, Animations, Direction, Renderable, Sprite, SpriteRectangle, Spritesheet,
     SpritesheetConfig,
 };
-pub use vector::{PositionChange, Vector2D};
-pub use viewport::Viewport;
+pub use crate::vector::{PositionChange, Vector2D};
+pub use crate::viewport::Viewport;
 
 use sdl2::rect::Rect;
 use std::error::Error;

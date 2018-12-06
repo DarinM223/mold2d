@@ -1,12 +1,12 @@
-use actions::{actor_from_token, handle_collision, handle_message, resolve_collision};
-use actions::{Actor, ActorAction, ActorMessage, ActorType};
+use crate::actions::{actor_from_token, handle_collision, handle_message, resolve_collision};
+use crate::actions::{Actor, ActorAction, ActorMessage, ActorType};
+use crate::views::background_view::BackgroundView;
 use mold2d::font;
 use mold2d::level;
 use mold2d::{ActorManager, Context, Quadtree, Sprite, View, ViewAction, Viewport};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use std::error::Error;
-use views::background_view::BackgroundView;
 
 /// The main game view used for
 /// the actual gameplay
@@ -77,7 +77,8 @@ impl View for GameView {
                     "assets/belligerent.ttf",
                     32,
                     Color::RGB(0, 255, 0),
-                ).unwrap();
+                )
+                .unwrap();
                 font::render_text(&mut context.renderer, &font_sprite, (100, 100))?;
                 self.cached_score = Some(score_text);
                 self.cached_font_sprite = Some(font_sprite);
@@ -97,70 +98,68 @@ impl View for GameView {
             return Some(ViewAction::ChangeView(Box::new(BackgroundView)));
         }
 
-        {
-            let window_rect = Rect::new(0, 0, context.window.width, context.window.height);
-            let viewport_clone = self.viewport.clone();
-            let mut quadtree = Quadtree::new(window_rect, &viewport_clone);
-            let mut keys = Vec::with_capacity(self.actors.len());
+        let window_rect = Rect::new(0, 0, context.window.width, context.window.height);
+        let viewport_clone = self.viewport.clone();
+        let mut quadtree = Quadtree::new(window_rect, &viewport_clone);
+        let mut keys = Vec::with_capacity(self.actors.len());
 
-            for (key, actor) in &mut self.actors.iter_mut() {
+        for (key, actor) in &mut self.actors.iter_mut() {
+            let data = actor.data();
+
+            if self.viewport.rect_in_viewport(&data.rect) {
+                keys.push(key);
+                quadtree.insert(data);
+            }
+        }
+
+        for key in keys {
+            let mut collisions = [None; 6];
+            let mut collision_idx = 0;
+            if let Some(actor) = self.actors.get_mut(key) {
                 let data = actor.data();
 
-                if self.viewport.rect_in_viewport(&data.rect) {
-                    keys.push(key);
-                    quadtree.insert(data);
+                // update the actor
+                let pos_change = actor.update(context, elapsed);
+                actor.handle_message(&ActorMessage::ActorAction {
+                    send_id: data.index,
+                    recv_id: data.index,
+                    action: ActorAction::ChangePosition(pos_change),
+                });
+
+                if data.collision_filter != 0 && data.actor_type != ActorType::Block {
+                    // only check collisions for nearby actors
+                    let nearby_actors = quadtree
+                        .retrieve(&data.rect)
+                        .into_iter()
+                        .cloned()
+                        .collect::<Vec<_>>();
+                    for other in nearby_actors {
+                        if let Some(direction) = actor.collides_with(&other) {
+                            resolve_collision(actor, &other, direction);
+                            collisions[collision_idx] = Some((data, other, direction));
+                            collision_idx += 1;
+                        }
+                    }
+                }
+
+                if data.actor_type == ActorType::Player {
+                    self.viewport.set_position((data.rect.x(), data.rect.y()));
                 }
             }
 
-            for key in keys {
-                let mut collisions = [None; 6];
-                let mut collision_idx = 0;
-                if let Some(actor) = self.actors.get_mut(key) {
-                    let data = actor.data();
-
-                    // update the actor
-                    let pos_change = actor.update(context, elapsed);
-                    actor.handle_message(&ActorMessage::ActorAction {
-                        send_id: data.index,
-                        recv_id: data.index,
-                        action: ActorAction::ChangePosition(pos_change),
-                    });
-
-                    if data.collision_filter != 0 && data.actor_type != ActorType::Block {
-                        // only check collisions for nearby actors
-                        let nearby_actors = quadtree
-                            .retrieve(&data.rect)
-                            .into_iter()
-                            .cloned()
-                            .collect::<Vec<_>>();
-                        for other in nearby_actors {
-                            if let Some(direction) = actor.collides_with(&other) {
-                                resolve_collision(actor, &other, direction);
-                                collisions[collision_idx] = Some((data, other, direction));
-                                collision_idx += 1;
-                            }
-                        }
-                    }
-
-                    if data.actor_type == ActorType::Player {
-                        self.viewport.set_position((data.rect.x(), data.rect.y()));
-                    }
-                }
-
-                for collision in collisions.iter() {
-                    if let Some((actor, other, direction)) = *collision {
-                        handle_collision(
-                            &actor,
-                            &other,
-                            direction,
-                            &handle_message,
-                            &mut self.actors,
-                            &mut self.viewport,
-                            context,
-                        );
-                    } else {
-                        break;
-                    }
+            for collision in collisions.iter() {
+                if let Some((actor, other, direction)) = *collision {
+                    handle_collision(
+                        &actor,
+                        &other,
+                        direction,
+                        &handle_message,
+                        &mut self.actors,
+                        &mut self.viewport,
+                        context,
+                    );
+                } else {
+                    break;
                 }
             }
         }

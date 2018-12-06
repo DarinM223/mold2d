@@ -1,6 +1,8 @@
-use cache;
-use collision;
-use collision::{BoundingBox, Collision, CollisionSide};
+use crate::cache;
+use crate::collision;
+use crate::collision::{BoundingBox, Collision, CollisionSide};
+use crate::vector::PositionChange;
+use crate::viewport::Viewport;
 use sdl2::image::LoadTexture;
 use sdl2::rect::Rect;
 use sdl2::render::{Renderer, Texture};
@@ -10,8 +12,6 @@ use std::error::Error;
 use std::hash::Hash;
 use std::path::Path;
 use std::rc::Rc;
-use vector::PositionChange;
-use viewport::Viewport;
 
 /// The direction that a sprite is facing
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -258,7 +258,8 @@ impl Spritesheet {
                     self.config.height,
                 );
                 self.spritesheet.region(region)
-            }).flat_map(|sprite| sprite)
+            })
+            .flat_map(|sprite| sprite)
             .collect()
     }
 }

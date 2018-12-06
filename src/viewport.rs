@@ -1,5 +1,5 @@
-use collision::center_point;
-use context::Window;
+use crate::collision::center_point;
+use crate::context::Window;
 use sdl2::rect::Rect;
 
 /// Calculates the origin coordinate for the viewport

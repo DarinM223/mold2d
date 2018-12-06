@@ -1,15 +1,13 @@
 #[macro_use(block)]
 extern crate mold2d;
 
-extern crate sdl2;
-
 pub mod actions;
 pub mod actors;
 pub mod views;
 
+use crate::views::game_view::GameView;
 use mold2d::event_loop;
 use mold2d::Window;
-use views::game_view::GameView;
 
 fn main() {
     let window = Window {

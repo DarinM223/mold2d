@@ -2,8 +2,8 @@ mod frame_timer;
 
 use self::frame_timer::{FrameAction, FrameTimer};
 use super::{View, ViewAction};
-use context::{Context, Window};
-use events::Events;
+use crate::context::{Context, Window};
+use crate::events::Events;
 use sdl2;
 use sdl2::image::{INIT_JPG, INIT_PNG};
 use std::error::Error;

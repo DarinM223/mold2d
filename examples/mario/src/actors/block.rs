@@ -1,4 +1,4 @@
-use actions::{ActorMessage, ActorType};
+use crate::actions::{ActorMessage, ActorType};
 
 block! {
     actor_type: ActorType,

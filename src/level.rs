@@ -1,11 +1,11 @@
 use super::Actor;
-use actor_manager::{ActorIndex, ActorManager, ActorPosition, ActorToken};
-use context::Window;
+use crate::actor_manager::{ActorIndex, ActorManager, ActorPosition, ActorToken};
+use crate::context::Window;
+use crate::viewport::Viewport;
 use sdl2::render::Renderer;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
-use viewport::Viewport;
 
 pub const GRID_SIZE: i32 = 40;
 

@@ -1,5 +1,6 @@
+use crate::sprite::Sprite;
+use lazy_static::*;
 use sdl2::ttf::{Font, Sdl2TtfContext};
-use sprite::Sprite;
 use std::collections::HashMap;
 use std::mem;
 use std::sync::{Arc, Mutex, Once, ONCE_INIT};

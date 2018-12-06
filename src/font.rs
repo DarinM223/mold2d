@@ -1,8 +1,8 @@
-use cache;
+use crate::cache;
+use crate::sprite::{Renderable, Sprite};
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::render::Renderer;
-use sprite::{Renderable, Sprite};
 use std::error::Error;
 use std::path::Path;
 
@@ -17,14 +17,12 @@ pub fn text_sprite(
     let font_cache = cache::font_cache();
 
     // if font is cached use the cached font
-    {
-        if let Ok(ref cache) = font_cache.cache.lock() {
-            if let Some(font) = cache.get(font_path) {
-                let surface = font.render(text).blended(color)?;
-                let texture = renderer.create_texture_from_surface(&surface)?;
+    if let Ok(ref cache) = font_cache.cache.lock() {
+        if let Some(font) = cache.get(font_path) {
+            let surface = font.render(text).blended(color)?;
+            let texture = renderer.create_texture_from_surface(&surface)?;
 
-                return Ok(Sprite::new(texture));
-            }
+            return Ok(Sprite::new(texture));
         }
     }
 
@@ -32,12 +30,10 @@ pub fn text_sprite(
     let font = cache::TTF_CONTEXT.load_font(Path::new(font_path), size)?;
     let sprite;
 
-    {
-        let surface = font.render(text).blended(color)?;
-        let texture = renderer.create_texture_from_surface(&surface)?;
+    let surface = font.render(text).blended(color)?;
+    let texture = renderer.create_texture_from_surface(&surface)?;
 
-        sprite = Sprite::new(texture);
-    }
+    sprite = Sprite::new(texture);
 
     // cache if successful
     let _ = font_cache
