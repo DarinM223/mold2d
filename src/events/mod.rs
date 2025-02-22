@@ -1,8 +1,8 @@
 mod keyboard_mappings;
 
 use self::keyboard_mappings::KeyboardMappings;
-use sdl2::event::Event;
 use sdl2::EventPump;
+use sdl2::event::Event;
 use std::collections::HashSet;
 
 /// Handles keyboard events through SDL

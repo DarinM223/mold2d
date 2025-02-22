@@ -172,11 +172,11 @@ impl<A: Actor + ?Sized> ActorManager<A> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ActorData;
     use crate::collision::CollisionSide;
     use crate::context::Context;
     use crate::vector::PositionChange;
     use crate::viewport::Viewport;
-    use crate::ActorData;
     use sdl2::rect::Rect;
     use sdl2::render::Renderer;
     use std::error::Error;
