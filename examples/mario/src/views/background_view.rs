@@ -6,7 +6,7 @@ use std::error::Error;
 pub struct BackgroundView;
 
 impl View for BackgroundView {
-    fn render(&mut self, context: &mut Context, _elapsed: f64) -> Result<(), Box<Error>> {
+    fn render(&mut self, context: &mut Context, _elapsed: f64) -> Result<(), Box<dyn Error>> {
         // TODO: Draw background (right now just draws red as background)
         context.renderer.set_draw_color(Color::RGB(255, 0, 0));
         context.renderer.clear();

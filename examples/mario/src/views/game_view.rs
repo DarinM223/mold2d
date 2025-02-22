@@ -44,7 +44,7 @@ impl GameView {
 
 impl View for GameView {
     #[inline]
-    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<Error>> {
+    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<dyn Error>> {
         // start off with a black screen
         context.renderer.set_draw_color(Color::RGB(135, 206, 250));
         context.renderer.clear();

@@ -87,7 +87,7 @@ impl Actor for Coin {
         context: &mut Context,
         viewport: &mut Viewport,
         _elapsed: f64,
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
         let rect = Rect::new(rx, ry, self.rect.w, self.rect.h);
 

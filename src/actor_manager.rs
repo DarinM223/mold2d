@@ -1,5 +1,4 @@
 use super::Actor;
-use std::mem;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct ActorToken(pub char);
@@ -88,7 +87,7 @@ impl<A: Actor + ?Sized> ActorManager<A> {
             if let Some(Slot::Free { next_free }) = self.slots.get(id) {
                 self.free_top = *next_free;
             }
-            mem::replace(&mut self.slots[id], actor_slot);
+            self.slots[id] = actor_slot;
         }
         self.size += 1;
     }
@@ -104,12 +103,9 @@ impl<A: Actor + ?Sized> ActorManager<A> {
             _ => {}
         }
 
-        mem::replace(
-            &mut self.slots[id],
-            Slot::Free {
-                next_free: self.free_top.take(),
-            },
-        );
+        self.slots[id] = Slot::Free {
+            next_free: self.free_top.take(),
+        };
         self.free_top = Some(id);
         self.generation += 1;
         self.size -= 1;

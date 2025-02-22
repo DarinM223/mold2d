@@ -252,7 +252,7 @@ impl Actor for Koopa {
         context: &mut Context,
         viewport: &mut Viewport,
         _elapsed: f64,
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         let key = (self.curr_state, self.size, self.direction);
         self.anims
             .render(&key, &self.rect, viewport, &mut context.renderer, false)

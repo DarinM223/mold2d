@@ -21,7 +21,7 @@ pub enum Direction {
 }
 
 pub trait Renderable {
-    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>>;
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<dyn Error>>;
 }
 
 /// A mutable rectangle for a sprite so it can be moved around
@@ -90,7 +90,7 @@ impl Sprite {
     }
 
     /// Loads a new sprite from a path string to a sprite image file
-    pub fn load(renderer: &Renderer, path: &str) -> Result<Sprite, Box<Error>> {
+    pub fn load(renderer: &Renderer, path: &str) -> Result<Sprite, Box<dyn Error>> {
         let sprite_cache = cache::sprite_cache();
 
         // if sprite is cached, return from cache
@@ -141,7 +141,7 @@ impl Sprite {
 
 impl Renderable for Sprite {
     /// Render the sprite image onto the rectangle
-    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>> {
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<dyn Error>> {
         renderer
             .copy(&self.tex.borrow_mut(), Some(self.src), Some(dest))
             .map_err(From::from)
@@ -195,7 +195,7 @@ impl AnimatedSprite {
 
 impl Renderable for AnimatedSprite {
     /// Renders the current frame of the animated sprite
-    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>> {
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<dyn Error>> {
         assert!(
             !self.frames.is_empty(),
             "There as to be at least one frame!"
@@ -406,7 +406,7 @@ where
         viewport: &mut Viewport,
         renderer: &mut Renderer,
         debug: bool,
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         if debug {
             if let Some(bounding_box) = self.bbox(s) {
                 match *bounding_box {

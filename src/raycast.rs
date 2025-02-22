@@ -60,7 +60,7 @@ impl Segment {
         color: Color,
         viewport: &mut Viewport,
         renderer: &mut Renderer,
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         let (rx, ry) = viewport.relative_point((self.point.0 as i32, self.point.1 as i32));
         let p1 = Point::new(rx as i32, ry as i32);
         let p2 = Point::new(rx + (self.vector.x as i32), ry + (self.vector.y as i32));

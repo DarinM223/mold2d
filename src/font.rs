@@ -13,7 +13,7 @@ pub fn text_sprite(
     font_path: &'static str,
     size: u16,
     color: Color,
-) -> Result<Sprite, Box<Error>> {
+) -> Result<Sprite, Box<dyn Error>> {
     let font_cache = cache::font_cache();
 
     // if font is cached use the cached font
@@ -49,7 +49,7 @@ pub fn render_text(
     renderer: &mut Renderer,
     sprite: &Sprite,
     point: (i32, i32),
-) -> Result<(), Box<Error>> {
+) -> Result<(), Box<dyn Error>> {
     let (x, y) = point;
     let (w, h) = sprite.size();
     sprite.render(renderer, Rect::new(x, y, w, h))

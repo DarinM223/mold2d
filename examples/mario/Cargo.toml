@@ -18,3 +18,7 @@ features = ["ttf", "image"]
 
 [profile.release]
 debug = true
+debug-assertions = false
+
+[profile.dev]
+debug-assertions = false

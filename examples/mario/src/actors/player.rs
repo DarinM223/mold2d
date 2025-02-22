@@ -287,7 +287,7 @@ impl Actor for Player {
         context: &mut Context,
         viewport: &mut Viewport,
         _elapsed: f64,
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         // renders position change in debug mode
         if self.debug {
             let data = self.data();
