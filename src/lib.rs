@@ -50,19 +50,19 @@ use std::error::Error;
 
 /// Handler for a view to deal with actor messages
 pub type MessageHandler<A> =
-    Fn(ActorIndex, &mut ActorManager<A>, &mut Viewport, &mut Context, &<A as Actor>::Message);
+    dyn Fn(ActorIndex, &mut ActorManager<A>, &mut Viewport, &mut Context, &<A as Actor>::Message);
 
 /// Actions that the view would want the event loop to do
 pub enum ViewAction {
     /// Quit the game
     Quit,
     /// Switch to a different view
-    ChangeView(Box<View>),
+    ChangeView(Box<dyn View>),
 }
 
 pub trait View {
     /// Called every frame to render a view
-    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<Error>>;
+    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<dyn Error>>;
 
     /// Called every frame to update a view
     fn update(&mut self, context: &mut Context, elapsed: f64) -> Option<ViewAction>;
@@ -102,7 +102,7 @@ pub trait Actor {
         context: &mut Context,
         viewport: &mut Viewport,
         elapsed: f64,
-    ) -> Result<(), Box<Error>>;
+    ) -> Result<(), Box<dyn Error>>;
 
     /// Handle a message sent by another actor
     fn handle_message(&mut self, message: &Self::Message) -> Self::Message;

@@ -2,7 +2,7 @@
 name = "game"
 version = "0.1.0"
 authors = ["Darin Minamoto <darinm223@gmail.com>"]
-edition = "2018"
+edition = "2024"
 
 [dependencies]
 rand = "0.3"
@@ -18,3 +18,7 @@ features = ["ttf", "image"]
 
 [profile.release]
 debug = true
+debug-assertions = false
+
+[profile.dev]
+debug-assertions = false

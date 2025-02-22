@@ -28,7 +28,7 @@ impl GameView {
         );
         let (actors, viewport) = level_result.unwrap();
 
-        if context.score.score("GAME_SCORE") == None {
+        if context.score.score("GAME_SCORE").is_none() {
             context.score.add_score("GAME_SCORE");
         }
 
@@ -44,7 +44,7 @@ impl GameView {
 
 impl View for GameView {
     #[inline]
-    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<Error>> {
+    fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<dyn Error>> {
         // start off with a black screen
         context.renderer.set_draw_color(Color::RGB(135, 206, 250));
         context.renderer.clear();

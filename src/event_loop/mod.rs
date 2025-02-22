@@ -9,9 +9,9 @@ use sdl2::image::{INIT_JPG, INIT_PNG};
 use std::error::Error;
 
 /// Initializes SDL and creates the window and event loop
-pub fn create_event_loop<F>(window: Window, init_view: F) -> Result<(), Box<Error>>
+pub fn create_event_loop<F>(window: Window, init_view: F) -> Result<(), Box<dyn Error>>
 where
-    F: Fn(&mut Context) -> Box<View>,
+    F: Fn(&mut Context) -> Box<dyn View>,
 {
     let sdl_context = sdl2::init()?;
     let video = sdl_context.video()?;

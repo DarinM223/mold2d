@@ -60,9 +60,9 @@ impl Segment {
         color: Color,
         viewport: &mut Viewport,
         renderer: &mut Renderer,
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         let (rx, ry) = viewport.relative_point((self.point.0 as i32, self.point.1 as i32));
-        let p1 = Point::new(rx as i32, ry as i32);
+        let p1 = Point::new(rx, ry);
         let p2 = Point::new(rx + (self.vector.x as i32), ry + (self.vector.y as i32));
         renderer.set_draw_color(color);
         renderer.draw_line(p1, p2).map_err(From::from)
@@ -146,7 +146,7 @@ fn get_intersection(
     let s = (-s1.1 * (p0.0 - p2.0) + s1.0 * (p0.1 - p2.1)) / (-s2.0 * s1.1 + s1.0 * s2.1);
     let t = (s2.0 * (p0.1 - p2.1) - s2.1 * (p0.0 - p2.0)) / (-s2.0 * s1.1 + s1.0 * s2.1);
 
-    if s >= 0. && s <= 1. && t >= 0. && t <= 1. {
+    if (0. ..=1.).contains(&s) && (0. ..=1.).contains(&t) {
         // Collision detected
         let x = p0.0 + (t * s1.0);
         let y = p0.1 + (t * s1.1);
@@ -256,7 +256,7 @@ mod tests {
             vector: Vector2D { x: 4., y: 0. },
         };
 
-        let side = shorten_ray(&mut segment, &rect);
+        let _side = shorten_ray(&mut segment, &rect);
         assert_eq!(
             segment,
             Segment {

@@ -1,8 +1,8 @@
 mod keyboard_mappings;
 
 use self::keyboard_mappings::KeyboardMappings;
-use sdl2::event::Event;
 use sdl2::EventPump;
+use sdl2::event::Event;
 use std::collections::HashSet;
 
 /// Handles keyboard events through SDL
@@ -28,30 +28,32 @@ impl Events {
     pub fn poll(&mut self) {
         for event in self.pump.poll_iter() {
             match event {
-                Event::KeyDown { keycode, .. } => {
-                    if let Some(keycode) = keycode {
-                        let action = match self.mappings.get_action(keycode as i32) {
-                            Some(action) => action,
-                            None => return,
-                        };
+                Event::KeyDown {
+                    keycode: Some(keycode),
+                    ..
+                } => {
+                    let action = match self.mappings.get_action(keycode as i32) {
+                        Some(action) => action,
+                        None => return,
+                    };
 
-                        if self.events.contains(action) {
-                            self.once_events.remove(action);
-                        } else {
-                            self.events.insert(action.clone());
-                            self.once_events.insert(action.clone());
-                        }
+                    if self.events.contains(action) {
+                        self.once_events.remove(action);
+                    } else {
+                        self.events.insert(action.clone());
+                        self.once_events.insert(action.clone());
                     }
                 }
-                Event::KeyUp { keycode, .. } => {
-                    if let Some(keycode) = keycode {
-                        let action = match self.mappings.get_action(keycode as i32) {
-                            Some(action) => action.clone(),
-                            None => return,
-                        };
-                        self.events.remove(&action);
-                        self.once_events.remove(&action);
-                    }
+                Event::KeyUp {
+                    keycode: Some(keycode),
+                    ..
+                } => {
+                    let action = match self.mappings.get_action(keycode as i32) {
+                        Some(action) => action.clone(),
+                        None => return,
+                    };
+                    self.events.remove(&action);
+                    self.once_events.remove(&action);
                 }
                 Event::Quit { .. } => {
                     self.events.insert("QUIT".to_owned());

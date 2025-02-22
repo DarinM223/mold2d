@@ -21,7 +21,7 @@ pub enum Direction {
 }
 
 pub trait Renderable {
-    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>>;
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<dyn Error>>;
 }
 
 /// A mutable rectangle for a sprite so it can be moved around
@@ -59,12 +59,12 @@ impl SpriteRectangle {
         self.x += change.x;
         self.y += change.y;
         if change.w < 0 {
-            self.w -= change.w.abs() as u32;
+            self.w -= change.w.unsigned_abs();
         } else {
             self.w += change.w as u32;
         }
         if change.h < 0 {
-            self.h -= change.h.abs() as u32;
+            self.h -= change.h.unsigned_abs();
         } else {
             self.w += change.w as u32;
         }
@@ -90,7 +90,7 @@ impl Sprite {
     }
 
     /// Loads a new sprite from a path string to a sprite image file
-    pub fn load(renderer: &Renderer, path: &str) -> Result<Sprite, Box<Error>> {
+    pub fn load(renderer: &Renderer, path: &str) -> Result<Sprite, Box<dyn Error>> {
         let sprite_cache = cache::sprite_cache();
 
         // if sprite is cached, return from cache
@@ -141,7 +141,7 @@ impl Sprite {
 
 impl Renderable for Sprite {
     /// Render the sprite image onto the rectangle
-    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>> {
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<dyn Error>> {
         renderer
             .copy(&self.tex.borrow_mut(), Some(self.src), Some(dest))
             .map_err(From::from)
@@ -195,7 +195,7 @@ impl AnimatedSprite {
 
 impl Renderable for AnimatedSprite {
     /// Renders the current frame of the animated sprite
-    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<Error>> {
+    fn render(&self, renderer: &mut Renderer, dest: Rect) -> Result<(), Box<dyn Error>> {
         assert!(
             !self.frames.is_empty(),
             "There as to be at least one frame!"
@@ -203,7 +203,7 @@ impl Renderable for AnimatedSprite {
         let current_frame = (self.current_time / self.frame_delay) as usize % self.frames.len();
 
         let frame = &self.frames[current_frame];
-        frame.render(renderer, dest).map_err(From::from)
+        frame.render(renderer, dest)
     }
 }
 
@@ -247,7 +247,7 @@ impl Spritesheet {
     /// ```
     pub fn range(&self, start: i32, end: i32) -> Vec<Sprite> {
         (start..end)
-            .map(|elem| {
+            .flat_map(|elem| {
                 let x = elem % self.config.sprites_in_row;
                 let y = elem / self.config.sprites_in_row;
 
@@ -259,7 +259,6 @@ impl Spritesheet {
                 );
                 self.spritesheet.region(region)
             })
-            .flat_map(|sprite| sprite)
             .collect()
     }
 }
@@ -406,7 +405,7 @@ where
         viewport: &mut Viewport,
         renderer: &mut Renderer,
         debug: bool,
-    ) -> Result<(), Box<Error>> {
+    ) -> Result<(), Box<dyn Error>> {
         if debug {
             if let Some(bounding_box) = self.bbox(s) {
                 match *bounding_box {
@@ -423,9 +422,6 @@ where
         let (rx, ry) = viewport.relative_point((rect.x, rect.y));
         let rect = Rect::new(rx, ry, rect.w, rect.h);
 
-        self.anim_mut(s)
-            .unwrap()
-            .render(renderer, rect)
-            .map_err(From::from)
+        self.anim_mut(s).unwrap().render(renderer, rect)
     }
 }

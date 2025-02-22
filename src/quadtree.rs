@@ -115,8 +115,7 @@ impl<'a, Type> Quadtree<'a, Type> {
             }
 
             let mut leftover_parent = Vec::with_capacity(MAX_OBJECTS);
-            while !self.objects.is_empty() {
-                let object = self.objects.pop().unwrap();
+            while let Some(object) = self.objects.pop() {
                 if let Some(index) = self.index(&object.rect) {
                     if let Some(ref mut node) = self.nodes[index as usize] {
                         node.insert(object);
@@ -146,7 +145,7 @@ impl<'a, Type> Quadtree<'a, Type> {
         let mut retrieved_values = Vec::new();
         if let Some(index) = self.index(rect) {
             if let Some(ref mut node) = self.nodes[index as usize] {
-                retrieved_values.extend(node.retrieve(rect).into_iter());
+                retrieved_values.extend(node.retrieve(rect));
             }
         } else {
             // if current object is not in a quadrant add all of the children

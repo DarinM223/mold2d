@@ -120,7 +120,7 @@ macro_rules! block {
                 fn render(&mut self,
                           context: &mut ::mold2d::Context,
                           viewport: &mut ::mold2d::Viewport,
-                          _elapsed: f64) -> Result<(), Box<::std::error::Error>> {
+                          _elapsed: f64) -> Result<(), Box<dyn ::std::error::Error>> {
                     use ::mold2d::Renderable;
                     let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
                     let rect = ::sdl2::rect::Rect::new(rx, ry, self.rect.w, self.rect.h);

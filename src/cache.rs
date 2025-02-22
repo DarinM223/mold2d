@@ -3,7 +3,7 @@ use lazy_static::*;
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use std::collections::HashMap;
 use std::mem;
-use std::sync::{Arc, Mutex, Once, ONCE_INIT};
+use std::sync::{Arc, Mutex, Once};
 
 lazy_static! {
     pub static ref TTF_CONTEXT: Sdl2TtfContext = Sdl2TtfContext;
@@ -19,7 +19,7 @@ pub struct FontCache {
 /// Returns the font cache as a singleton
 pub fn font_cache() -> FontCache {
     static mut SINGLETON: *const FontCache = 0 as *const FontCache;
-    static ONCE: Once = ONCE_INIT;
+    static ONCE: Once = Once::new();
 
     unsafe {
         ONCE.call_once(|| {
@@ -27,7 +27,7 @@ pub fn font_cache() -> FontCache {
                 cache: Arc::new(Mutex::new(HashMap::new())),
             };
 
-            SINGLETON = mem::transmute(Box::new(singleton));
+            SINGLETON = mem::transmute::<Box<FontCache>, *const FontCache>(Box::new(singleton));
         });
 
         (*SINGLETON).clone()
@@ -44,7 +44,7 @@ pub struct SpriteCache {
 /// Returns the sprite cache as a singleton
 pub fn sprite_cache() -> SpriteCache {
     static mut SINGLETON: *const SpriteCache = 0 as *const SpriteCache;
-    static ONCE: Once = ONCE_INIT;
+    static ONCE: Once = Once::new();
 
     unsafe {
         ONCE.call_once(|| {
@@ -52,7 +52,7 @@ pub fn sprite_cache() -> SpriteCache {
                 cache: Arc::new(Mutex::new(HashMap::new())),
             };
 
-            SINGLETON = mem::transmute(Box::new(singleton));
+            SINGLETON = mem::transmute::<Box<SpriteCache>, *const SpriteCache>(Box::new(singleton));
         });
 
         (*SINGLETON).clone()

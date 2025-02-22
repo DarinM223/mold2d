@@ -165,8 +165,8 @@ impl Collision<Rect> for Rect {
     fn collides_with(&self, other: &Rect) -> Option<CollisionSide> {
         let w = 0.5 * f64::from(self.width() + other.width());
         let h = 0.5 * f64::from(self.height() + other.height());
-        let dx = center_point(self).0 - center_point(&other).0;
-        let dy = center_point(self).1 - center_point(&other).1;
+        let dx = center_point(self).0 - center_point(other).0;
+        let dy = center_point(self).1 - center_point(other).1;
 
         if dx.abs() <= w && dy.abs() <= h {
             let wy = w * dy;
@@ -224,7 +224,7 @@ impl BoundingBox {
 impl Collision<BoundingBox> for BoundingBox {
     fn collides_with(&self, other: &BoundingBox) -> Option<CollisionSide> {
         match (self, other) {
-            (&BoundingBox::Rectangle(ref rect1), &BoundingBox::Rectangle(ref rect2)) => {
+            (BoundingBox::Rectangle(rect1), BoundingBox::Rectangle(rect2)) => {
                 rect1.collides_with(rect2)
             }
         }

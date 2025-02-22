@@ -1,5 +1,4 @@
 use super::Actor;
-use std::mem;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct ActorToken(pub char);
@@ -88,7 +87,7 @@ impl<A: Actor + ?Sized> ActorManager<A> {
             if let Some(Slot::Free { next_free }) = self.slots.get(id) {
                 self.free_top = *next_free;
             }
-            mem::replace(&mut self.slots[id], actor_slot);
+            self.slots[id] = actor_slot;
         }
         self.size += 1;
     }
@@ -104,12 +103,9 @@ impl<A: Actor + ?Sized> ActorManager<A> {
             _ => {}
         }
 
-        mem::replace(
-            &mut self.slots[id],
-            Slot::Free {
-                next_free: self.free_top.take(),
-            },
-        );
+        self.slots[id] = Slot::Free {
+            next_free: self.free_top.take(),
+        };
         self.free_top = Some(id);
         self.generation += 1;
         self.size -= 1;
@@ -176,11 +172,11 @@ impl<A: Actor + ?Sized> ActorManager<A> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ActorData;
     use crate::collision::CollisionSide;
     use crate::context::Context;
     use crate::vector::PositionChange;
     use crate::viewport::Viewport;
-    use crate::ActorData;
     use sdl2::rect::Rect;
     use sdl2::render::Renderer;
     use std::error::Error;
@@ -210,7 +206,7 @@ mod tests {
             _context: &mut Context,
             _viewport: &mut Viewport,
             _elapsed: f64,
-        ) -> Result<(), Box<Error>> {
+        ) -> Result<(), Box<dyn Error>> {
             Ok(())
         }
         fn data(&mut self) -> ActorData<Self::Type> {
@@ -232,7 +228,7 @@ mod tests {
         index: ActorIndex,
         _position: ActorPosition,
         _renderer: &mut Renderer,
-    ) -> Box<Actor<Type = (), Message = ()>> {
+    ) -> Box<dyn Actor<Type = (), Message = ()>> {
         Box::new(TestActor(index))
     }
 

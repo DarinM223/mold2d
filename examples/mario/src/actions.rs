@@ -52,7 +52,7 @@ pub enum ActorType {
     Enemy,
 }
 
-pub type Actor = mold2d::Actor<Type = ActorType, Message = ActorMessage>;
+pub type Actor = dyn mold2d::Actor<Type = ActorType, Message = ActorMessage>;
 pub type ActorData = mold2d::ActorData<ActorType>;
 
 // Handlers
@@ -78,9 +78,9 @@ pub fn actor_from_token(
 
 #[inline]
 pub fn handle_message(
-    curr_actor_id: ActorIndex,
+    _curr_actor_id: ActorIndex,
     actors: &mut ActorManager<Actor>,
-    viewport: &mut Viewport,
+    _viewport: &mut Viewport,
     context: &mut Context,
     action: &ActorMessage,
 ) {
@@ -96,12 +96,12 @@ pub fn handle_message(
         UpdateScore(amount) => context.score.increment_score("GAME_SCORE", amount),
         MultipleMessages(ref messages) => {
             for message in messages {
-                handle_message(curr_actor_id, actors, viewport, context, message);
+                handle_message(_curr_actor_id, actors, _viewport, context, message);
             }
         }
         ActorAction { recv_id, .. } => {
             let message = actors.apply_message(recv_id, action, ActorMessage::None);
-            handle_message(curr_actor_id, actors, viewport, context, &message);
+            handle_message(_curr_actor_id, actors, _viewport, context, &message);
         }
         // TODO(DarinM223): change this to check # of lives left and if
         // it is 0, display the game over screen, otherwise display the level screen again
