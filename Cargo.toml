@@ -11,7 +11,7 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2"
-lazy_static = "0.2"
+lazy_static = "1.5.0"
 
 [dependencies.sdl2]
 version = "0.29"

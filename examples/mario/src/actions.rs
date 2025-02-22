@@ -52,7 +52,7 @@ pub enum ActorType {
     Enemy,
 }
 
-pub type Actor = dyn mold2d::Actor<Type = ActorType, Message = ActorMessage>;
+pub type Actor = mold2d::Actor<Type = ActorType, Message = ActorMessage>;
 pub type ActorData = mold2d::ActorData<ActorType>;
 
 // Handlers

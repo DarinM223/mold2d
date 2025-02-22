@@ -31,7 +31,7 @@ impl KeyboardMappings {
     pub fn new(mappings: &str) -> KeyboardMappings {
         let mapping_str = mappings.to_owned();
         let token_stream: Vec<&str> = mapping_str
-            .split(|x| (x == ' ') || (x == '\n'))
+            .split([' ', '\n'])
             .filter(|s| !s.trim().is_empty())
             .collect();
 

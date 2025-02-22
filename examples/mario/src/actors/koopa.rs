@@ -123,7 +123,7 @@ impl Actor for Koopa {
             match *action {
                 ChangePosition(ref change) => {
                     self.rect.apply_change(change);
-                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(&change));
+                    self.anims.map_bbox_mut(|bbox| bbox.apply_change(change));
                     ActorMessage::None
                 }
                 DamageActor(_) => ActorMessage::RemoveActor(self.index),

@@ -28,7 +28,7 @@ impl GameView {
         );
         let (actors, viewport) = level_result.unwrap();
 
-        if context.score.score("GAME_SCORE") == None {
+        if context.score.score("GAME_SCORE").is_none() {
             context.score.add_score("GAME_SCORE");
         }
 
