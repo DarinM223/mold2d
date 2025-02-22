@@ -206,7 +206,7 @@ mod tests {
             _context: &mut Context,
             _viewport: &mut Viewport,
             _elapsed: f64,
-        ) -> Result<(), Box<Error>> {
+        ) -> Result<(), Box<dyn Error>> {
             Ok(())
         }
         fn data(&mut self) -> ActorData<Self::Type> {
@@ -228,7 +228,7 @@ mod tests {
         index: ActorIndex,
         _position: ActorPosition,
         _renderer: &mut Renderer,
-    ) -> Box<Actor<Type = (), Message = ()>> {
+    ) -> Box<dyn Actor<Type = (), Message = ()>> {
         Box::new(TestActor(index))
     }
 

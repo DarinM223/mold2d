@@ -256,7 +256,7 @@ mod tests {
             vector: Vector2D { x: 4., y: 0. },
         };
 
-        let side = shorten_ray(&mut segment, &rect);
+        let _side = shorten_ray(&mut segment, &rect);
         assert_eq!(
             segment,
             Segment {
