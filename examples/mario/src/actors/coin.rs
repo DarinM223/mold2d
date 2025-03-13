@@ -20,7 +20,7 @@ impl Coin {
     pub fn new(
         index: ActorIndex,
         position: ActorPosition,
-        renderer: &mut Canvas<Window>,
+        canvas: &mut Canvas<Window>,
         fps: f64,
     ) -> Coin {
         let anim = Spritesheet::new(
@@ -30,7 +30,7 @@ impl Coin {
                 sprites_in_row: 8,
                 path: "./assets/coin.png",
             },
-            renderer,
+            canvas,
         );
 
         let anims = anim.range(0, 8);
