@@ -14,7 +14,7 @@ libc = "0.2"
 lazy_static = "1.5.0"
 
 [dependencies.sdl2]
-version = "0.31"
+version = "0.37"
 default-features = false
 features = ["ttf", "image", "unsafe_textures"]
 
