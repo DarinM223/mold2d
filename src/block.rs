@@ -68,7 +68,7 @@ macro_rules! block {
             impl $name {
                 pub fn new(index: ::mold2d::ActorIndex,
                            position: ::mold2d::ActorPosition,
-                           renderer: &mut ::sdl2::render::Renderer,
+                           canvas: &mut ::sdl2::render::Canvas<::sdl2::video::Window>,
                            _fps: f64)
                            -> $name {
                     let anim_data = ::mold2d::SpritesheetConfig {
@@ -78,7 +78,7 @@ macro_rules! block {
                         path: $path,
                     };
 
-                    let anim = ::mold2d::Spritesheet::new(anim_data, renderer);
+                    let anim = ::mold2d::Spritesheet::new(anim_data, canvas);
                     let mut sprite_anims = anim.range($index, $index + 1);
                     let sprite = sprite_anims.pop().unwrap();
 
@@ -125,7 +125,7 @@ macro_rules! block {
                     let (rx, ry) = viewport.relative_point((self.rect.x, self.rect.y));
                     let rect = ::sdl2::rect::Rect::new(rx, ry, self.rect.w, self.rect.h);
 
-                    self.sprite.render(&mut context.renderer, rect)
+                    self.sprite.render(&mut context.canvas, rect)
                 }
 
                 fn data(&mut self) -> ::mold2d::ActorData<$actor_type> {

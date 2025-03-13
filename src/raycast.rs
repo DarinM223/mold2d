@@ -3,7 +3,8 @@ use crate::vector::Vector2D;
 use crate::viewport::Viewport;
 use sdl2::pixels::Color;
 use sdl2::rect::{Point, Rect};
-use sdl2::render::Renderer;
+use sdl2::render::Canvas;
+use sdl2::video::Window;
 use std::error::Error;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -59,13 +60,13 @@ impl Segment {
         &self,
         color: Color,
         viewport: &mut Viewport,
-        renderer: &mut Renderer,
+        canvas: &mut Canvas<Window>,
     ) -> Result<(), Box<dyn Error>> {
         let (rx, ry) = viewport.relative_point((self.point.0 as i32, self.point.1 as i32));
         let p1 = Point::new(rx, ry);
         let p2 = Point::new(rx + (self.vector.x as i32), ry + (self.vector.y as i32));
-        renderer.set_draw_color(color);
-        renderer.draw_line(p1, p2).map_err(From::from)
+        canvas.set_draw_color(color);
+        canvas.draw_line(p1, p2).map_err(From::from)
     }
 }
 

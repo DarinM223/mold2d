@@ -3,7 +3,7 @@ use mold2d::{
     Actor, ActorIndex, ActorPosition, Animations, BoundingBox, CollisionSide, Context, Direction,
     PositionChange, SpriteRectangle, Spritesheet, SpritesheetConfig, Vector2D, Viewport,
 };
-use sdl2::render::Renderer;
+use sdl2::{render::Canvas, video::Window};
 use std::error::Error;
 
 const KOOPA_X_MAXSPEED: f64 = 10.0;
@@ -42,7 +42,7 @@ impl Koopa {
     pub fn new(
         index: ActorIndex,
         position: ActorPosition,
-        renderer: &mut Renderer,
+        canvas: &mut Canvas<Window>,
         fps: f64,
     ) -> Koopa {
         use self::KoopaSize::*;
@@ -58,7 +58,7 @@ impl Koopa {
                 sprites_in_row: 4,
                 path: "./assets/koopa.png",
             },
-            renderer,
+            canvas,
         );
         let sanim = Spritesheet::new(
             SpritesheetConfig {
@@ -67,7 +67,7 @@ impl Koopa {
                 sprites_in_row: 4,
                 path: "./assets/shell.png",
             },
-            renderer,
+            canvas,
         );
 
         let bbox = BoundingBox::Rectangle(SpriteRectangle::new(
@@ -255,7 +255,7 @@ impl Actor for Koopa {
     ) -> Result<(), Box<dyn Error>> {
         let key = (self.curr_state, self.size, self.direction);
         self.anims
-            .render(&key, &self.rect, viewport, &mut context.renderer, false)
+            .render(&key, &self.rect, viewport, &mut context.canvas, false)
     }
 
     fn data(&mut self) -> ActorData {

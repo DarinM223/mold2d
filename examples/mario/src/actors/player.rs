@@ -5,7 +5,8 @@ use mold2d::{
     Viewport,
 };
 use sdl2::pixels::Color;
-use sdl2::render::Renderer;
+use sdl2::render::Canvas;
+use sdl2::video::Window;
 use std::error::Error;
 
 const PLAYER_WIDTH: u32 = 30;
@@ -48,7 +49,7 @@ impl Player {
     pub fn new(
         index: ActorIndex,
         position: ActorPosition,
-        renderer: &mut Renderer,
+        canvas: &mut Canvas<Window>,
         fps: f64,
     ) -> Player {
         use self::PlayerSize::*;
@@ -64,7 +65,7 @@ impl Player {
                 sprites_in_row: 4,
                 path: "./assets/mario-big.png",
             },
-            renderer,
+            canvas,
         );
         let sanim = Spritesheet::new(
             SpritesheetConfig {
@@ -73,7 +74,7 @@ impl Player {
                 sprites_in_row: 4,
                 path: "./assets/mario-small.png",
             },
-            renderer,
+            canvas,
         );
 
         let bbox = BoundingBox::Rectangle(SpriteRectangle::new(
@@ -292,16 +293,16 @@ impl Actor for Player {
         if self.debug {
             let data = self.data();
             if let Some(ref mut segment) = self.prev_segment {
-                segment.render(Color::RGB(0, 0, 0), viewport, &mut context.renderer)?;
+                segment.render(Color::RGB(0, 0, 0), viewport, &mut context.canvas)?;
             }
             for side in data.rect.sides() {
-                side.render(Color::RGB(0, 255, 0), viewport, &mut context.renderer)?;
+                side.render(Color::RGB(0, 255, 0), viewport, &mut context.canvas)?;
             }
         }
 
         let key = (self.size, self.curr_state, self.direction);
         self.anims
-            .render(&key, &self.rect, viewport, &mut context.renderer, false)
+            .render(&key, &self.rect, viewport, &mut context.canvas, false)
     }
 
     fn data(&mut self) -> ActorData {

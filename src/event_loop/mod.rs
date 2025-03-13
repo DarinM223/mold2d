@@ -25,11 +25,11 @@ where
         .position_centered()
         .opengl()
         .build()?;
-    let sdl_renderer = sdl_window.renderer().accelerated().build()?;
+    let sdl_canvas = sdl_window.into_canvas().accelerated().build()?;
     let mut game_context = Context::new(
         window,
         Events::new(sdl_context.event_pump()?, ""),
-        sdl_renderer,
+        sdl_canvas,
     );
     let mut curr_view = init_view(&mut game_context);
 
@@ -50,7 +50,7 @@ where
         curr_view.render(&mut game_context, elapsed)?;
 
         // Render the scene
-        game_context.renderer.present();
+        game_context.canvas.present();
     }
 
     Ok(())

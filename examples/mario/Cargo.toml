@@ -12,9 +12,9 @@ clippy = { version = "*", optional = true }
 path = "../../"
 
 [dependencies.sdl2]
-version = "0.29"
+version = "0.31"
 default-features = false
-features = ["ttf", "image"]
+features = ["ttf", "image", "unsafe_textures"]
 
 [profile.release]
 debug = true

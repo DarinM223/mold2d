@@ -7,7 +7,8 @@ use mold2d::{
     ActorIndex, ActorManager, ActorPosition, ActorToken, CollisionSide, Context, MessageHandler,
     PositionChange, Viewport,
 };
-use sdl2::render::Renderer;
+use sdl2::render::Canvas;
+use sdl2::video::Window;
 
 /// Actions for an actor to process
 #[derive(Clone, Debug, PartialEq)]
@@ -62,16 +63,16 @@ pub fn actor_from_token(
     ActorToken(token): ActorToken,
     index: ActorIndex,
     position: ActorPosition,
-    renderer: &mut Renderer,
+    canvas: &mut Canvas<Window>,
 ) -> Box<Actor> {
     match token {
-        'P' => Box::new(Player::new(index, position, renderer, 30.)),
-        'C' => Box::new(Coin::new(index, position, renderer, 20.)),
-        'K' => Box::new(Koopa::new(index, position, renderer, 30.)),
-        'S' => Box::new(StartBlock::new(index, position, renderer, 1.)),
-        '=' => Box::new(GroundBlockTop::new(index, position, renderer, 1.)),
-        '-' => Box::new(GroundBlockMid::new(index, position, renderer, 1.)),
-        '_' => Box::new(StoneBlock::new(index, position, renderer, 1.)),
+        'P' => Box::new(Player::new(index, position, canvas, 30.)),
+        'C' => Box::new(Coin::new(index, position, canvas, 20.)),
+        'K' => Box::new(Koopa::new(index, position, canvas, 30.)),
+        'S' => Box::new(StartBlock::new(index, position, canvas, 1.)),
+        '=' => Box::new(GroundBlockTop::new(index, position, canvas, 1.)),
+        '-' => Box::new(GroundBlockMid::new(index, position, canvas, 1.)),
+        '_' => Box::new(StoneBlock::new(index, position, canvas, 1.)),
         _ => panic!("Actor not implemented for token!"),
     }
 }
@@ -89,7 +90,7 @@ pub fn handle_message(
     match *action {
         AddActor(token, pos) => {
             let next_index = actors.next_index();
-            let actor = actor_from_token(token, next_index.index(), pos, &mut context.renderer);
+            let actor = actor_from_token(token, next_index.index(), pos, &mut context.canvas);
             actors.add(next_index, actor);
         }
         RemoveActor(id) => actors.remove(id),

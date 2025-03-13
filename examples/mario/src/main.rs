@@ -3,8 +3,8 @@ pub mod actors;
 pub mod views;
 
 use crate::views::game_view::GameView;
-use mold2d::event_loop;
 use mold2d::Window;
+use mold2d::event_loop;
 
 fn main() {
     let window = Window {
