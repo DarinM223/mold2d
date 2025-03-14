@@ -4,7 +4,8 @@ use mold2d::{
     Context, PositionChange, Renderable, SpriteRectangle, Spritesheet, SpritesheetConfig, Viewport,
 };
 use sdl2::rect::Rect;
-use sdl2::render::Renderer;
+use sdl2::render::Canvas;
+use sdl2::video::Window;
 use std::error::Error;
 
 const COIN_VALUE: i32 = 5;
@@ -19,7 +20,7 @@ impl Coin {
     pub fn new(
         index: ActorIndex,
         position: ActorPosition,
-        renderer: &mut Renderer,
+        canvas: &mut Canvas<Window>,
         fps: f64,
     ) -> Coin {
         let anim = Spritesheet::new(
@@ -29,7 +30,7 @@ impl Coin {
                 sprites_in_row: 8,
                 path: "./assets/coin.png",
             },
-            renderer,
+            canvas,
         );
 
         let anims = anim.range(0, 8);
@@ -92,7 +93,7 @@ impl Actor for Coin {
         let rect = Rect::new(rx, ry, self.rect.w, self.rect.h);
 
         // Render sprite animation
-        self.animation.render(&mut context.renderer, rect)
+        self.animation.render(&mut context.canvas, rect)
     }
 
     fn data(&mut self) -> ActorData {

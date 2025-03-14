@@ -32,7 +32,7 @@ impl Events {
                     keycode: Some(keycode),
                     ..
                 } => {
-                    let action = match self.mappings.get_action(keycode as i32) {
+                    let action = match self.mappings.get_action(keycode.into_i32()) {
                         Some(action) => action,
                         None => return,
                     };
@@ -48,7 +48,7 @@ impl Events {
                     keycode: Some(keycode),
                     ..
                 } => {
-                    let action = match self.mappings.get_action(keycode as i32) {
+                    let action = match self.mappings.get_action(keycode.into_i32()) {
                         Some(action) => action.clone(),
                         None => return,
                     };

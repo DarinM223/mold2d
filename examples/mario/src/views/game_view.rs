@@ -1,5 +1,5 @@
-use crate::actions::{actor_from_token, handle_collision, handle_message, resolve_collision};
 use crate::actions::{Actor, ActorAction, ActorMessage, ActorType};
+use crate::actions::{actor_from_token, handle_collision, handle_message, resolve_collision};
 use crate::views::background_view::BackgroundView;
 use mold2d::font;
 use mold2d::level;
@@ -20,12 +20,8 @@ pub struct GameView {
 
 impl GameView {
     pub fn new(path: &str, context: &mut Context) -> GameView {
-        let level_result = level::load_level(
-            path,
-            actor_from_token,
-            &mut context.renderer,
-            &context.window,
-        );
+        let level_result =
+            level::load_level(path, actor_from_token, &mut context.canvas, &context.window);
         let (actors, viewport) = level_result.unwrap();
 
         if context.score.score("GAME_SCORE").is_none() {
@@ -46,8 +42,8 @@ impl View for GameView {
     #[inline]
     fn render(&mut self, context: &mut Context, elapsed: f64) -> Result<(), Box<dyn Error>> {
         // start off with a black screen
-        context.renderer.set_draw_color(Color::RGB(135, 206, 250));
-        context.renderer.clear();
+        context.canvas.set_draw_color(Color::RGB(135, 206, 250));
+        context.canvas.clear();
 
         // render contained actors
         for actor in self.actors.values_mut() {
@@ -64,7 +60,7 @@ impl View for GameView {
             if let Some(ref prev_score) = self.cached_score {
                 if *prev_score == score_text {
                     if let Some(ref font_sprite) = self.cached_font_sprite {
-                        font::render_text(&mut context.renderer, font_sprite, (100, 100))?;
+                        font::render_text(&mut context.canvas, font_sprite, (100, 100))?;
                     }
                     had_cached_score = true;
                 }
@@ -72,14 +68,14 @@ impl View for GameView {
 
             if !had_cached_score {
                 let font_sprite = font::text_sprite(
-                    &context.renderer,
+                    &context.canvas,
                     &score_text[..],
                     "assets/belligerent.ttf",
                     32,
                     Color::RGB(0, 255, 0),
                 )
                 .unwrap();
-                font::render_text(&mut context.renderer, &font_sprite, (100, 100))?;
+                font::render_text(&mut context.canvas, &font_sprite, (100, 100))?;
                 self.cached_score = Some(score_text);
                 self.cached_font_sprite = Some(font_sprite);
             }

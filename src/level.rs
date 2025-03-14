@@ -2,7 +2,7 @@ use super::Actor;
 use crate::actor_manager::{ActorIndex, ActorManager, ActorPosition, ActorToken};
 use crate::context::Window;
 use crate::viewport::Viewport;
-use sdl2::render::Renderer;
+use sdl2::render::Canvas;
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader};
@@ -13,12 +13,12 @@ pub const GRID_SIZE: i32 = 40;
 pub fn load_level<A, F>(
     path: &str,
     actor_for_token: F,
-    renderer: &mut Renderer,
+    canvas: &mut Canvas<sdl2::video::Window>,
     window: &Window,
 ) -> io::Result<(ActorManager<A>, Viewport)>
 where
     A: Actor + ?Sized,
-    F: Fn(ActorToken, ActorIndex, ActorPosition, &mut Renderer) -> Box<A>,
+    F: Fn(ActorToken, ActorIndex, ActorPosition, &mut Canvas<sdl2::video::Window>) -> Box<A>,
 {
     let mut center_point = (0, 0);
     let mut manager = ActorManager::new();
@@ -39,7 +39,7 @@ where
                         ActorToken(token),
                         next_index.index(),
                         ActorPosition(x, y),
-                        renderer,
+                        canvas,
                     );
                     manager.add(next_index, actor);
 

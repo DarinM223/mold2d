@@ -1,6 +1,6 @@
 use crate::events::Events;
 use crate::score::Score;
-use sdl2::render::Renderer;
+use sdl2::render::Canvas;
 
 /// Represents a SDL window to render
 pub struct Window {
@@ -10,22 +10,22 @@ pub struct Window {
 }
 
 /// Contains the main context variables for the game
-/// like the renderer and the events triggered
-pub struct Context<'a> {
+/// like the canvas and the events triggered
+pub struct Context {
     pub events: Events,
-    pub renderer: Renderer<'a>,
+    pub canvas: Canvas<sdl2::video::Window>,
     pub window: Window,
     pub score: Score,
 }
 
-impl<'a> Context<'a> {
+impl Context {
     /// Creates a new context given the path for the keyboard configuration
-    /// and the sdl renderer
-    pub fn new(window: Window, events: Events, renderer: Renderer<'a>) -> Context<'a> {
+    /// and the sdl canvas
+    pub fn new(window: Window, events: Events, canvas: Canvas<sdl2::video::Window>) -> Context {
         Context {
             window,
             events,
-            renderer,
+            canvas,
             score: Score::new(),
         }
     }

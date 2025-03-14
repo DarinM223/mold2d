@@ -178,7 +178,8 @@ mod tests {
     use crate::vector::PositionChange;
     use crate::viewport::Viewport;
     use sdl2::rect::Rect;
-    use sdl2::render::Renderer;
+    use sdl2::render::Canvas;
+    use sdl2::video::Window;
     use std::error::Error;
 
     #[derive(Debug, Clone, PartialEq)]
@@ -227,7 +228,7 @@ mod tests {
         _token: ActorToken,
         index: ActorIndex,
         _position: ActorPosition,
-        _renderer: &mut Renderer,
+        _canvas: &mut Canvas<Window>,
     ) -> Box<dyn Actor<Type = (), Message = ()>> {
         Box::new(TestActor(index))
     }

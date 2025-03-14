@@ -5,7 +5,7 @@ use super::{View, ViewAction};
 use crate::context::{Context, Window};
 use crate::events::Events;
 use sdl2;
-use sdl2::image::{INIT_JPG, INIT_PNG};
+use sdl2::image::InitFlag;
 use std::error::Error;
 
 /// Initializes SDL and creates the window and event loop
@@ -16,7 +16,7 @@ where
     let sdl_context = sdl2::init()?;
     let video = sdl_context.video()?;
     let mut timer = sdl_context.timer()?;
-    let _image_context = sdl2::image::init(INIT_PNG | INIT_JPG)?;
+    let _image_context = sdl2::image::init(InitFlag::PNG | InitFlag::JPG)?;
     let _ttf_context = sdl2::ttf::init()?;
 
     let mut frame_timer = FrameTimer::new(&mut timer, true);
@@ -25,11 +25,11 @@ where
         .position_centered()
         .opengl()
         .build()?;
-    let sdl_renderer = sdl_window.renderer().accelerated().build()?;
+    let sdl_canvas = sdl_window.into_canvas().accelerated().build()?;
     let mut game_context = Context::new(
         window,
         Events::new(sdl_context.event_pump()?, ""),
-        sdl_renderer,
+        sdl_canvas,
     );
     let mut curr_view = init_view(&mut game_context);
 
@@ -50,7 +50,7 @@ where
         curr_view.render(&mut game_context, elapsed)?;
 
         // Render the scene
-        game_context.renderer.present();
+        game_context.canvas.present();
     }
 
     Ok(())
